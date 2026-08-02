@@ -178,6 +178,7 @@ function renderMetrics(){
   document.getElementById('dp-rappi-original').textContent='Pico: '+fmtCOP(DEBT_ORIGINAL.rappitc);
 
   renderMonthComparison();
+  renderCategoryTrend();
   renderEmergencyGrowth();
   renderDebtProjection();
 }
@@ -236,6 +237,54 @@ function renderMonthComparison(){
   legend.innerHTML=meses.map(m=>{
     const [y,mo]=m.split('-');
     return `<span>${monthNames[parseInt(mo)-1]}</span>`;
+  }).join('');
+}
+
+function renderCategoryTrend(){
+  const monthNames=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const el=document.getElementById('category-trend-chart');
+  if(!el)return;
+
+  const gastosReales=entries.filter(e=>e.txType!=='ingreso'&&e.cat!=='Transferencia');
+  const todosLosMeses=[...new Set(gastosReales.map(e=>e.date.slice(0,7)))].sort();
+  const meses=todosLosMeses.slice(-6);
+  if(meses.length===0){
+    el.innerHTML='<div style="color:var(--text3);font-size:12px">Sin datos suficientes aún</div>';
+    return;
+  }
+
+  // Total gastado por categoría dentro de esos 6 meses, para elegir cuáles mostrar
+  const totalPorCategoria={};
+  const porCategoriaYMes={};
+  gastosReales.filter(e=>meses.includes(e.date.slice(0,7))).forEach(e=>{
+    const monto=entryCOP(e);
+    totalPorCategoria[e.cat]=(totalPorCategoria[e.cat]||0)+monto;
+    if(!porCategoriaYMes[e.cat])porCategoriaYMes[e.cat]={};
+    const m=e.date.slice(0,7);
+    porCategoriaYMes[e.cat][m]=(porCategoriaYMes[e.cat][m]||0)+monto;
+  });
+
+  const topCategorias=Object.keys(totalPorCategoria).sort((a,b)=>totalPorCategoria[b]-totalPorCategoria[a]).slice(0,8);
+
+  el.innerHTML=topCategorias.map(cat=>{
+    const c=col(cat);
+    const datosMes=porCategoriaYMes[cat];
+    const maxDelPeriodo=Math.max(...meses.map(m=>datosMes[m]||0),1); // normalizado a su propio máximo, para ver el patrón aunque sea una categoría chica
+    const barras=meses.map(m=>{
+      const val=datosMes[m]||0;
+      const h=Math.max(3,Math.round(val/maxDelPeriodo*36));
+      const [y,mo]=m.split('-');
+      return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px" title="${monthNames[parseInt(mo)-1]}: ${fmtCOP(val)}">
+        <div style="width:100%;max-width:14px;height:${h}px;background:${c};border-radius:2px 2px 0 0;opacity:${val===0?'0.15':'1'}"></div>
+      </div>`;
+    }).join('');
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="width:110px;min-width:0;flex-shrink:0">
+        <div style="font-size:11px;color:${c};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${scat(cat)}</div>
+        <div style="font-size:9px;color:var(--text3);font-family:var(--mono)">${fmtCOP(totalPorCategoria[cat])}</div>
+      </div>
+      <div style="flex:1;display:flex;align-items:flex-end;gap:3px;height:40px">${barras}</div>
+    </div>`;
   }).join('');
 }
 

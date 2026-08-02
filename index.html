@@ -123,19 +123,8 @@
     <div style="font-size:13px;font-weight:700;margin-bottom:14px">⚙️ Opciones</div>
     <button class="btn-add" style="margin:0 0 8px;background:var(--surface3);color:var(--text)" onclick="document.getElementById('opciones-modal').style.display='none';syncNow()">🔄 Sincronizar</button>
     <button class="btn-add" style="margin:0 0 8px;background:var(--surface3);color:var(--accent);border:1px solid var(--accent)" onclick="document.getElementById('opciones-modal').style.display='none';guardarConVerificacion()">💾 Guardar y verificar</button>
-    <button class="btn-add" style="margin:0 0 8px;background:var(--surface3);color:var(--blue);border:1px solid var(--blue)" onclick="document.getElementById('opciones-modal').style.display='none';exportarRespaldo()">⬇️ Exportar respaldo</button>
-    <button class="btn-add" style="margin:0 0 14px;background:var(--surface3);color:var(--warn);border:1px solid var(--warn)" onclick="document.getElementById('opciones-modal').style.display='none';abrirImportModal()">⬆️ Importar respaldo</button>
+    <button class="btn-add" style="margin:0 0 14px;background:var(--surface3);color:var(--blue);border:1px solid var(--blue)" onclick="document.getElementById('opciones-modal').style.display='none';exportarRespaldo()">⬇️ Exportar respaldo</button>
     <button class="btn-add" style="margin:0;background:none;color:var(--text2)" onclick="document.getElementById('opciones-modal').style.display='none'">Cerrar</button>
-  </div>
-</div>
-<div id="import-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
-  <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:420px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.5)">
-    <div style="font-size:13px;line-height:1.6;margin-bottom:10px">📋 Abre tu archivo de respaldo (.json) en el Bloc de notas / Archivos de tu celular, <strong>copia todo el texto</strong>, y pégalo aquí:</div>
-    <textarea id="import-paste-text" placeholder="Pega aquí el contenido del respaldo…" style="width:100%;height:140px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:10px;padding:8px;margin-bottom:12px"></textarea>
-    <div style="display:flex;gap:8px">
-      <button class="btn-add" style="margin:0" onclick="procesarImportPegado()">Importar</button>
-      <button class="btn-add" style="margin:0;background:var(--surface3);color:var(--text)" onclick="document.getElementById('import-modal').style.display='none'">Cancelar</button>
-    </div>
   </div>
 </div>
 <div id="save-toast" style="display:none;position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:1100;padding:8px 16px;border-radius:99px;font-size:12px;font-family:var(--mono);font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,.4);transition:opacity .3s"></div>
@@ -535,6 +524,12 @@
     </div>
 
     <div class="card">
+      <div class="card-title">📈 Tendencia por categoría — últimos 6 meses</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:12px">Solo tus categorías con más gasto en este período — cada barra es un mes, de izquierda (más viejo) a derecha (más reciente).</div>
+      <div id="category-trend-chart"></div>
+    </div>
+
+    <div class="card">
       <div class="card-title">🛡️ Crecimiento del fondo de emergencia</div>
       <div id="emergency-growth" style="font-size:13px;line-height:2"></div>
     </div>
@@ -601,18 +596,18 @@
 
   <div class="hint">💾 Todo se guarda automáticamente en tu base de datos y persiste en cualquier dispositivo donde inicies sesión.<br>Selecciona la cuenta correcta en cada movimiento — el saldo se actualiza solo.</div>
 </div>
-<script src="js/constantes.js"></script>
-<script src="js/filtros-busqueda.js"></script>
-<script src="js/modales.js"></script>
-<script src="js/guardado-core.js"></script>
-<script src="js/metas.js"></script>
-<script src="js/cuentas-carga.js"></script>
-<script src="js/balances-formato.js"></script>
-<script src="js/movimientos.js"></script>
-<script src="js/render-metricas.js"></script>
-<script src="js/pendientes-transferencias.js"></script>
-<script src="js/respaldo.js"></script>
-<script src="js/verificacion-sync.js"></script>
-<script src="js/auth-arranque.js"></script>
+<script src="constantes.js"></script>
+<script src="filtros-busqueda.js"></script>
+<script src="modales.js"></script>
+<script src="guardado-core.js"></script>
+<script src="metas.js"></script>
+<script src="cuentas-carga.js"></script>
+<script src="balances-formato.js"></script>
+<script src="movimientos.js"></script>
+<script src="render-metricas.js"></script>
+<script src="pendientes-transferencias.js"></script>
+<script src="respaldo.js"></script>
+<script src="verificacion-sync.js"></script>
+<script src="auth-arranque.js"></script>
 </body>
 </html>

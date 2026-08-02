@@ -1,6 +1,7 @@
 function renderPendientes(){
   const list=document.getElementById('pendientes-list');
   if(!list)return;
+  const hoy=todayStr();
   const sorted=[...pendientes].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
   list.innerHTML=sorted.length?sorted.map(p=>{
     const meta=ACCOUNTS_META[p.acc];
@@ -10,13 +11,24 @@ function renderPendientes(){
     // El monto es el que tú decidiste (editable) — para tarjetas mostramos el saldo actual como referencia,
     // sin forzarlo, porque el pago del mes (ej. mínimo) puede ser distinto al saldo total.
     const saldoActualStr=esTarjeta?(meta.currency==='USD'?fmtUSD(accounts[p.acc]):fmtCOP(accounts[p.acc])):null;
-    const vencido=!p.isIncome&&p.date&&p.date<todayStr();
-    return `<div class="entry-row" style="${vencido?'background:rgba(255,107,107,.1);border-left:3px solid var(--danger)':''}">
+    const vencido=!p.isIncome&&p.date&&p.date<hoy;
+    let proximoAVencer=false;
+    if(!p.isIncome&&p.date&&!vencido){
+      const diffDias=Math.round((new Date(p.date+'T00:00:00')-new Date(hoy+'T00:00:00'))/86400000);
+      proximoAVencer=diffDias>=0&&diffDias<=3; // hoy, mañana, o dentro de los próximos 3 días
+    }
+    const estiloFila=vencido?'background:rgba(255,107,107,.1);border-left:3px solid var(--danger)'
+      :proximoAVencer?'background:rgba(255,179,71,.08);border-left:3px solid var(--warn)'
+      :'';
+    const prefijoNombre=vencido?'🔴 VENCIDO — ':proximoAVencer?'⏰ PRONTO — ':p.isIncome?'💰 ':'';
+    const colorPunto=vencido?'var(--danger)':proximoAVencer?'var(--warn)':c;
+    const colorMonto=p.isIncome?'var(--accent)':vencido?'var(--danger)':proximoAVencer?'var(--warn)':'var(--text)';
+    return `<div class="entry-row" style="${estiloFila}">
       <div class="entry-row-top">
         <span class="entry-date">${p.date?fmtDate(p.date):'—'}</span>
-        <div class="entry-dot" style="background:${vencido?'var(--danger)':c}"></div>
-        <div class="entry-name">${vencido?'🔴 VENCIDO — ':p.isIncome?'💰 ':''}${p.name}</div>
-        <span class="entry-amount" style="color:${p.isIncome?'var(--accent)':vencido?'var(--danger)':'var(--text)'}">${p.isIncome?'+':''}${montoStr}</span>
+        <div class="entry-dot" style="background:${colorPunto}"></div>
+        <div class="entry-name">${prefijoNombre}${p.name}</div>
+        <span class="entry-amount" style="color:${colorMonto}">${p.isIncome?'+':''}${montoStr}</span>
       </div>
       <div class="entry-row-bottom">
         <span class="entry-cat" style="background:${c}22;color:${c}">${scat(p.cat)}</span>
