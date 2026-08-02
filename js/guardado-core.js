@@ -14,23 +14,6 @@ function registrarErrorDiagnostico(key,err,dataStr){
   console.error(`Error real en ${key}:`,err);
 }
 
-// Reintenta el guardado ante fallas transitorias del servicio (ej: "Unexpected response type")
-// antes de darse por vencido. Usado por todos los guardados normales, no solo por "Guardar y verificar".
-async function setConReintentos(key,dataStr,maxIntentos=5){
-  let ultimoError=null;
-  for(let i=0;i<maxIntentos;i++){
-    try{
-      await window.storage.set(key,dataStr);
-      return true;
-    }catch(e){
-      ultimoError=e;
-    }
-    if(i<maxIntentos-1)await new Promise(r=>setTimeout(r,600*(i+1)));
-  }
-  registrarErrorDiagnostico(key,ultimoError,dataStr);
-  return false;
-}
-
 async function reintentarCarga(){
   cargaConFallos=false; // se re-evalúa durante la carga: si vuelve a fallar, se reactiva solo
   await loadData();

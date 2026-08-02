@@ -131,9 +131,10 @@ async function autoSeedRecurrentes(){
   const mesActual=todayStr().slice(0,7);
   let seeded=[];
   try{
-    const r=await window.storage.get('seeded_months_v3');
-    if(r&&r.value)seeded=JSON.parse(r.value);
-  }catch(e){}
+    const {data,error}=await sb.from('fin_configuracion').select('seeded_months').maybeSingle();
+    if(error)throw error;
+    if(data&&data.seeded_months)seeded=data.seeded_months;
+  }catch(e){ registrarErrorDiagnostico('fin_configuracion (lectura seeded_months)',e); }
   if(seeded.includes(mesActual))return;
 
   const yaExisten=new Set(pendientes.filter(p=>p.date&&p.date.slice(0,7)===mesActual).map(p=>p.name));
@@ -163,8 +164,12 @@ async function autoSeedRecurrentes(){
     }catch(e){ registrarErrorDiagnostico('fin_pendientes (siembra automática)',e); }
   }
   try{
-    await setConReintentos('seeded_months_v3',JSON.stringify(seeded));
-  }catch(e){}
+    const {error}=await sb.from('fin_configuracion').upsert(
+      {user_id:currentUserId,trm:accounts.trm,vehiculos:vehiculos&&vehiculos.length?vehiculos:['Moto'],seeded_months:seeded},
+      {onConflict:'user_id'}
+    );
+    if(error)throw error;
+  }catch(e){ registrarErrorDiagnostico('fin_configuracion (guardar seeded_months)',e); }
   if(agregados>0){
     const statusEl=document.getElementById('sync-status');
     statusEl.textContent=`✓ ${agregados} pendientes recurrentes cargados para este mes`;
