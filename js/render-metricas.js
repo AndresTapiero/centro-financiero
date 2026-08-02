@@ -40,11 +40,11 @@ function render(){
       <div class="entry-row-bottom">
         <span class="entry-cat" style="background:${c}22;color:${c}">${scat(e.cat)}</span>
         <span class="entry-acc">${meta.label} · ${saldoActual}${e.vehiculo?' · 🚗 '+e.vehiculo:''}${esAnomalia?' · <span style="color:var(--danger)">monto alto</span>':''}</span>
-        <div class="entry-actions">
-          ${esAnomalia?`<button class="btn-add" style="width:auto;height:26px;padding:0 8px;font-size:10px;margin:0" onclick="fixCurrency('${e.id}')">💱 Era COP</button>`:''}
-          <button class="btn-add" style="width:auto;height:26px;padding:0 8px;font-size:12px;margin:0;background:var(--surface3);color:var(--text2)" onclick="openEditEntryModal('${e.id}')" title="Editar movimiento">✏️</button>
-          <button class="btn-del" onclick="deleteEntry('${e.id}')">×</button>
-        </div>
+      </div>
+      <div class="entry-actions">
+        ${esAnomalia?`<button class="entry-icon-btn" style="width:auto;padding:0 8px" onclick="fixCurrency('${e.id}')">💱 Era COP</button>`:''}
+        <button class="entry-icon-btn" onclick="openEditEntryModal('${e.id}')" title="Editar movimiento">✏️</button>
+        <button class="entry-del-btn" onclick="deleteEntry('${e.id}')" title="Eliminar">×</button>
       </div>
     </div>`;
   }).join(''):'<div class="empty">📋 Sin movimientos</div>';

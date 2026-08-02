@@ -21,11 +21,11 @@ function renderPendientes(){
       <div class="entry-row-bottom">
         <span class="entry-cat" style="background:${c}22;color:${c}">${scat(p.cat)}</span>
         <span class="entry-acc">${meta.label}${esTarjeta?` · saldo actual: ${saldoActualStr}`:''}</span>
-        <div class="entry-actions">
-          <button class="btn-add" style="width:auto;height:26px;padding:0 8px;font-size:12px;margin:0;background:var(--surface3);color:var(--text2)" onclick="editPendiente('${p.id}')" title="Editar monto">✏️</button>
-          <button class="btn-add" style="width:auto;height:26px;padding:0 10px;font-size:11px;margin:0" onclick="payPendiente('${p.id}')">${p.isIncome?'Recibir':'Pagar'}</button>
-          <button class="btn-del" onclick="deletePendiente('${p.id}')">×</button>
-        </div>
+      </div>
+      <div class="entry-actions">
+        <button class="entry-icon-btn" onclick="editPendiente('${p.id}')" title="Editar monto">✏️</button>
+        <button class="entry-primary-btn" onclick="payPendiente('${p.id}')">${p.isIncome?'Recibir':'Pagar'}</button>
+        <button class="entry-del-btn" onclick="deletePendiente('${p.id}')" title="Eliminar">×</button>
       </div>
     </div>`;
   }).join(''):'<div class="empty">✅ Sin pendientes — todo al día</div>';
