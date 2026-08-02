@@ -83,14 +83,17 @@ option{color:var(--text);padding:6px}
 .entries-list{max-height:380px;overflow-y:auto}
 .entries-list::-webkit-scrollbar{width:4px}
 .entries-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
-.entry-row{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border);transition:background .1s}
+.entry-row{padding:10px 16px;border-bottom:1px solid var(--border);transition:background .1s}
 .entry-row:last-child{border-bottom:none}.entry-row:hover{background:var(--surface2)}
-.entry-date{font-family:var(--mono);font-size:11px;color:var(--text3);min-width:38px}
+.entry-row-top{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.entry-date{font-family:var(--mono);font-size:11px;color:var(--text3);flex-shrink:0}
 .entry-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.entry-name{flex:1;font-size:13px;min-width:0}
-.entry-acc{font-size:9px;color:var(--text3);font-family:var(--mono)}
-.entry-cat{font-size:10px;font-family:var(--mono);padding:2px 8px;border-radius:99px;white-space:nowrap}
-.entry-amount{font-family:var(--mono);font-size:13px;font-weight:600;min-width:100px;text-align:right}
+.entry-name{flex:1;font-size:13px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.entry-row-bottom{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding-left:16px}
+.entry-acc{font-size:9px;color:var(--text3);font-family:var(--mono);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1}
+.entry-cat{font-size:10px;font-family:var(--mono);padding:2px 8px;border-radius:99px;white-space:nowrap;flex-shrink:0;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.entry-amount{font-family:var(--mono);font-size:13px;font-weight:600;flex-shrink:0;margin-left:auto;padding-left:8px}
+.entry-actions{display:flex;gap:4px;flex-shrink:0;margin-left:auto}
 .btn-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:0 2px;transition:color .15s}
 .btn-del:hover{color:var(--danger)}
 .empty{padding:2.5rem;text-align:center;color:var(--text3);font-size:13px}
@@ -254,6 +257,28 @@ option{color:var(--text);padding:6px}
     <button class="btn-add" style="margin:0" onclick="cerrarExportFallback()">Cerrar</button>
   </div>
 </div>
+<div id="edit-pendiente-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
+  <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:340px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+    <div style="font-size:13px;line-height:1.6;margin-bottom:10px">✏️ <strong>Editar monto</strong></div>
+    <div id="edit-pendiente-hint" style="font-size:11px;color:var(--text3);margin-bottom:10px"></div>
+    <input class="inp inp-num" id="edit-pendiente-amount" type="number" step="0.01" style="width:100%;margin-bottom:10px">
+    <button class="btn-add" id="edit-pendiente-usar-saldo" style="display:none;margin:0 0 14px;background:var(--surface3);color:var(--text2);font-size:11px;height:32px" onclick="usarSaldoActualEnEdicion()">🔄 Usar saldo actual de la tarjeta</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn-add" style="margin:0" onclick="resolverEditPendienteModal(true)">Guardar</button>
+      <button class="btn-add" style="margin:0;background:var(--surface3);color:var(--text)" onclick="resolverEditPendienteModal(false)">Cancelar</button>
+    </div>
+  </div>
+</div>
+<div id="opciones-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
+  <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:340px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+    <div style="font-size:13px;font-weight:700;margin-bottom:14px">⚙️ Opciones</div>
+    <button class="btn-add" style="margin:0 0 8px;background:var(--surface3);color:var(--text)" onclick="document.getElementById('opciones-modal').style.display='none';syncNow()">🔄 Sincronizar</button>
+    <button class="btn-add" style="margin:0 0 8px;background:var(--surface3);color:var(--accent);border:1px solid var(--accent)" onclick="document.getElementById('opciones-modal').style.display='none';guardarConVerificacion()">💾 Guardar y verificar</button>
+    <button class="btn-add" style="margin:0 0 8px;background:var(--surface3);color:var(--blue);border:1px solid var(--blue)" onclick="document.getElementById('opciones-modal').style.display='none';exportarRespaldo()">⬇️ Exportar respaldo</button>
+    <button class="btn-add" style="margin:0 0 14px;background:var(--surface3);color:var(--warn);border:1px solid var(--warn)" onclick="document.getElementById('opciones-modal').style.display='none';abrirImportModal()">⬆️ Importar respaldo</button>
+    <button class="btn-add" style="margin:0;background:none;color:var(--text2)" onclick="document.getElementById('opciones-modal').style.display='none'">Cerrar</button>
+  </div>
+</div>
 <div id="import-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
   <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:420px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.5)">
     <div style="font-size:13px;line-height:1.6;margin-bottom:10px">📋 Abre tu archivo de respaldo (.json) en el Bloc de notas / Archivos de tu celular, <strong>copia todo el texto</strong>, y pégalo aquí:</div>
@@ -272,10 +297,7 @@ option{color:var(--text);padding:6px}
   </div>
   <div style="display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px;margin-bottom:1rem">
     <span class="sync-status" id="sync-status" style="margin-bottom:0">Cargando…</span>
-    <button onclick="syncNow()" style="background:var(--surface2);border:1px solid var(--border2);color:var(--text2);font-size:10px;padding:3px 10px;border-radius:99px;cursor:pointer;font-family:var(--mono)">🔄 Sincronizar</button>
-    <button onclick="guardarConVerificacion()" style="background:var(--surface2);border:1px solid var(--accent);color:var(--accent);font-size:10px;padding:3px 10px;border-radius:99px;cursor:pointer;font-family:var(--mono)">💾 Guardar y verificar</button>
-    <button onclick="exportarRespaldo()" style="background:var(--surface2);border:1px solid var(--blue);color:var(--blue);font-size:10px;padding:3px 10px;border-radius:99px;cursor:pointer;font-family:var(--mono)">⬇️ Exportar respaldo</button>
-    <button onclick="abrirImportModal()" style="background:var(--surface2);border:1px solid var(--warn);color:var(--warn);font-size:10px;padding:3px 10px;border-radius:99px;cursor:pointer;font-family:var(--mono)">⬆️ Importar respaldo</button>
+    <button onclick="document.getElementById('opciones-modal').style.display='flex'" style="background:var(--surface2);border:1px solid var(--border2);color:var(--text2);font-size:10px;padding:3px 10px;border-radius:99px;cursor:pointer;font-family:var(--mono)">⚙️ Opciones</button>
   </div>
 
   <div id="adjust-banner" style="display:none;position:fixed;bottom:16px;left:50%;transform:translateX(-50%);max-width:92%;width:480px;background:var(--surface2);border:1px solid var(--accent);border-radius:12px;padding:16px;z-index:1000;box-shadow:0 10px 40px rgba(0,0,0,.5)">
@@ -504,11 +526,19 @@ option{color:var(--text);padding:6px}
       <span style="font-family:var(--mono);font-size:16px;font-weight:700" id="filter-balance-value"></span>
     </div>
     <div class="entries-wrap">
-      <div class="entries-header">
-        <span class="entries-title">Movimientos del mes</span>
-        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-          <select class="inp" id="filter-account" style="height:28px;font-size:10px;padding:0 8px" onchange="setFilterAccount()">
-            <option value="todas">Todas las cuentas</option>
+      <div class="entries-header" style="flex-direction:column;align-items:stretch;gap:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span class="entries-title">Movimientos del mes</span>
+          <button class="btn-analyze" onclick="sendSummary()">📋 Copiar resumen para Claude</button>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <select class="inp" id="filter-type" style="height:30px;font-size:10px;padding:0 8px;flex:1;min-width:90px" onchange="setFilterType()">
+            <option value="todos">Todo tipo</option>
+            <option value="gasto">➖ Gastos</option>
+            <option value="ingreso">➕ Ingresos</option>
+          </select>
+          <select class="inp" id="filter-account" style="height:30px;font-size:10px;padding:0 8px;flex:1;min-width:90px" onchange="setFilterAccount()">
+            <option value="todas">Toda cuenta</option>
             <optgroup label="🇨🇴 Pesos">
               <option value="nequi">Nequi</option>
               <option value="debito">Davivienda</option>
@@ -522,9 +552,14 @@ option{color:var(--text);padding:6px}
               <option value="ontop">Ontop</option>
             </optgroup>
           </select>
+          <select class="inp" id="filter-category" style="height:30px;font-size:10px;padding:0 8px;flex:1;min-width:100px" onchange="setFilterCategory()">
+            <option value="todas">Toda categoría</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
           <button class="tab" id="sort-fecha" style="padding:4px 10px;font-size:10px" onclick="setSortMode('fecha')">📅 Fecha</button>
           <button class="tab" id="sort-cuenta" style="padding:4px 10px;font-size:10px" onclick="setSortMode('cuenta')">🏦 Cuenta</button>
-          <button class="btn-analyze" onclick="sendSummary()">📋 Copiar resumen para Claude</button>
+          <button id="clear-filters-btn" style="display:none;background:none;border:none;color:var(--text3);font-size:10px;cursor:pointer;text-decoration:underline;margin-left:auto" onclick="limpiarFiltros()">Limpiar filtros</button>
         </div>
       </div>
       <div class="entries-list" id="entries-list"></div>
@@ -540,7 +575,7 @@ option{color:var(--text);padding:6px}
         <input class="inp" id="pend-date" type="date"/>
       </div>
       <div class="input-grid2">
-        <select class="inp" id="pend-account">
+        <select class="inp" id="pend-account" onchange="onPendAccountChange()">
           <optgroup label="🏦 Cuentas líquidas (COP)">
             <option value="debito">🏦 Davivienda</option>
             <option value="nequi">💳 Nequi</option>
@@ -686,10 +721,15 @@ option{color:var(--text);padding:6px}
 
   <div id="tab-diagnostico" class="tab-content">
     <div class="card">
-      <div class="card-title">🔧 Diagnóstico técnico — tamaño real de cada dato</div>
-      <div style="font-size:11px;color:var(--text3);margin-bottom:14px">El límite de la plataforma es 5MB por dato. Si algo se acerca a ese límite, es la causa real de los errores de guardado — no una suposición.</div>
-      <div id="diagnostico-body"></div>
-      <button class="btn-add" style="margin-top:14px" onclick="renderDiagnostico()">🔄 Recalcular ahora</button>
+      <div class="card-title">👤 Sesión</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Conectado como <strong id="diagnostico-email" style="color:var(--text)"></strong></div>
+      <button class="btn-add" style="background:var(--surface3);color:var(--danger);border:1px solid var(--danger)" onclick="cerrarSesion()">🚪 Cerrar sesión</button>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Datos en Supabase</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:12px">Cantidad de filas por tabla — compáralo con lo que ves en pantalla si algo no cuadra.</div>
+      <div id="diagnostico-conteos" style="font-size:12px;font-family:var(--mono)"></div>
+      <button class="btn-add" style="margin-top:14px;background:var(--surface3);color:var(--text)" onclick="renderDiagnostico()">🔄 Recalcular ahora</button>
     </div>
     <div class="card">
       <div class="card-title">📋 Último error real registrado</div>
@@ -697,17 +737,12 @@ option{color:var(--text);padding:6px}
     </div>
     <div class="card">
       <div class="card-title">🔁 Reintentar carga de datos</div>
-      <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Si al abrir viste el aviso de "guardado bloqueado" o estás viendo datos de ejemplo en vez de los tuyos, el servidor falló al cargar. Presiona aquí para reintentar traer tus datos reales — si funciona, el guardado se desbloquea automáticamente.</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Si al abrir viste el aviso de "guardado bloqueado" o estás viendo datos de ejemplo en vez de los tuyos, la conexión falló al cargar. Presiona aquí para reintentar traer tus datos reales — si funciona, el guardado se desbloquea automáticamente.</div>
       <button class="btn-add" onclick="reintentarCarga()">🔁 Reintentar carga</button>
-    </div>
-    <div class="card">
-      <div class="card-title">🩹 Reparar índice de archivo</div>
-      <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Si <code>archive_index_v1</code> falla siempre al leer (no solo a veces), es que ese dato quedó atascado en el servidor. Esto solo afecta la lista de "meses archivados" para consulta — no borra tus movimientos, cuentas ni meses ya archivados. Repararlo lo reinicia a vacío para que puedas seguir usando el tracker sin ese error.</div>
-      <button class="btn-add" style="background:var(--surface3);color:var(--text)" onclick="repararArchiveIndex()">🩹 Reparar ahora</button>
     </div>
   </div>
 
-  <div class="hint">💾 Todo se guarda automáticamente y persiste en cualquier dispositivo con tu cuenta de Claude.<br>Selecciona la cuenta correcta en cada movimiento — el saldo se actualiza solo.</div>
+  <div class="hint">💾 Todo se guarda automáticamente en tu base de datos y persiste en cualquier dispositivo donde inicies sesión.<br>Selecciona la cuenta correcta en cada movimiento — el saldo se actualiza solo.</div>
 </div>
 <script>
 const CAPS_DEFAULT={'Alimentación · Mercado':800000,'Alimentación · Comidas afuera · Entre semana':200000,'Alimentación · Comidas afuera · Fin de semana':300000,'Deportes · Ciclismo':150000,'Servicios':400000,'Salud':1000000,'Vehículo · Seguros':615500,'Vehículo · Gasolina':150000,'Vehículo · Taller':200000,'Vehículo · Lavada':50000,'Vehículo · Parqueadero':80000,'Entretenimiento':450000,'Suscripciones':150000,'Ropa':200000,'Tecnología':200000,'Hogar':200000,'Transporte':150000,'Regalos':100000};
@@ -837,6 +872,8 @@ async function loadArchivedMonth(mes){
 
 let sortMode='fecha'; // 'fecha' o 'cuenta'
 let filterAccount='todas';
+let filterType='todos'; // 'todos' | 'gasto' | 'ingreso'
+let filterCategory='todas';
 function setSortMode(mode){
   sortMode=mode;
   document.getElementById('sort-fecha').classList.toggle('active',mode==='fecha');
@@ -881,14 +918,16 @@ function renderSearchResults(matches,q,fueCompleto){
       const montoStr=(e.currency||meta.currency)==='USD'?fmtUSD(e.amount):fmtCOP(e.amount);
       const mes=e.date.slice(0,7);
       return `<div class="entry-row" style="cursor:pointer" onclick="irAMes('${mes}')">
-        <span class="entry-date">${fmtDate(e.date)}</span>
-        <div class="entry-dot" style="background:${c}"></div>
-        <div style="flex:1;min-width:0">
+        <div class="entry-row-top">
+          <span class="entry-date">${fmtDate(e.date)}</span>
+          <div class="entry-dot" style="background:${c}"></div>
           <div class="entry-name">${e.name}</div>
-          <div class="entry-acc">${meta.label} · ${mes}</div>
+          <span class="entry-amount">${montoStr}</span>
         </div>
-        <span class="entry-cat" style="background:${c}22;color:${c}">${scat(e.cat)}</span>
-        <span class="entry-amount">${montoStr}</span>
+        <div class="entry-row-bottom">
+          <span class="entry-cat" style="background:${c}22;color:${c}">${scat(e.cat)}</span>
+          <span class="entry-acc">${meta.label} · ${mes}</span>
+        </div>
       </div>`;
     }).join('');
 }
@@ -941,7 +980,48 @@ async function updateCap(el){
 function setFilterAccount(){
   filterAccount=document.getElementById('filter-account').value;
   updateFilterBalanceBanner();
+  actualizarBotonLimpiarFiltros();
   render();
+}
+
+function setFilterType(){
+  filterType=document.getElementById('filter-type').value;
+  actualizarBotonLimpiarFiltros();
+  render();
+}
+
+function setFilterCategory(){
+  filterCategory=document.getElementById('filter-category').value;
+  actualizarBotonLimpiarFiltros();
+  render();
+}
+
+function limpiarFiltros(){
+  filterAccount='todas'; filterType='todos'; filterCategory='todas';
+  document.getElementById('filter-account').value='todas';
+  document.getElementById('filter-type').value='todos';
+  document.getElementById('filter-category').value='todas';
+  updateFilterBalanceBanner();
+  actualizarBotonLimpiarFiltros();
+  render();
+}
+
+function actualizarBotonLimpiarFiltros(){
+  const btn=document.getElementById('clear-filters-btn');
+  if(!btn)return;
+  const hayFiltros=filterAccount!=='todas'||filterType!=='todos'||filterCategory!=='todas';
+  btn.style.display=hayFiltros?'block':'none';
+}
+
+function poblarFiltroCategoria(monthEntries){
+  const sel=document.getElementById('filter-category');
+  if(!sel)return;
+  const categoriasPresentes=[...new Set(monthEntries.map(e=>e.cat))].sort();
+  const valorActual=sel.value||filterCategory;
+  const opciones='<option value="todas">Toda categoría</option>'+categoriasPresentes.map(cat=>`<option value="${cat.replace(/"/g,'&quot;')}">${scat(cat)}</option>`).join('');
+  if(sel.innerHTML!==opciones)sel.innerHTML=opciones;
+  if(categoriasPresentes.includes(valorActual)||valorActual==='todas'){ sel.value=valorActual; }
+  else{ sel.value='todas'; filterCategory='todas'; }
 }
 
 function updateFilterBalanceBanner(){
@@ -1017,7 +1097,7 @@ function resolverPayModal(confirmado){
 
 let entries=[];
 let pendingSaves=0; // contador de guardados en curso — evita que la sincronización pise cambios recién hechos
-const BUILD_VERSION='2026-08-01.mobile-fix'; // súbelo cada vez que se publique una versión nueva — sirve para confirmar que celular y PC corren el mismo código
+const BUILD_VERSION='2026-08-01.movimientos-rediseñado'; // súbelo cada vez que se publique una versión nueva — sirve para confirmar que celular y PC corren el mismo código
 
 let ultimoErrorGuardado=null;
 
@@ -1129,40 +1209,51 @@ async function reintentarCarga(){
   }
 }
 
-async function repararArchiveIndex(){
-  const confirmado=await customConfirm('¿Reiniciar el índice de archivo?\n\nEsto NO borra tus movimientos, cuentas ni los meses ya archivados — solo reinicia la lista que recuerda cuáles meses fueron archivados, para eliminar el error persistente.');
+async function cerrarSesion(){
+  const confirmado=await customConfirm('¿Cerrar sesión?\n\nTendrás que volver a iniciar sesión con tu correo y contraseña la próxima vez.');
   if(!confirmado)return;
-  archiveIndex={};
-  const ok=await setConReintentos('archive_index_v1',JSON.stringify(archiveIndex));
-  await customConfirm(ok?'✓ Índice reparado correctamente.':'⚠ No se pudo reparar todavía — el servidor sigue fallando en este momento. Intenta de nuevo en unos minutos.');
+  await sb.auth.signOut();
+  location.reload();
 }
 
-function renderDiagnostico(){
-  const body=document.getElementById('diagnostico-body');
-  if(!body)return;
-  const datos={
-    'entries_v3 (movimientos)':entries,
-    'accounts_v3 (cuentas)':accounts,
-    'pendientes_v3':pendientes,
-    'config_v1 (metas+cuentas nuevas+topes+vehículos)':{goals,dynamicAccounts,vehiculos},
-    'archive_index_v1':archiveIndex,
-  };
-  body.innerHTML=Object.entries(datos).map(([nombre,obj])=>{
-    const texto=JSON.stringify(obj);
-    const bytes=new Blob([texto]).size;
-    const kb=(bytes/1024).toFixed(1);
-    const pctDeLimite=(bytes/(5*1024*1024)*100).toFixed(3);
-    const color=bytes>1000000?'var(--danger)':bytes>200000?'var(--warn)':'var(--accent)';
-    return `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
-      <span style="font-size:12px">${nombre}</span>
-      <span style="font-family:var(--mono);font-size:12px;color:${color}">${kb} KB (${pctDeLimite}% del límite)</span>
-    </div>`;
-  }).join('');
+async function renderDiagnostico(){
+  const emailEl=document.getElementById('diagnostico-email');
+  if(emailEl){
+    const {data}=await sb.auth.getUser();
+    emailEl.textContent=data?.user?.email||'—';
+  }
+
+  const conteosEl=document.getElementById('diagnostico-conteos');
+  if(conteosEl){
+    conteosEl.innerHTML='Calculando…';
+    const tablas=[
+      {tabla:'fin_accounts',etiqueta:'Cuentas',local:Object.keys(ACCOUNTS_META).length},
+      {tabla:'fin_movimientos',etiqueta:'Movimientos',local:entries.length},
+      {tabla:'fin_pendientes',etiqueta:'Pendientes',local:pendientes.length},
+      {tabla:'fin_metas',etiqueta:'Metas',local:goals.length},
+      {tabla:'fin_presupuesto_topes',etiqueta:'Topes de presupuesto',local:Object.keys(CAPS).length},
+    ];
+    const filas=await Promise.all(tablas.map(async t=>{
+      try{
+        const {count,error}=await sb.from(t.tabla).select('*',{count:'exact',head:true});
+        if(error)throw error;
+        const coincide=count===t.local;
+        return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
+          <span>${t.etiqueta}</span>
+          <span style="color:${coincide?'var(--accent)':'var(--warn)'}">${count} en la nube${coincide?'':` (ves ${t.local})`}</span>
+        </div>`;
+      }catch(e){
+        registrarErrorDiagnostico(t.tabla+' (conteo)',e);
+        return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span>${t.etiqueta}</span><span style="color:var(--danger)">error al consultar</span></div>`;
+      }
+    }));
+    conteosEl.innerHTML=filas.join('');
+  }
 
   const errEl=document.getElementById('diagnostico-ultimo-error');
   if(errEl){
     errEl.textContent=ultimoErrorGuardado
-      ? `Clave: ${ultimoErrorGuardado.key}\nMensaje: ${ultimoErrorGuardado.mensaje}\nHora: ${ultimoErrorGuardado.hora}\nTamaño del dato en ese intento: ${ultimoErrorGuardado.tamKB} KB`
+      ? `Clave: ${ultimoErrorGuardado.key}\nMensaje: ${ultimoErrorGuardado.mensaje}\nHora: ${ultimoErrorGuardado.hora}`
       : 'Sin errores registrados en esta sesión todavía.';
   }
 }
@@ -2323,7 +2414,10 @@ function render(){
   const today=gastos.filter(e=>e.date===todayStr()).reduce((s,e)=>s+entryCOP(e),0);
 
   const ACCOUNT_ORDER={nequi:1,debito:2,nu:3,arq:4,ontop:5,davtc:6,rappitc:7};
-  const monthEntriesFiltradas=filterAccount==='todas'?monthEntries:monthEntries.filter(e=>e.acc===filterAccount);
+  let monthEntriesFiltradas=filterAccount==='todas'?monthEntries:monthEntries.filter(e=>e.acc===filterAccount);
+  if(filterType!=='todos')monthEntriesFiltradas=monthEntriesFiltradas.filter(e=>e.txType===filterType);
+  if(filterCategory!=='todas')monthEntriesFiltradas=monthEntriesFiltradas.filter(e=>e.cat===filterCategory);
+  poblarFiltroCategoria(monthEntries);
   let sorted;
   if(sortMode==='cuenta'){
     sorted=[...monthEntriesFiltradas].sort((a,b)=>{
@@ -2346,17 +2440,21 @@ function render(){
     const cardColor=e.acc==='davtc'?'#EF4444':e.acc==='rappitc'?'#FF8C42':null;
     const borderStyle=esAnomalia?'background:rgba(255,107,107,.12);border-left:3px solid var(--danger)':cardColor?`border-left:3px solid ${cardColor}`:'';
     return`<div class="entry-row" style="${borderStyle}">
-      <span class="entry-date">${fmtDate(e.date)}</span>
-      <div class="entry-dot" style="background:${c}"></div>
-      <div style="flex:1;min-width:0">
+      <div class="entry-row-top">
+        <span class="entry-date">${fmtDate(e.date)}</span>
+        <div class="entry-dot" style="background:${c}"></div>
         <div class="entry-name">${esAnomalia?'⚠️ ':''}${e.name}</div>
-        <div class="entry-acc">${meta.label} · saldo actual: ${saldoActual}${e.vehiculo?' · 🚗 '+e.vehiculo:''}${esAnomalia?' · <span style="color:var(--danger)">monto inusualmente alto</span>':''}</div>
+        <span class="entry-amount" style="color:${esAnomalia?'var(--danger)':isIncome?'var(--accent)':'var(--text)'}">${isIncome?'+':'−'}${amtStr}</span>
       </div>
-      <span class="entry-cat" style="background:${c}22;color:${c}">${scat(e.cat)}</span>
-      <span class="entry-amount" style="color:${esAnomalia?'var(--danger)':isIncome?'var(--accent)':'var(--text)'}">${isIncome?'+':'−'}${amtStr}</span>
-      ${esAnomalia?`<button class="btn-add" style="width:auto;height:26px;padding:0 8px;font-size:10px;margin:0" onclick="fixCurrency('${e.id}')">💱 Era COP</button>`:''}
-      <button class="btn-add" style="width:auto;height:26px;padding:0 8px;font-size:12px;margin:0;background:var(--surface3);color:var(--text2)" onclick="openEditEntryModal('${e.id}')" title="Editar movimiento">✏️</button>
-      <button class="btn-del" onclick="deleteEntry('${e.id}')">×</button>
+      <div class="entry-row-bottom">
+        <span class="entry-cat" style="background:${c}22;color:${c}">${scat(e.cat)}</span>
+        <span class="entry-acc">${meta.label} · ${saldoActual}${e.vehiculo?' · 🚗 '+e.vehiculo:''}${esAnomalia?' · <span style="color:var(--danger)">monto alto</span>':''}</span>
+        <div class="entry-actions">
+          ${esAnomalia?`<button class="btn-add" style="width:auto;height:26px;padding:0 8px;font-size:10px;margin:0" onclick="fixCurrency('${e.id}')">💱 Era COP</button>`:''}
+          <button class="btn-add" style="width:auto;height:26px;padding:0 8px;font-size:12px;margin:0;background:var(--surface3);color:var(--text2)" onclick="openEditEntryModal('${e.id}')" title="Editar movimiento">✏️</button>
+          <button class="btn-del" onclick="deleteEntry('${e.id}')">×</button>
+        </div>
+      </div>
     </div>`;
   }).join(''):'<div class="empty">📋 Sin movimientos</div>';
 
@@ -2592,22 +2690,28 @@ function renderPendientes(){
   list.innerHTML=sorted.length?sorted.map(p=>{
     const meta=ACCOUNTS_META[p.acc];
     const c=p.isIncome?'#22D3B0':col(p.cat);
-    // Si el pendiente está vinculado a una tarjeta de crédito, siempre mostramos el saldo ACTUAL de la tarjeta,
-    // no el monto congelado de cuando se creó — el saldo cambia con cada compra nueva.
-    const montoVigente=meta.type==='credito'?accounts[p.acc]:p.amount;
-    const montoStr=meta.currency==='USD'?fmtUSD(montoVigente):fmtCOP(montoVigente);
+    const montoStr=meta.currency==='USD'?fmtUSD(p.amount):fmtCOP(p.amount);
+    const esTarjeta=meta.type==='credito';
+    // El monto es el que tú decidiste (editable) — para tarjetas mostramos el saldo actual como referencia,
+    // sin forzarlo, porque el pago del mes (ej. mínimo) puede ser distinto al saldo total.
+    const saldoActualStr=esTarjeta?(meta.currency==='USD'?fmtUSD(accounts[p.acc]):fmtCOP(accounts[p.acc])):null;
     const vencido=!p.isIncome&&p.date&&p.date<todayStr();
     return `<div class="entry-row" style="${vencido?'background:rgba(255,107,107,.1);border-left:3px solid var(--danger)':''}">
-      <span class="entry-date">${p.date?fmtDate(p.date):'—'}</span>
-      <div class="entry-dot" style="background:${vencido?'var(--danger)':c}"></div>
-      <div style="flex:1;min-width:0">
+      <div class="entry-row-top">
+        <span class="entry-date">${p.date?fmtDate(p.date):'—'}</span>
+        <div class="entry-dot" style="background:${vencido?'var(--danger)':c}"></div>
         <div class="entry-name">${vencido?'🔴 VENCIDO — ':p.isIncome?'💰 ':''}${p.name}</div>
-        <div class="entry-acc">${meta.label}${meta.type==='credito'?' · saldo actual':''}</div>
+        <span class="entry-amount" style="color:${p.isIncome?'var(--accent)':vencido?'var(--danger)':'var(--text)'}">${p.isIncome?'+':''}${montoStr}</span>
       </div>
-      <span class="entry-cat" style="background:${c}22;color:${c}">${scat(p.cat)}</span>
-      <span class="entry-amount" style="color:${p.isIncome?'var(--accent)':vencido?'var(--danger)':'var(--text)'}">${p.isIncome?'+':''}${montoStr}</span>
-      <button class="btn-add" style="width:auto;height:28px;padding:0 10px;font-size:11px;margin:0" onclick="payPendiente('${p.id}')">${p.isIncome?'Recibir':'Pagar'}</button>
-      <button class="btn-del" onclick="deletePendiente('${p.id}')">×</button>
+      <div class="entry-row-bottom">
+        <span class="entry-cat" style="background:${c}22;color:${c}">${scat(p.cat)}</span>
+        <span class="entry-acc">${meta.label}${esTarjeta?` · saldo actual: ${saldoActualStr}`:''}</span>
+        <div class="entry-actions">
+          <button class="btn-add" style="width:auto;height:26px;padding:0 8px;font-size:12px;margin:0;background:var(--surface3);color:var(--text2)" onclick="editPendiente('${p.id}')" title="Editar monto">✏️</button>
+          <button class="btn-add" style="width:auto;height:26px;padding:0 10px;font-size:11px;margin:0" onclick="payPendiente('${p.id}')">${p.isIncome?'Recibir':'Pagar'}</button>
+          <button class="btn-del" onclick="deletePendiente('${p.id}')">×</button>
+        </div>
+      </div>
     </div>`;
   }).join(''):'<div class="empty">✅ Sin pendientes — todo al día</div>';
 }
@@ -2655,12 +2759,67 @@ async function deletePendiente(id){
   }catch(e){ registrarErrorDiagnostico('fin_pendientes (borrar)',e); }
 }
 
+function onPendAccountChange(){
+  const acc=document.getElementById('pend-account').value;
+  const meta=ACCOUNTS_META[acc];
+  const amountInp=document.getElementById('pend-amount');
+  // Sugerencia de conveniencia: si eliges una tarjeta y el campo está vacío, sugerimos el saldo actual
+  // — pero lo puedes cambiar antes de guardar (ej. para poner el pago mínimo en vez del total).
+  if(meta&&meta.type==='credito'&&!amountInp.value){
+    amountInp.value=accounts[acc];
+    amountInp.placeholder='Saldo actual sugerido — edítalo si vas a pagar otro monto';
+  }
+}
+
+let _editPendienteId=null;
+function editPendiente(id){
+  const p=pendientes.find(x=>x.id===id);
+  if(!p)return;
+  _editPendienteId=id;
+  const meta=ACCOUNTS_META[p.acc];
+  document.getElementById('edit-pendiente-amount').value=p.amount;
+  const hintEl=document.getElementById('edit-pendiente-hint');
+  const btnSaldo=document.getElementById('edit-pendiente-usar-saldo');
+  if(meta.type==='credito'){
+    const saldoStr=meta.currency==='USD'?fmtUSD(accounts[p.acc]):fmtCOP(accounts[p.acc]);
+    hintEl.textContent=`"${p.name}" — saldo actual de ${meta.label}: ${saldoStr}. Puedes dejar un monto distinto (ej. pago mínimo).`;
+    btnSaldo.style.display='block';
+  }else{
+    hintEl.textContent=`"${p.name}" — ${meta.label}`;
+    btnSaldo.style.display='none';
+  }
+  document.getElementById('edit-pendiente-modal').style.display='flex';
+}
+
+function usarSaldoActualEnEdicion(){
+  const p=pendientes.find(x=>x.id===_editPendienteId);
+  if(!p)return;
+  document.getElementById('edit-pendiente-amount').value=accounts[p.acc];
+}
+
+async function resolverEditPendienteModal(confirmado){
+  document.getElementById('edit-pendiente-modal').style.display='none';
+  const id=_editPendienteId;
+  _editPendienteId=null;
+  if(!confirmado||!id)return;
+  const p=pendientes.find(x=>x.id===id);
+  if(!p)return;
+  const nuevoMonto=redondear3(parseFloat(document.getElementById('edit-pendiente-amount').value));
+  if(isNaN(nuevoMonto)||nuevoMonto<=0)return;
+  p.amount=nuevoMonto;
+  renderPendientes();
+  updateNetWorth();
+  try{
+    const {error}=await sb.from('fin_pendientes').update({monto:nuevoMonto}).eq('id',id);
+    if(error)throw error;
+  }catch(e){ registrarErrorDiagnostico('fin_pendientes (editar monto)',e); }
+}
+
 async function payPendiente(id){
   const p=pendientes.find(x=>x.id===id);
   if(!p)return;
   const metaOrigen=ACCOUNTS_META[p.acc];
-  // Si está vinculado a una tarjeta de crédito, se paga/muestra el saldo ACTUAL, no el monto congelado al crearlo
-  const montoVigente=metaOrigen.type==='credito'?accounts[p.acc]:p.amount;
+  const montoVigente=p.amount; // el monto que tú definiste al crear/editar el pendiente — ya no se fuerza al saldo total de la tarjeta
   const accion=p.isIncome?'Recibir':'Pagar';
   const montoStr=metaOrigen.currency==='USD'?fmtUSD(montoVigente):fmtCOP(montoVigente);
   const accFinal=await customAccountPrompt(`${accion} "${p.name}" — ${montoStr}`,p.acc);
