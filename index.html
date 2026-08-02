@@ -1,0 +1,3157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Centro Financiero · Andrés</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: dark; /* hace que la lista NATIVA del navegador al abrir un <select> use tema oscuro, en vez de blanco por defecto — esto es lo que hacía que los dropdowns se sintieran "genéricos" al desplegarse */
+  --bg:#0F1117; --surface:#1A1D27; --surface2:#22263A; --surface3:#2A2F45;
+  --border:#2A2F45; --border2:#353A55;
+  --text:#E8EAF0; --text2:#8B90A8; --text3:#555A75;
+  --accent:#22D3B0; --accent2:#16A88C;
+  --danger:#FF6B6B; --warn:#FFB347; --blue:#5B8DEF; --purple:#C084F5;
+  --mono:'JetBrains Mono',monospace; --sans:'Inter',sans-serif;
+  --r:14px; --rsm:9px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh}
+.app{max-width:960px;margin:0 auto;padding:1.5rem 1rem 4rem}
+.nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem}
+.nav-brand{font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text2)}
+.nav-month{font-family:var(--mono);font-size:12px;color:var(--accent);background:rgba(168,224,99,.1);padding:4px 12px;border-radius:99px;border:1px solid rgba(168,224,99,.2)}
+.sync-status{font-size:10px;color:var(--text3);text-align:center;margin-bottom:1rem;font-family:var(--mono);transition:opacity .5s}
+.sync-status.ok{color:var(--accent)}
+.sync-status.error{color:var(--danger)}
+.ats-card{background:linear-gradient(135deg,var(--surface) 0%,var(--surface2) 100%);border:1px solid var(--border);border-radius:var(--r);padding:1.75rem;margin-bottom:1rem;text-align:center}
+.ats-label{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text2);margin-bottom:8px}
+.ats-value{font-family:var(--mono);font-size:38px;font-weight:700;color:var(--accent);line-height:1}
+.ats-sub{font-size:11px;color:var(--text3);margin-top:8px}
+.tabs{display:flex;gap:4px;margin-bottom:1rem;flex-wrap:wrap}
+.tab{font-size:12px;font-weight:600;padding:8px 16px;border-radius:99px;border:1px solid var(--border);background:none;color:var(--text2);cursor:pointer;transition:all .15s}
+.tab.active{background:var(--accent);color:#0F1117;border-color:var(--accent)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem;margin-bottom:1rem}
+.card-title{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+.accounts-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.acc-card{background:var(--surface2);border:1px solid var(--border);border-left-width:4px;border-radius:var(--rsm);padding:12px;transition:border-color .15s;position:relative}
+.acc-card.b-nequi{border-left-color:#C147E9}
+.acc-card.b-davivienda{border-left-color:#EF4444}
+.acc-card.b-nu{border-left-color:#8A05BE}
+.acc-card.b-lulo{border-left-color:#00D68F}
+.acc-card.b-arq{border-left-color:#1B7A4D}
+.acc-card.b-ontop{border-left-color:#14B8A6}
+.acc-card.low-balance{background:rgba(255,107,107,.08)}
+.low-balance-badge{position:absolute;top:8px;right:8px;font-size:8px;background:var(--danger);color:#fff;padding:2px 6px;border-radius:99px;font-weight:700;letter-spacing:.3px}
+.acc-card:hover{border-color:var(--border2)}
+.acc-card.debt{border-left-color:var(--danger)}
+.acc-label{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:6px;display:flex;justify-content:space-between}
+.acc-value{font-family:var(--mono);font-size:15px;font-weight:600;background:none;border:none;color:var(--text);width:100%;outline:none;padding:0}
+.acc-value.usd{color:var(--blue)}
+.acc-value.debt{color:var(--danger)}
+.networth-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+.networth-row:last-child{border-bottom:none}
+.networth-label{font-size:13px;color:var(--text2)}
+.networth-value{font-family:var(--mono);font-size:15px;font-weight:600}
+.networth-total{padding-top:14px;margin-top:4px;border-top:2px solid var(--border2)}
+.networth-total .networth-label{font-weight:700;color:var(--text)}
+.networth-total .networth-value{font-size:20px}
+.input-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.1rem;margin-bottom:1rem}
+.input-label{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);margin-bottom:10px}
+.input-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;margin-bottom:8px}
+.input-grid2{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.inp{font-family:var(--sans);font-size:13px;padding:0 12px;height:40px;border-radius:var(--rsm);border:1px solid var(--border2);background:var(--surface2);color:var(--text);outline:none;transition:border-color .15s;width:100%}
+.inp:focus{border-color:var(--accent)}.inp::placeholder{color:var(--text3)}
+select.inp{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238B90A8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;cursor:pointer;transition:border-color .15s,background-color .15s}
+select.inp:hover{border-color:var(--border2);background-color:var(--surface3)}
+select.inp:focus{box-shadow:0 0 0 3px rgba(168,224,99,.15)}
+select.inp:active{transform:scale(.995)}
+optgroup{color:var(--text3);font-weight:600;font-size:11px}
+option{color:var(--text);padding:6px}
+.inp-num{font-family:var(--mono)!important}
+.btn-add{height:42px;padding:0 18px;border-radius:var(--rsm);border:none;background:var(--accent);color:#0F1117;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .15s,transform .1s;margin-top:8px;width:100%}
+.btn-add:hover{background:var(--accent2)}.btn-add:active{transform:scale(.98)}
+.acc-hint{font-size:10px;color:var(--text3);margin-top:4px}
+.entries-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:1rem}
+.entries-header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border)}
+.entries-title{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3)}
+.btn-analyze{font-size:12px;font-weight:600;color:#5B8DEF;background:rgba(91,141,239,.12);border:1px solid rgba(91,141,239,.35);border-radius:10px;padding:6px 12px;cursor:pointer}
+.entries-list{max-height:380px;overflow-y:auto}
+.entries-list::-webkit-scrollbar{width:4px}
+.entries-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
+.entry-row{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border);transition:background .1s}
+.entry-row:last-child{border-bottom:none}.entry-row:hover{background:var(--surface2)}
+.entry-date{font-family:var(--mono);font-size:11px;color:var(--text3);min-width:38px}
+.entry-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.entry-name{flex:1;font-size:13px;min-width:0}
+.entry-acc{font-size:9px;color:var(--text3);font-family:var(--mono)}
+.entry-cat{font-size:10px;font-family:var(--mono);padding:2px 8px;border-radius:99px;white-space:nowrap}
+.entry-amount{font-family:var(--mono);font-size:13px;font-weight:600;min-width:100px;text-align:right}
+.btn-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:0 2px;transition:color .15s}
+.btn-del:hover{color:var(--danger)}
+.empty{padding:2.5rem;text-align:center;color:var(--text3);font-size:13px}
+.budget-row{padding:10px 0;border-bottom:1px solid var(--border)}
+.budget-row:last-child{border-bottom:none}
+.budget-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.budget-name{font-size:12px;font-weight:500}
+.budget-nums{font-family:var(--mono);font-size:11px;color:var(--text2)}
+.budget-track{height:6px;background:var(--surface2);border-radius:99px;overflow:hidden}
+.budget-fill{height:6px;border-radius:99px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+.budget-status{font-size:10px;margin-top:3px;text-align:right}
+.budget-status.ok{color:var(--text3)}.budget-status.warn{color:var(--warn)}.budget-status.over{color:var(--danger);font-weight:600}
+.metrics-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:1rem}
+.metric-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;text-align:center}
+.metric-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:8px}
+.metric-value{font-family:var(--mono);font-size:22px;font-weight:700}
+.metric-value.green{color:var(--accent)}.metric-value.red{color:var(--danger)}.metric-value.blue{color:var(--blue)}
+.metric-sub{font-size:10px;color:var(--text3);margin-top:4px}
+.pie-wrap{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.pie{width:150px;height:150px;border-radius:50%;flex-shrink:0}
+.pie-legend{flex:1;min-width:180px}
+.legend-row{display:flex;align-items:center;gap:8px;font-size:11px;padding:4px 0}
+.legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.legend-name{flex:1;color:var(--text2)}
+.legend-val{font-family:var(--mono);color:var(--text)}
+.debt-progress{margin-bottom:16px}
+.debt-progress:last-child{margin-bottom:0}
+.debt-top{display:flex;justify-content:space-between;margin-bottom:6px;font-size:12px}
+.debt-name{font-weight:600}
+.debt-track{height:10px;background:var(--surface2);border-radius:99px;overflow:hidden;position:relative}
+.debt-fill{height:10px;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .8s cubic-bezier(.4,0,.2,1)}
+.debt-nums{display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:4px;font-family:var(--mono)}
+.hint{font-size:10px;color:var(--text3);text-align:center;margin-top:1rem;line-height:1.7}
+@media(max-width:640px){
+  .accounts-grid{grid-template-columns:repeat(2,1fr)}
+  .input-grid,.input-grid2{grid-template-columns:1fr 1fr}
+  .metrics-grid{grid-template-columns:1fr}
+  .pie-wrap{justify-content:center}
+  .entry-row{flex-wrap:wrap;padding:10px 12px;gap:6px 8px}
+  .entry-date{min-width:auto;order:1}
+  .entry-dot{order:2}
+  .entry-row>div[style*="flex:1"]{order:3;flex-basis:100%;min-width:0}
+  .entry-cat{order:4;font-size:9px;padding:2px 6px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .entry-amount{order:5;min-width:auto;margin-left:auto}
+  .btn-add[onclick*="fixCurrency"]{order:6}
+  .btn-del{order:7}
+  .entry-acc{font-size:8px;white-space:normal;line-height:1.4}
+  .entries-header{flex-wrap:wrap;gap:8px}
+  .card-title{flex-wrap:wrap;gap:6px}
+  .ats-card{padding:1.25rem}
+  .ats-value{font-size:26px}
+}
+@media(max-width:400px){
+  .app{padding:1rem .75rem 3rem}
+  .accounts-grid{grid-template-columns:1fr}
+  .input-grid{grid-template-columns:1fr}
+}
+@media(max-width:640px){
+  .budget-top{flex-wrap:wrap}
+  .budget-name{flex-basis:100%}
+  .budget-nums{margin-left:auto}
+  .legend-row{flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+<div id="login-gate" style="position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px;max-width:340px;width:100%">
+    <div style="font-size:16px;font-weight:700;margin-bottom:4px">🔐 Centro Financiero</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:20px">Inicia sesión para ver tus datos</div>
+    <label style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Correo</label>
+    <input class="inp" id="login-email" type="email" placeholder="tu@correo.com" autocomplete="email" style="width:100%;margin-bottom:14px">
+    <label style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Contraseña</label>
+    <input class="inp" id="login-password" type="password" placeholder="••••••••" autocomplete="current-password" style="width:100%;margin-bottom:16px">
+    <button class="btn-add" id="login-btn" style="width:100%;margin:0" onclick="intentarLogin()">Entrar</button>
+    <div id="login-error" style="display:none;margin-top:12px;font-size:11px;color:var(--danger);background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.35);border-radius:8px;padding:10px"></div>
+  </div>
+</div>
+<div id="loading-gate" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:9998;align-items:center;justify-content:center;padding:20px">
+  <div style="text-align:center">
+    <div style="width:36px;height:36px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;margin:0 auto 16px;animation:spin .8s linear infinite"></div>
+    <div style="font-size:13px;color:var(--text2)">Cargando tus datos…</div>
+  </div>
+</div>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+<div id="confirm-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
+  <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:340px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+    <div id="confirm-modal-text" style="font-size:13px;line-height:1.6;margin-bottom:16px;white-space:pre-line"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-add" id="confirm-btn-yes" style="margin:0;background:var(--danger)" onclick="resolverConfirm(true)">Sí, eliminar</button>
+      <button class="btn-add" id="confirm-btn-no" style="margin:0;background:var(--surface3);color:var(--text)" onclick="resolverConfirm(false)">Cancelar</button>
+    </div>
+  </div>
+</div>
+<div id="pay-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
+  <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:340px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+    <div id="pay-modal-text" style="font-size:13px;line-height:1.6;margin-bottom:12px"></div>
+    <div style="margin-bottom:16px">
+      <label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">¿En qué cuenta?</label>
+      <select class="inp" id="pay-modal-account" style="width:100%"></select>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-add" style="margin:0" onclick="resolverPayModal(true)">Confirmar</button>
+      <button class="btn-add" style="margin:0;background:var(--surface3);color:var(--text)" onclick="resolverPayModal(false)">Cancelar</button>
+    </div>
+  </div>
+</div>
+<div id="nueva-cuenta-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
+  <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:340px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+    <div style="font-size:13px;line-height:1.6;margin-bottom:14px">➕ <strong>Crear cuenta nueva</strong></div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Nombre</label>
+      <input class="inp" id="nueva-cuenta-nombre" type="text" placeholder="Ej: Bolsillo Ahorro" style="width:100%">
+    </div>
+    <div style="margin-bottom:16px">
+      <label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Moneda</label>
+      <select class="inp" id="nueva-cuenta-moneda" style="width:100%">
+        <option value="COP">Pesos (COP)</option>
+        <option value="USD">Dólares (USD)</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-add" style="margin:0" onclick="resolverNuevaCuentaModal(true)">Crear cuenta</button>
+      <button class="btn-add" style="margin:0;background:var(--surface3);color:var(--text)" onclick="resolverNuevaCuentaModal(false)">Cancelar</button>
+    </div>
+  </div>
+</div>
+<div id="edit-entry-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
+  <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:360px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.5);max-height:85vh;overflow-y:auto">
+    <div id="edit-entry-modal-text" style="font-size:13px;line-height:1.6;margin-bottom:14px">✏️ <strong>Editar movimiento</strong></div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Cuenta</label>
+      <select class="inp" id="edit-entry-account" style="width:100%" onchange="onEditEntryAccountChange()"></select>
+    </div>
+    <div style="margin-bottom:12px" id="edit-entry-currency-row">
+      <label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">¿En qué moneda fue este gasto realmente?</label>
+      <select class="inp" id="edit-entry-currency" style="width:100%">
+        <option value="USD">Dólares (USD)</option>
+        <option value="COP">Pesos (COP)</option>
+      </select>
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Categoría / etiqueta</label>
+      <select class="inp" id="edit-entry-category" style="width:100%"></select>
+    </div>
+    <div style="margin-bottom:16px">
+      <label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px" id="edit-entry-amount-label">Monto</label>
+      <input class="inp inp-num" id="edit-entry-amount" type="number" step="0.01" style="width:100%">
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-add" style="margin:0" onclick="resolverEditEntryModal(true)">Guardar cambios</button>
+      <button class="btn-add" style="margin:0;background:var(--surface3);color:var(--text)" onclick="resolverEditEntryModal(false)">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div id="export-fallback-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
+  <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:420px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+    <div style="font-size:13px;line-height:1.6;margin-bottom:10px">📋 <strong>Respaldo generado.</strong> Si la descarga automática no se guardó en tu celular, copia este texto y pégalo en una nota o correo para guardarlo tú mismo:</div>
+    <textarea id="export-fallback-text" readonly style="width:100%;height:140px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;color:var(--text2);font-family:var(--mono);font-size:10px;padding:8px;margin-bottom:12px" onclick="this.select()"></textarea>
+    <button class="btn-add" style="margin:0" onclick="cerrarExportFallback()">Cerrar</button>
+  </div>
+</div>
+<div id="import-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
+  <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:420px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+    <div style="font-size:13px;line-height:1.6;margin-bottom:10px">📋 Abre tu archivo de respaldo (.json) en el Bloc de notas / Archivos de tu celular, <strong>copia todo el texto</strong>, y pégalo aquí:</div>
+    <textarea id="import-paste-text" placeholder="Pega aquí el contenido del respaldo…" style="width:100%;height:140px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:10px;padding:8px;margin-bottom:12px"></textarea>
+    <div style="display:flex;gap:8px">
+      <button class="btn-add" style="margin:0" onclick="procesarImportPegado()">Importar</button>
+      <button class="btn-add" style="margin:0;background:var(--surface3);color:var(--text)" onclick="document.getElementById('import-modal').style.display='none'">Cancelar</button>
+    </div>
+  </div>
+</div>
+<div id="save-toast" style="display:none;position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:1100;padding:8px 16px;border-radius:99px;font-size:12px;font-family:var(--mono);font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,.4);transition:opacity .3s"></div>
+<div class="app">
+  <div class="nav">
+    <span class="nav-brand">Centro Financiero <span id="build-version" style="opacity:.5;font-size:9px;letter-spacing:0"></span></span>
+    <span class="nav-month" id="nav-month"></span>
+  </div>
+  <div style="display:flex;justify-content:center;align-items:center;gap:10px;margin-bottom:1rem">
+    <span class="sync-status" id="sync-status" style="margin-bottom:0">Cargando…</span>
+    <button onclick="syncNow()" style="background:var(--surface2);border:1px solid var(--border2);color:var(--text2);font-size:10px;padding:3px 10px;border-radius:99px;cursor:pointer;font-family:var(--mono)">🔄 Sincronizar</button>
+    <button onclick="guardarConVerificacion()" style="background:var(--surface2);border:1px solid var(--accent);color:var(--accent);font-size:10px;padding:3px 10px;border-radius:99px;cursor:pointer;font-family:var(--mono)">💾 Guardar y verificar</button>
+    <button onclick="exportarRespaldo()" style="background:var(--surface2);border:1px solid var(--blue);color:var(--blue);font-size:10px;padding:3px 10px;border-radius:99px;cursor:pointer;font-family:var(--mono)">⬇️ Exportar respaldo</button>
+    <button onclick="abrirImportModal()" style="background:var(--surface2);border:1px solid var(--warn);color:var(--warn);font-size:10px;padding:3px 10px;border-radius:99px;cursor:pointer;font-family:var(--mono)">⬆️ Importar respaldo</button>
+  </div>
+
+  <div id="adjust-banner" style="display:none;position:fixed;bottom:16px;left:50%;transform:translateX(-50%);max-width:92%;width:480px;background:var(--surface2);border:1px solid var(--accent);border-radius:12px;padding:16px;z-index:1000;box-shadow:0 10px 40px rgba(0,0,0,.5)">
+    <div id="adjust-banner-text" style="font-size:13px;margin-bottom:12px;line-height:1.5"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-add" style="margin:0;background:var(--accent)" onclick="confirmAdjustment()">✓ Confirmar y registrar</button>
+      <button class="btn-add" style="margin:0;background:var(--surface3);color:var(--text)" onclick="cancelAdjustment()">Cancelar</button>
+    </div>
+  </div>
+
+  <div class="ats-card">
+    <div style="display:flex;justify-content:center;margin-bottom:14px">
+      <select class="inp" id="month-select" style="width:auto;height:34px;font-size:12px" onchange="onMonthChange()"></select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
+      <div>
+        <div class="ats-label" style="font-size:9px">Disponible bruto</div>
+        <div class="ats-value" id="ats-bruto" style="font-size:22px;color:var(--text2)">$0</div>
+      </div>
+      <div>
+        <div class="ats-label" style="font-size:9px">− Pendientes</div>
+        <div class="ats-value" id="ats-pendientes" style="font-size:22px;color:var(--warn)">$0</div>
+      </div>
+      <div>
+        <div class="ats-label" style="font-size:9px">= Libre real</div>
+        <div class="ats-value" id="ats-value" style="font-size:22px">$0</div>
+      </div>
+    </div>
+    <div class="ats-sub" style="margin-top:12px">Liquidez en pesos y dólares, menos compromisos pendientes del mes</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('cuentas',this)">🏦 Cuentas</button>
+    <button class="tab" onclick="switchTab('movimientos',this)">📝 Movimientos</button>
+    <button class="tab" onclick="switchTab('pendientes',this)">⏳ Pendientes</button>
+    <button class="tab" onclick="switchTab('presupuesto',this)">🎯 Presupuesto</button>
+    <button class="tab" onclick="switchTab('metricas',this)">📊 Métricas</button>
+    <button class="tab" onclick="switchTab('metas',this)">🏆 Metas</button>
+    <button class="tab" onclick="switchTab('diagnostico',this)">🔧 Diagnóstico</button>
+  </div>
+
+  <div id="tab-cuentas" class="tab-content active">
+    <div class="card" id="estado-mes-card">
+      <div class="card-title">📊 Estado del mes <span id="estado-mes-semaforo"></span></div>
+      <div id="estado-mes-body"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">💧 Cuentas líquidas — disponibles para gastar <span>(clic para editar)</span></div>
+      <div class="accounts-grid">
+        <div class="acc-card b-nequi" id="card-nequi"><div class="acc-label"><span>Nequi</span><span>💳</span></div><input class="acc-value" id="acc-nequi" onblur="handleAccountFieldBlur('nequi')"></div>
+        <div class="acc-card b-davivienda" id="card-debito"><div class="acc-label"><span>Davivienda</span><span>🏦</span></div><input class="acc-value" id="acc-debito" onblur="handleAccountFieldBlur('debito')"></div>
+        <div class="acc-card b-arq" id="card-arq"><div class="acc-label"><span>ARQ</span><span>🌎</span></div><input class="acc-value" id="acc-arq" onblur="handleAccountFieldBlur('arq')"></div>
+        <div class="acc-card b-ontop" id="card-ontop"><div class="acc-label"><span>Ontop</span><span>🌎</span></div><input class="acc-value" id="acc-ontop" onblur="handleAccountFieldBlur('ontop')"></div>
+        <div class="acc-card"><div class="acc-label"><span>TRM referencia</span><span>💱</span></div><input class="acc-value" id="acc-trm" onblur="handleAccountFieldBlur('trm')"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🛡️ Fondo de emergencia <span>— solo crisis reales, nunca metas</span></div>
+      <div class="accounts-grid" style="grid-template-columns:1fr">
+        <div class="acc-card b-nu" id="card-nu"><div class="acc-label"><span>Nu cajitas</span><span>🛡️</span></div><input class="acc-value" id="acc-nu" onblur="handleAccountFieldBlur('nu')"></div>
+      </div>
+      <div style="margin-top:12px">
+        <div class="debt-track"><div class="debt-fill" id="emergency-mini-fill" style="width:0%"></div></div>
+        <div style="font-size:10px;color:var(--text3);margin-top:4px;text-align:right" id="emergency-mini-label">0% de la meta ($7,000,000)</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🎯 Cuentas de ahorro para metas <span>— vivienda, cámara, lo que definas</span></div>
+      <div class="accounts-grid" id="metas-accounts-grid">
+        <div class="acc-card b-lulo" id="card-lulo"><div class="acc-label"><span>Lulo</span><span>🏠</span></div><input class="acc-value" id="acc-lulo" onblur="handleAccountFieldBlur('lulo')"></div>
+      </div>
+      <div style="font-size:10px;color:var(--text3);margin-top:8px">Crea nuevas cuentas de ahorro directamente desde la pestaña 🏆 Metas.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">💳 Tarjetas de crédito (deuda)</div>
+      <div class="accounts-grid" style="grid-template-columns:repeat(2,1fr)">
+        <div class="acc-card debt"><div class="acc-label"><span>Davivienda TC</span><span>🔴</span></div><input class="acc-value debt" id="acc-davtc" onblur="handleAccountFieldBlur('davtc')"><div id="due-davtc" style="font-size:9px;color:var(--text3);margin-top:4px"></div></div>
+        <div class="acc-card" style="border-left-color:#FF8C42"><div class="acc-label"><span>Rappi Card</span><span>🟠</span></div><input class="acc-value" style="color:#FF8C42" id="acc-rappitc" onblur="handleAccountFieldBlur('rappitc')"><div id="due-rappitc" style="font-size:9px;color:var(--text3);margin-top:4px"></div></div>
+      </div>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Deuda total en tarjetas</span>
+        <span id="deuda-total-tarjetas" style="font-family:var(--mono);font-weight:700;font-size:15px;color:#FF6B6B"></span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🔄 Transferir entre cuentas</div>
+      <button class="btn-add" style="margin-bottom:10px;background:var(--surface3);color:var(--text)" onclick="abrirNuevaCuentaModal()">➕ Crear cuenta nueva (bolsillo de ahorro, etc.)</button>
+      <div class="input-grid2" style="margin-bottom:8px">
+        <select class="inp" id="tr-origen" onchange="onTransferAccChange()">
+          <optgroup label="🏦 Cuentas líquidas (COP)">
+            <option value="debito">Davivienda</option>
+            <option value="nequi">Nequi</option>
+            <option value="nu">Nu cajitas</option>
+          </optgroup>
+          <optgroup label="🌎 Dólares (USD)">
+            <option value="arq">ARQ</option>
+            <option value="ontop">Ontop</option>
+          </optgroup>
+        </select>
+        <select class="inp" id="tr-destino" onchange="onTransferAccChange()">
+          <optgroup label="🏦 Cuentas líquidas (COP)">
+            <option value="debito">Davivienda</option>
+            <option value="nequi">Nequi</option>
+            <option value="nu">Nu cajitas</option>
+          </optgroup>
+          <optgroup label="🌎 Dólares (USD)">
+            <option value="arq">ARQ</option>
+            <option value="ontop">Ontop</option>
+          </optgroup>
+        </select>
+        <input class="inp inp-num" id="tr-monto" type="number" placeholder="Monto origen" step="0.01">
+      </div>
+      <div class="input-grid2" id="tr-row2">
+        <input class="inp inp-num" id="tr-trm" type="number" placeholder="TRM del envío">
+        <input class="inp inp-num" id="tr-recibido" type="number" placeholder="Monto recibido (si hay comisión)" step="0.01">
+        <button class="btn-add" style="margin-top:0" onclick="doTransfer()">Transferir</button>
+      </div>
+      <div class="acc-hint" id="tr-hint">Si dejas "Monto recibido" vacío, se calcula automático con la TRM.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">📐 Resumen patrimonial</div>
+      <div class="networth-row"><span class="networth-label">Liquidez total (COP)</span><span class="networth-value" id="nw-liquid">$0</span></div>
+      <div class="networth-row"><span class="networth-label">Deuda total TC</span><span class="networth-value" style="color:var(--danger)" id="nw-debt">$0</span></div>
+      <div class="networth-row networth-total"><span class="networth-label">Patrimonio neto líquido</span><span class="networth-value" id="nw-net">$0</span></div>
+    </div>
+  </div>
+
+  <div id="tab-movimientos" class="tab-content">
+    <div class="input-section">
+      <div class="input-label">➕ Nuevo movimiento</div>
+      <div class="input-grid">
+        <input class="inp inp-desc" id="inp-name" type="text" placeholder="Descripción" oninput="suggestCategory()" autocomplete="off"/>
+        <input class="inp inp-num" id="inp-amount" type="number" placeholder="Monto" step="0.01"/>
+        <input class="inp inp-date" id="inp-date" type="date"/>
+      </div>
+      <div id="suggest-badge" style="display:none;font-size:11px;color:var(--accent);margin-bottom:8px;padding:6px 10px;background:rgba(168,224,99,.08);border-radius:6px;border:1px solid rgba(168,224,99,.25)">✨ Categoría sugerida — puedes cambiarla si no aplica</div>
+      <div class="input-grid2" id="currency-override-row" style="display:none">
+        <span class="acc-hint" style="align-self:center">Esta cuenta es USD por defecto — ¿en qué moneda fue realmente este gasto?</span>
+        <select class="inp" id="inp-currency">
+          <option value="USD">Dólares (USD)</option>
+          <option value="COP">Pesos (COP)</option>
+        </select>
+        <span></span>
+      </div>
+      <div class="input-grid2">
+        <select class="inp" id="inp-account" onchange="onAccountChange()">
+          <optgroup label="🏦 Cuentas líquidas (COP)">
+            <option value="debito">🏦 Davivienda</option>
+            <option value="nequi">💳 Nequi</option>
+            <option value="nu">🛡️ Nu cajitas</option>
+          </optgroup>
+          <optgroup label="💳 Tarjetas de crédito">
+            <option value="davtc">🔴 Davivienda TC</option>
+            <option value="rappitc">🔴 Rappi Card</option>
+          </optgroup>
+          <optgroup label="🌎 Dólares (USD)">
+            <option value="arq">🌎 ARQ</option>
+            <option value="ontop">🌎 Ontop</option>
+          </optgroup>
+        </select>
+        <select class="inp" id="inp-cat" onchange="onCategoryChange()">
+          <optgroup label="💰 Ingresos">
+            <option value="Ingreso · Salario">Salario</option>
+            <option value="Ingreso · Freelance/Media">Freelance / Media</option>
+            <option value="Ingreso · Donación">Donación</option>
+            <option value="Ingreso · Otro">Otro ingreso</option>
+          </optgroup>
+          <optgroup label="🥦 Alimentación">
+            <option value="Alimentación · Comidas afuera · Fin de semana">Comidas (finde)</option>
+            <option value="Alimentación · Comidas afuera · Entre semana">Comidas (semana)</option>
+            <option value="Alimentación · Mercado">Mercado</option>
+          </optgroup>
+          <optgroup label="🏍️ Vehículo">
+            <option value="Vehículo · Gasolina">Gasolina</option>
+            <option value="Vehículo · Lavada">Lavada</option>
+            <option value="Vehículo · Parqueadero">Parqueadero</option>
+            <option value="Vehículo · Seguros">Seguros</option>
+            <option value="Vehículo · Taller">Taller</option>
+          </optgroup>
+          <optgroup label="🚴 Deportes">
+            <option value="Deportes · Ciclismo">Ciclismo</option>
+          </optgroup>
+          <optgroup label="Otras">
+            <option value="Cuidado personal">Cuidado personal</option>
+            <option value="Entretenimiento">Entretenimiento</option>
+            <option value="Hogar">Hogar</option>
+            <option value="Otro">Otro</option>
+            <option value="Pago Deuda">Pago Deuda</option>
+            <option value="Regalos">Regalos</option>
+            <option value="Ropa">Ropa</option>
+            <option value="Salud">Salud</option>
+            <option value="Servicios">Servicios</option>
+            <option value="Suscripciones">Suscripciones</option>
+            <option value="Tecnología">Tecnología</option>
+            <option value="Transporte">Transporte</option>
+          </optgroup>
+        </select>
+        <select class="inp" id="inp-type">
+          <option value="gasto">➖ Gasto</option>
+          <option value="ingreso">➕ Ingreso</option>
+        </select>
+      </div>
+      <div class="acc-hint" id="acc-hint">La cuenta Nequi se reducirá por este monto.</div>
+      <div class="input-grid2" id="vehiculo-tag-row" style="display:none">
+        <select class="inp" id="inp-vehiculo">
+          <option value="Moto">🏍️ Moto</option>
+          <option value="__nuevo__">➕ Agregar otro vehículo…</option>
+        </select>
+        <input class="inp" id="inp-vehiculo-nuevo" type="text" placeholder="Nombre del vehículo (ej: Carro)" style="display:none">
+        <span></span>
+      </div>
+      <button class="btn-add" onclick="addEntry()">Registrar movimiento</button>
+    </div>
+    <div id="archive-notice" style="display:none;background:rgba(91,141,239,.1);border:1px solid rgba(91,141,239,.3);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--blue);margin-bottom:10px">📦 Estás viendo un mes archivado — los datos son de solo lectura para mantener el tracker liviano. Para corregir algo aquí, avísame en el chat.</div>
+    <div class="input-section">
+      <div class="input-label">🔍 Buscar en tus movimientos (ej: "taller", "moto")</div>
+      <div class="input-grid2">
+        <input class="inp" id="search-text" type="text" placeholder="Escribe qué buscas..." oninput="buscarEnActivos()"/>
+        <button class="btn-add" style="margin-top:0" onclick="buscarEnHistorialCompleto()">📦 Buscar también en meses archivados</button>
+        <span></span>
+      </div>
+      <div id="search-results" style="margin-top:10px"></div>
+    </div>
+    <div id="filter-balance-banner" style="display:none;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:10px 14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:11px;color:var(--text2)" id="filter-balance-label"></span>
+      <span style="font-family:var(--mono);font-size:16px;font-weight:700" id="filter-balance-value"></span>
+    </div>
+    <div class="entries-wrap">
+      <div class="entries-header">
+        <span class="entries-title">Movimientos del mes</span>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <select class="inp" id="filter-account" style="height:28px;font-size:10px;padding:0 8px" onchange="setFilterAccount()">
+            <option value="todas">Todas las cuentas</option>
+            <optgroup label="🇨🇴 Pesos">
+              <option value="nequi">Nequi</option>
+              <option value="debito">Davivienda</option>
+              <option value="nu">Nu cajitas</option>
+              <option value="lulo">Lulo</option>
+              <option value="davtc">Davivienda TC</option>
+              <option value="rappitc">Rappi Card</option>
+            </optgroup>
+            <optgroup label="🌎 Dólares">
+              <option value="arq">ARQ</option>
+              <option value="ontop">Ontop</option>
+            </optgroup>
+          </select>
+          <button class="tab" id="sort-fecha" style="padding:4px 10px;font-size:10px" onclick="setSortMode('fecha')">📅 Fecha</button>
+          <button class="tab" id="sort-cuenta" style="padding:4px 10px;font-size:10px" onclick="setSortMode('cuenta')">🏦 Cuenta</button>
+          <button class="btn-analyze" onclick="sendSummary()">📋 Copiar resumen para Claude</button>
+        </div>
+      </div>
+      <div class="entries-list" id="entries-list"></div>
+    </div>
+  </div>
+
+  <div id="tab-pendientes" class="tab-content">
+    <div class="input-section">
+      <div class="input-label">⏳ Nuevo pendiente por pagar</div>
+      <div class="input-grid">
+        <input class="inp" id="pend-name" type="text" placeholder="Ej: Arriendo, Colmédica..." oninput="suggestCategoryPend()" autocomplete="off"/>
+        <input class="inp inp-num" id="pend-amount" type="number" placeholder="Monto" step="0.01"/>
+        <input class="inp" id="pend-date" type="date"/>
+      </div>
+      <div class="input-grid2">
+        <select class="inp" id="pend-account">
+          <optgroup label="🏦 Cuentas líquidas (COP)">
+            <option value="debito">🏦 Davivienda</option>
+            <option value="nequi">💳 Nequi</option>
+            <option value="nu">🛡️ Nu cajitas</option>
+          </optgroup>
+          <optgroup label="💳 Tarjetas de crédito">
+            <option value="davtc">🔴 Davivienda TC</option>
+            <option value="rappitc">🔴 Rappi Card</option>
+          </optgroup>
+          <optgroup label="🌎 Dólares (USD)">
+            <option value="arq">🌎 ARQ</option>
+            <option value="ontop">🌎 Ontop</option>
+          </optgroup>
+        </select>
+        <select class="inp" id="pend-cat">
+          <optgroup label="🥦 Alimentación">
+            <option value="Alimentación · Comidas afuera · Fin de semana">Comidas (finde)</option>
+            <option value="Alimentación · Comidas afuera · Entre semana">Comidas (semana)</option>
+            <option value="Alimentación · Mercado">Mercado</option>
+          </optgroup>
+          <optgroup label="Otras">
+            <option value="Otro" selected>Otro</option>
+            <option value="Pago Deuda">Pago Deuda</option>
+            <option value="Salud">Salud</option>
+            <option value="Servicios">Servicios</option>
+            <option value="Suscripciones">Suscripciones</option>
+            <option value="Vehículo · Taller">Taller</option>
+          </optgroup>
+        </select>
+        <button class="btn-add" style="margin-top:0" onclick="addPendiente()">Agregar pendiente</button>
+      </div>
+      <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);margin-top:8px;cursor:pointer">
+        <input type="checkbox" id="pend-income" style="width:14px;height:14px;cursor:pointer"> Es un ingreso (no un gasto)
+      </label>
+    </div>
+    <div class="entries-wrap">
+      <div class="entries-header"><span class="entries-title">Pendientes por pagar</span></div>
+      <div class="entries-list" id="pendientes-list" style="max-height:none"></div>
+    </div>
+  </div>
+
+  <div id="tab-presupuesto" class="tab-content">
+    <div class="card">
+      <div class="card-title">🎯 Topes mensuales <span id="budget-month-label"></span></div>
+      <div id="budget-list"></div>
+    </div>
+  </div>
+
+  <div id="tab-metricas" class="tab-content">
+    <div class="metrics-grid">
+      <div class="metric-box">
+        <div class="metric-label">Total gastado (mes)</div>
+        <div class="metric-value red" id="m-total">$0</div>
+        <div class="metric-sub" id="m-total-sub">en 0 movimientos</div>
+      </div>
+      <div class="metric-box">
+        <div class="metric-label">Gastado hoy</div>
+        <div class="metric-value" id="m-today" style="color:var(--warn)">$0</div>
+        <div class="metric-sub">vs promedio diario</div>
+      </div>
+      <div class="metric-box">
+        <div class="metric-label">Variable vs tope</div>
+        <div class="metric-value green" id="m-pct">0%</div>
+        <div class="metric-sub">del presupuesto controlable</div>
+      </div>
+      <div class="metric-box">
+        <div class="metric-label">Deuda total</div>
+        <div class="metric-value red" id="m-debt">$0</div>
+        <div class="metric-sub">Davivienda + Rappi</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🥧 Distribución del gasto por categoría</div>
+      <div class="pie-wrap">
+        <div class="pie" id="pie-chart"></div>
+        <div class="pie-legend" id="pie-legend"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">💳 Progreso de liquidación de deuda</div>
+      <div class="debt-progress">
+        <div class="debt-top"><span class="debt-name">Davivienda TC</span><span id="dp-dav-pct">0%</span></div>
+        <div class="debt-track"><div class="debt-fill" id="dp-dav-fill" style="width:0%"></div></div>
+        <div class="debt-nums"><span id="dp-dav-current">$0</span><span id="dp-dav-original">Pico: $0</span></div>
+      </div>
+      <div class="debt-progress">
+        <div class="debt-top"><span class="debt-name">Rappi Card</span><span id="dp-rappi-pct">0%</span></div>
+        <div class="debt-track"><div class="debt-fill" id="dp-rappi-fill" style="width:0%"></div></div>
+        <div class="debt-nums"><span id="dp-rappi-current">$0</span><span id="dp-rappi-original">Pico: $0</span></div>
+      </div>
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);font-size:12px;color:var(--text2)" id="debt-projection"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📅 Comparativa mes a mes — ¿gastas más o menos?</div>
+      <div id="month-compare-chart" style="display:flex;align-items:flex-end;gap:12px;height:140px;padding:0 8px 8px"></div>
+      <div id="month-compare-legend" style="display:flex;justify-content:space-around;font-size:10px;color:var(--text3);font-family:var(--mono)"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🛡️ Crecimiento del fondo de emergencia</div>
+      <div id="emergency-growth" style="font-size:13px;line-height:2"></div>
+    </div>
+  </div>
+
+  <div id="tab-metas" class="tab-content">
+    <div class="input-section">
+      <div class="input-label">➕ Nueva meta</div>
+      <div class="input-grid2" style="margin-bottom:8px">
+        <input class="inp" id="goal-name" type="text" placeholder="Nombre (ej: Vivienda, Cripto)"/>
+        <select class="inp" id="goal-type" onchange="onGoalTypeChange()">
+          <option value="cuenta">💧 Vinculada a una cuenta</option>
+          <option value="categoria">🏷️ Acumulada por categoría</option>
+        </select>
+        <input class="inp inp-num" id="goal-target" type="number" placeholder="Meta (opcional)"/>
+      </div>
+      <div class="input-grid2" id="goal-cuenta-row">
+        <select class="inp" id="goal-account" onchange="onGoalAccountChange()">
+          <optgroup label="🏦 Cuentas líquidas (COP)" id="goal-acc-cop"></optgroup>
+          <optgroup label="🌎 Dólares (USD)" id="goal-acc-usd"></optgroup>
+          <option value="__nueva__">➕ Crear cuenta nueva…</option>
+        </select>
+        <span></span><span></span>
+      </div>
+      <div class="input-grid2" id="goal-newaccount-row" style="display:none">
+        <input class="inp" id="goal-newacc-name" type="text" placeholder="Nombre (ej: Bancolombia, Efectivo)"/>
+        <select class="inp" id="goal-newacc-currency">
+          <option value="COP">Pesos (COP)</option>
+          <option value="USD">Dólares (USD)</option>
+        </select>
+        <span></span>
+      </div>
+      <div class="input-grid2" id="goal-categoria-row" style="display:none">
+        <input class="inp" id="goal-catname" type="text" placeholder="Nombre de la categoría (ej: Inversión Cripto)"/>
+        <span></span><span></span>
+      </div>
+      <button class="btn-add" onclick="addGoal()">Crear meta</button>
+    </div>
+    <div id="goals-list"></div>
+  </div>
+
+  <div id="tab-diagnostico" class="tab-content">
+    <div class="card">
+      <div class="card-title">🔧 Diagnóstico técnico — tamaño real de cada dato</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:14px">El límite de la plataforma es 5MB por dato. Si algo se acerca a ese límite, es la causa real de los errores de guardado — no una suposición.</div>
+      <div id="diagnostico-body"></div>
+      <button class="btn-add" style="margin-top:14px" onclick="renderDiagnostico()">🔄 Recalcular ahora</button>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 Último error real registrado</div>
+      <div id="diagnostico-ultimo-error" style="font-size:11px;color:var(--text3);font-family:var(--mono);white-space:pre-wrap"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">🔁 Reintentar carga de datos</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Si al abrir viste el aviso de "guardado bloqueado" o estás viendo datos de ejemplo en vez de los tuyos, el servidor falló al cargar. Presiona aquí para reintentar traer tus datos reales — si funciona, el guardado se desbloquea automáticamente.</div>
+      <button class="btn-add" onclick="reintentarCarga()">🔁 Reintentar carga</button>
+    </div>
+    <div class="card">
+      <div class="card-title">🩹 Reparar índice de archivo</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Si <code>archive_index_v1</code> falla siempre al leer (no solo a veces), es que ese dato quedó atascado en el servidor. Esto solo afecta la lista de "meses archivados" para consulta — no borra tus movimientos, cuentas ni meses ya archivados. Repararlo lo reinicia a vacío para que puedas seguir usando el tracker sin ese error.</div>
+      <button class="btn-add" style="background:var(--surface3);color:var(--text)" onclick="repararArchiveIndex()">🩹 Reparar ahora</button>
+    </div>
+  </div>
+
+  <div class="hint">💾 Todo se guarda automáticamente y persiste en cualquier dispositivo con tu cuenta de Claude.<br>Selecciona la cuenta correcta en cada movimiento — el saldo se actualiza solo.</div>
+</div>
+<script>
+const CAPS_DEFAULT={'Alimentación · Mercado':800000,'Alimentación · Comidas afuera · Entre semana':200000,'Alimentación · Comidas afuera · Fin de semana':300000,'Deportes · Ciclismo':150000,'Servicios':400000,'Salud':1000000,'Vehículo · Seguros':615500,'Vehículo · Gasolina':150000,'Vehículo · Taller':200000,'Vehículo · Lavada':50000,'Vehículo · Parqueadero':80000,'Entretenimiento':450000,'Suscripciones':150000,'Ropa':200000,'Tecnología':200000,'Hogar':200000,'Transporte':150000,'Regalos':100000};
+let CAPS=Object.assign({},CAPS_DEFAULT);
+const COLORS={
+  // Alimentación e Ingresos comparten familia esmeralda (dinero que entra / sustento) — 3 tonos
+  'Alimentación · Mercado':'#34D399','Alimentación · Comidas afuera · Entre semana':'#10B981','Alimentación · Comidas afuera · Fin de semana':'#059669',
+  'Ingreso · Salario':'#10B981','Ingreso · Freelance/Media':'#34D399','Ingreso · Donación':'#6EE7B7','Ingreso · Otro':'#A7F3D0',
+  // Vehículo y Hogar: familia ámbar (combustible/mantenimiento) — 5 tonos progresivos
+  'Vehículo · Gasolina':'#F59E0B','Vehículo · Taller':'#D97706','Vehículo · Lavada':'#FBBF24','Vehículo · Seguros':'#B45309','Vehículo · Parqueadero':'#92400E',
+  'Regalos':'#FCD34D',
+  // Salud y Deportes: familia cian (bienestar)
+  'Deportes · Ciclismo':'#06B6D4','Salud':'#0891B2',
+  // Transporte y Tecnología: familia azul/violeta
+  'Transporte':'#3B82F6','Tecnología':'#8B5CF6','Cuidado personal':'#A78BFA',
+  // Entretenimiento y Ropa: familia rosa
+  'Entretenimiento':'#EC4899','Ropa':'#F472B6',
+  // Deuda y costos financieros: familia roja (única con connotación de alerta)
+  'Intereses':'#DC2626','Pago Deuda':'#B91C1C','Comisión':'#EF4444',
+  // Servicios/Suscripciones/Otro: familia neutra (gastos de fondo, sin urgencia visual)
+  'Servicios':'#64748B','Suscripciones':'#94A3B8','Otro':'#475569',
+  'Hogar':'#EAB308',
+};
+const BUDGET_TOTAL=800000+200000+300000+400000+150000+450000;
+// Categorías irregulares: no ocurren cada mes (taller, seguros anuales) — se excluyen del "ritmo de gasto"
+// para no distorsionar el semáforo cuando aparecen de forma puntual, pero siguen teniendo su propio tope visible.
+const CATEGORIAS_IRREGULARES=new Set(['Vehículo · Taller','Vehículo · Seguros']);
+const ACCOUNTS_META={
+  nequi:{label:'Nequi',currency:'COP',type:'debito'},
+  debito:{label:'Davivienda',currency:'COP',type:'debito'},
+  nu:{label:'Nu cajitas',currency:'COP',type:'debito'},
+  lulo:{label:'Lulo (Ahorro Vivienda)',currency:'COP',type:'debito'},
+  arq:{label:'ARQ',currency:'USD',type:'debito'},
+  ontop:{label:'Ontop',currency:'USD',type:'debito'},
+  davtc:{label:'Davivienda TC',currency:'COP',type:'credito'},
+  rappitc:{label:'Rappi Card',currency:'COP',type:'credito'},
+};
+
+const SEED_ENTRIES=[
+  {id:1,date:'2026-06-03',name:'Otros mercado',amount:116130,cat:'Alimentación · Mercado',acc:'davtc',txType:'gasto'},
+  {id:2,date:'2026-06-03',name:'Carnes',amount:101300,cat:'Alimentación · Mercado',acc:'davtc',txType:'gasto'},
+  {id:3,date:'2026-06-03',name:'Verduras',amount:10950,cat:'Alimentación · Mercado',acc:'davtc',txType:'gasto'},
+  {id:4,date:'2026-06-03',name:'Almuerzo',amount:15000,cat:'Alimentación · Comidas afuera · Entre semana',acc:'nequi',txType:'gasto'},
+  {id:5,date:'2026-06-05',name:'Servicio luz',amount:69003,cat:'Servicios',acc:'debito',txType:'gasto'},
+  {id:6,date:'2026-06-05',name:'Parqueadero moto',amount:37700,cat:'Vehículo · Parqueadero',acc:'debito',txType:'gasto'},
+  {id:7,date:'2026-06-06',name:'CapCut (suscripción)',amount:29900,cat:'Suscripciones',acc:'rappitc',txType:'gasto'},
+  {id:8,date:'2026-06-06',name:'Ciclismo',amount:29000,cat:'Deportes · Ciclismo',acc:'nequi',txType:'gasto'},
+  {id:9,date:'2026-06-06',name:'Almuerzo',amount:13000,cat:'Alimentación · Comidas afuera · Fin de semana',acc:'nequi',txType:'gasto'},
+  {id:10,date:'2026-06-06',name:'Restaurante almuerzo',amount:48000,cat:'Alimentación · Comidas afuera · Fin de semana',acc:'rappitc',txType:'gasto'},
+  {id:11,date:'2026-06-07',name:'Almuerzo',amount:15000,cat:'Alimentación · Comidas afuera · Fin de semana',acc:'nequi',txType:'gasto'},
+  {id:12,date:'2026-06-09',name:'Mercado',amount:40780,cat:'Alimentación · Mercado',acc:'davtc',txType:'gasto'},
+  {id:13,date:'2026-06-09',name:'Mercado frutas',amount:7800,cat:'Alimentación · Mercado',acc:'debito',txType:'gasto'},
+  {id:14,date:'2026-06-09',name:'Mercado huevos',amount:19000,cat:'Alimentación · Mercado',acc:'debito',txType:'gasto'},
+  {id:16,date:'2026-06-12',name:'Almuerzo',amount:15000,cat:'Alimentación · Comidas afuera · Entre semana',acc:'nequi',txType:'gasto'},
+  {id:17,date:'2026-06-12',name:'Vanti Gas',amount:41130,cat:'Servicios',acc:'debito',txType:'gasto'},
+  {id:18,date:'2026-06-12',name:'Uber',amount:50362,cat:'Transporte',acc:'rappitc',txType:'gasto'},
+  {id:19,date:'2026-06-12',name:'Adobe (suscripción)',amount:33264,cat:'Suscripciones',acc:'arq',txType:'gasto',currency:'COP'},
+  {id:20,date:'2026-06-12',name:'Bus Girardot-Bogotá',amount:33415,cat:'Transporte',acc:'arq',txType:'gasto',currency:'COP'},
+  {id:21,date:'2026-06-12',name:'Gasolina',amount:59103,cat:'Vehículo · Gasolina',acc:'arq',txType:'gasto',currency:'COP'},
+  {id:22,date:'2026-06-12',name:'Donación',amount:50000,cat:'Otro',acc:'debito',txType:'gasto'},
+  {id:23,date:'2026-06-20',name:'Parqueadero (ARQ)',amount:18500,cat:'Vehículo · Parqueadero',acc:'arq',txType:'gasto',currency:'COP'},
+  {id:24,date:'2026-06-20',name:'Comida (ahorros)',amount:7000,cat:'Alimentación · Comidas afuera · Fin de semana',acc:'debito',txType:'gasto'},
+  {id:25,date:'2026-06-20',name:'Parqueadero (ahorros)',amount:2000,cat:'Vehículo · Parqueadero',acc:'debito',txType:'gasto'},
+  {id:26,date:'2026-06-21',name:'Cumpleaños KT',amount:55000,cat:'Alimentación · Comidas afuera · Fin de semana',acc:'debito',txType:'gasto'},
+  {id:27,date:'2026-06-21',name:'Almuerzo',amount:15000,cat:'Alimentación · Comidas afuera · Fin de semana',acc:'debito',txType:'gasto'},
+  {id:28,date:'2026-06-23',name:'Google One (suscripción)',amount:44900,cat:'Suscripciones',acc:'rappitc',txType:'gasto'},
+  {id:29,date:'2026-06-23',name:'Almuerzo',amount:15000,cat:'Alimentación · Comidas afuera · Entre semana',acc:'debito',txType:'gasto'},
+  {id:30,date:'2026-06-23',name:'Mercado',amount:99910,cat:'Alimentación · Mercado',acc:'davtc',txType:'gasto'},
+  {id:31,date:'2026-06-23',name:'Acueducto',amount:60890,cat:'Servicios',acc:'rappitc',txType:'gasto'},
+  {id:32,date:'2026-06-27',name:'Desayuno bicicleta',amount:18000,cat:'Deportes · Ciclismo',acc:'debito',txType:'gasto'},
+  {id:33,date:'2026-06-27',name:'Gasto bicicleta',amount:6500,cat:'Deportes · Ciclismo',acc:'debito',txType:'gasto'},
+  {id:34,date:'2026-06-27',name:'Corte de cabello',amount:85000,cat:'Cuidado personal',acc:'debito',txType:'gasto'},
+  {id:35,date:'2026-06-27',name:'Donación adicional',amount:168401,cat:'Otro',acc:'arq',txType:'gasto',currency:'COP'},
+  {id:36,date:'2026-06-27',name:'Spotify (suscripción)',amount:30500,cat:'Suscripciones',acc:'davtc',txType:'gasto'},
+  {id:37,date:'2026-06-27',name:'Intereses TC Davivienda',amount:32023,cat:'Intereses',acc:'davtc',txType:'gasto'},
+  {id:38,date:'2026-06-27',name:'Cuota seguro compra TC',amount:3990,cat:'Otro',acc:'davtc',txType:'gasto'},
+  {id:40,date:'2026-07-01',name:'Uber',amount:2.33,cat:'Transporte',acc:'ontop',txType:'gasto'},
+  {id:41,date:'2026-07-01',name:'Meta (pauta TAM)',amount:33.26,cat:'Otro',acc:'ontop',txType:'gasto'},
+  {id:42,date:'2026-07-01',name:'Amazon (forro, libro, juego, afeitadora)',amount:156.96,cat:'Tecnología',acc:'ontop',txType:'gasto'},
+  {id:43,date:'2026-07-01',name:'Gasolina moto',amount:13.20,cat:'Vehículo · Gasolina',acc:'arq',txType:'gasto'},
+  {id:44,date:'2026-07-03',name:'Almuerzo',amount:13000,cat:'Alimentación · Comidas afuera · Entre semana',acc:'debito',txType:'gasto'},
+  {id:45,date:'2026-07-03',name:'Taller moto (mantenimiento, 27.543km)',amount:405000,cat:'Vehículo · Taller',acc:'nu',txType:'gasto'},
+  {id:46,date:'2026-07-03',name:'Mercado huevos',amount:19000,cat:'Alimentación · Mercado',acc:'nu',txType:'gasto'},
+  {id:47,date:'2026-07-03',name:'Parqueadero moto',amount:3300,cat:'Vehículo · Parqueadero',acc:'debito',txType:'gasto'},
+  {id:48,date:'2026-07-03',name:'Donación (15%)',amount:900000,cat:'Otro',acc:'debito',txType:'gasto'},
+  {id:49,date:'2026-07-03',name:'Pago mínimo Davivienda TC',amount:785246,cat:'Pago Deuda',acc:'debito',txType:'gasto'},
+  {id:50,date:'2026-07-03',name:'Pago Rappi Card',amount:1700000,cat:'Pago Deuda',acc:'debito',txType:'gasto'},
+  {id:51,date:'2026-07-03',name:'Salud Andrés (EPS)',amount:615500,cat:'Salud',acc:'debito',txType:'gasto'},
+  {id:53,date:'2026-07-03',name:'Arriendo',amount:1630000,cat:'Otro',acc:'debito',txType:'gasto'},
+  {id:54,date:'2026-07-03',name:'Fondo de emergencia (aporte)',amount:300000,cat:'Otro',acc:'nu',txType:'ingreso'},
+  {id:52,date:'2026-07-03',name:'Prepagada Sandra (última cuota)',amount:264000,cat:'Salud',acc:'debito',txType:'gasto'},
+];
+const SEED_ACCOUNTS={nequi:3000,debito:605254,nu:3039260,lulo:0,arq:231.28,ontop:73.75,trm:3596,davtc:1187348,rappitc:2184199};
+const DEBT_ORIGINAL={davtc:5150000,rappitc:5150000};
+let pendientes=[];
+let currentMonth=null;
+let archiveIndex={}; // {mes: {total, count, nuDelta}} - resumen liviano de meses archivados
+let archivedCache={}; // cache en memoria de meses archivados ya consultados esta sesión
+const ARCHIVE_WINDOW_MONTHS=2; // meses "calientes" que se cargan siempre (actual + anterior)
+
+function monthsBack(monthStr,n){
+  const [y,m]=monthStr.split('-').map(Number);
+  const d=new Date(y,m-1-n,1);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+}
+
+async function archiveOldMonths(){
+  // Desactivado desde la migración a Supabase: esta función existía para esquivar el límite de 5MB
+  // por valor de window.storage, guardando meses viejos aparte y sacándolos de memoria. Postgres no
+  // tiene ese límite — con cientos o miles de movimientos no hay ningún problema en tenerlos todos
+  // cargados. Se deja la función vacía (en vez de borrarla) por si el proyecto de inversiones u otro
+  // caso futuro sí necesita paginar/archivar por volumen real de datos.
+  return;
+}
+
+async function loadArchivedMonth(mes){
+  if(archivedCache[mes])return archivedCache[mes];
+  try{
+    const r=await window.storage.get('archive_'+mes);
+    if(r&&r.value){
+      archivedCache[mes]=JSON.parse(r.value);
+      return archivedCache[mes];
+    }
+  }catch(e){}
+  return [];
+}
+
+let sortMode='fecha'; // 'fecha' o 'cuenta'
+let filterAccount='todas';
+function setSortMode(mode){
+  sortMode=mode;
+  document.getElementById('sort-fecha').classList.toggle('active',mode==='fecha');
+  document.getElementById('sort-cuenta').classList.toggle('active',mode==='cuenta');
+  render();
+}
+function buscarEnActivos(){
+  const q=document.getElementById('search-text').value.trim().toLowerCase();
+  const resultsEl=document.getElementById('search-results');
+  if(q.length<2){ resultsEl.innerHTML=''; return; }
+  const matches=entries.filter(e=>e.name.toLowerCase().includes(q));
+  renderSearchResults(matches,q,false);
+}
+
+async function buscarEnHistorialCompleto(){
+  const q=document.getElementById('search-text').value.trim().toLowerCase();
+  if(q.length<2)return;
+  const resultsEl=document.getElementById('search-results');
+  resultsEl.innerHTML='<div style="color:var(--text3);font-size:12px;padding:10px">📦 Revisando meses archivados…</div>';
+
+  const mesesArchivados=Object.keys(archiveIndex);
+  let todos=[...entries];
+  for(const mes of mesesArchivados){
+    const datos=await loadArchivedMonth(mes);
+    todos=todos.concat(datos);
+  }
+  const matches=todos.filter(e=>e.name.toLowerCase().includes(q));
+  renderSearchResults(matches,q,true);
+}
+
+function renderSearchResults(matches,q,fueCompleto){
+  const resultsEl=document.getElementById('search-results');
+  if(matches.length===0){
+    resultsEl.innerHTML=`<div class="empty">Sin resultados para "${q}"${fueCompleto?' (incluyendo archivo completo)':' — prueba "Buscar en meses archivados" para revisar más atrás'}</div>`;
+    return;
+  }
+  const sorted=[...matches].sort((a,b)=>b.date.localeCompare(a.date));
+  resultsEl.innerHTML=`<div style="font-size:10px;color:var(--text3);margin-bottom:6px">${sorted.length} resultado(s)${fueCompleto?' en todo tu historial':' en meses recientes'}</div>`+
+    sorted.map(e=>{
+      const meta=ACCOUNTS_META[e.acc];
+      const c=col(e.cat);
+      const montoStr=(e.currency||meta.currency)==='USD'?fmtUSD(e.amount):fmtCOP(e.amount);
+      const mes=e.date.slice(0,7);
+      return `<div class="entry-row" style="cursor:pointer" onclick="irAMes('${mes}')">
+        <span class="entry-date">${fmtDate(e.date)}</span>
+        <div class="entry-dot" style="background:${c}"></div>
+        <div style="flex:1;min-width:0">
+          <div class="entry-name">${e.name}</div>
+          <div class="entry-acc">${meta.label} · ${mes}</div>
+        </div>
+        <span class="entry-cat" style="background:${c}22;color:${c}">${scat(e.cat)}</span>
+        <span class="entry-amount">${montoStr}</span>
+      </div>`;
+    }).join('');
+}
+
+async function irAMes(mes){
+  const enVentanaActiva=entries.some(e=>e.date.slice(0,7)===mes)||mes>=monthsBack(todayStr().slice(0,7),ARCHIVE_WINDOW_MONTHS);
+  if(!enVentanaActiva&&archiveIndex[mes]){
+    await loadArchivedMonth(mes);
+  }
+  currentMonth=mes;
+  document.getElementById('month-select').value=mes;
+  document.getElementById('search-text').value='';
+  document.getElementById('search-results').innerHTML='';
+  render();
+}
+
+async function saveConfig(){
+  scheduleSave('config_v1',()=>JSON.stringify({goals}));
+}
+// Alias de compatibilidad — goals es lo único que sigue viviendo en config_v1 por ahora (siguiente en la fila de migración)
+const saveGoals=saveConfig;
+
+function toggleBudgetDetail(detailId){
+  const el=document.getElementById(detailId);
+  const arrow=document.getElementById(detailId+'-arrow');
+  if(!el)return;
+  const abierto=el.style.display==='block';
+  el.style.display=abierto?'none':'block';
+  if(arrow)arrow.textContent=abierto?'▾':'▴';
+}
+
+async function updateCap(el){
+  const cat=el.dataset.cat;
+  const nuevoValor=parseNum(el.value);
+  if(!nuevoValor||nuevoValor<=0){ el.value=CAPS[cat].toLocaleString('es-CO'); return; }
+  CAPS[cat]=nuevoValor;
+  el.value=nuevoValor.toLocaleString('es-CO');
+  if(currentUserId){
+    try{
+      const {error}=await sb.from('fin_presupuesto_topes').upsert(
+        {user_id:currentUserId,categoria:cat,tope:nuevoValor},
+        {onConflict:'user_id,categoria'}
+      );
+      if(error)throw error;
+    }catch(e){ registrarErrorDiagnostico('fin_presupuesto_topes (guardado)',e); }
+  }
+  render();
+}
+
+function setFilterAccount(){
+  filterAccount=document.getElementById('filter-account').value;
+  updateFilterBalanceBanner();
+  render();
+}
+
+function updateFilterBalanceBanner(){
+  const banner=document.getElementById('filter-balance-banner');
+  if(!banner)return;
+  if(filterAccount==='todas'){
+    banner.style.display='none';
+    return;
+  }
+  const meta=ACCOUNTS_META[filterAccount];
+  const saldo=accounts[filterAccount]||0;
+  const saldoStr=meta.currency==='USD'?fmtUSD(saldo):fmtCOP(saldo);
+  const esDeuda=meta.type==='credito';
+  banner.style.display='flex';
+  document.getElementById('filter-balance-label').textContent=`💰 Saldo actual de ${meta.label}`;
+  const valEl=document.getElementById('filter-balance-value');
+  valEl.textContent=saldoStr;
+  valEl.style.color=esDeuda?'var(--danger)':'var(--accent)';
+}
+const RECURRENTES=[
+  {name:'Salario (ingreso)',amount:2675,acc:'ontop',cat:'Otro',day:26,isIncome:true},
+  {name:'Arriendo',amount:1630000,acc:'debito',cat:'Otro',day:3},
+  {name:'Salud Andrés (EPS)',amount:615500,acc:'debito',cat:'Salud',day:3},
+  {name:'Pago mínimo Davivienda TC',amount:785246,acc:'debito',cat:'Pago Deuda',day:10},
+  {name:'Pago Rappi Card',amount:1477710,acc:'debito',cat:'Pago Deuda',day:10},
+  {name:'CapCut (suscripción)',amount:29900,acc:'rappitc',cat:'Suscripciones',day:6},
+  {name:'Google One (suscripción)',amount:44900,acc:'rappitc',cat:'Suscripciones',day:23},
+  {name:'Spotify (suscripción)',amount:30500,acc:'davtc',cat:'Suscripciones',day:29},
+  {name:'Anthropic (Claude API)',amount:20,acc:'ontop',cat:'Suscripciones',day:29},
+  {name:'Fondo de emergencia (aporte)',amount:300000,acc:'debito',cat:'Otro',day:5},
+];
+
+let _confirmResolver=null;
+function customConfirm(mensaje,opciones={}){
+  return new Promise(resolve=>{
+    _confirmResolver=resolve;
+    document.getElementById('confirm-modal-text').textContent=mensaje;
+    const btnYes=document.getElementById('confirm-btn-yes');
+    const btnNo=document.getElementById('confirm-btn-no');
+    btnYes.textContent=opciones.textoSi||'Sí, eliminar';
+    if(opciones.soloOk){
+      btnYes.textContent=opciones.textoSi||'Entendido';
+      btnNo.style.display='none';
+    }else{
+      btnNo.style.display='block';
+    }
+    document.getElementById('confirm-modal').style.display='flex';
+  });
+}
+function resolverConfirm(valor){
+  document.getElementById('confirm-modal').style.display='none';
+  if(_confirmResolver){ _confirmResolver(valor); _confirmResolver=null; }
+}
+
+let _payResolver=null;
+function customAccountPrompt(mensaje,accSugerida){
+  return new Promise(resolve=>{
+    _payResolver=resolve;
+    document.getElementById('pay-modal-text').textContent=mensaje;
+    const sel=document.getElementById('pay-modal-account');
+    sel.innerHTML=Object.keys(ACCOUNTS_META).map(k=>`<option value="${k}">${ACCOUNTS_META[k].label}</option>`).join('');
+    sel.value=accSugerida;
+    document.getElementById('pay-modal').style.display='flex';
+  });
+}
+function resolverPayModal(confirmado){
+  document.getElementById('pay-modal').style.display='none';
+  if(_payResolver){
+    _payResolver(confirmado?document.getElementById('pay-modal-account').value:null);
+    _payResolver=null;
+  }
+}
+
+let entries=[];
+let pendingSaves=0; // contador de guardados en curso — evita que la sincronización pise cambios recién hechos
+const BUILD_VERSION='2026-08-01.loader'; // súbelo cada vez que se publique una versión nueva — sirve para confirmar que celular y PC corren el mismo código
+
+let ultimoErrorGuardado=null;
+
+function registrarErrorDiagnostico(key,err,dataStr){
+  ultimoErrorGuardado={
+    key,
+    mensaje:err?(err.message||String(err)):'Error desconocido',
+    hora:new Intl.DateTimeFormat('es-CO',{timeZone:'America/Bogota',hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date()),
+    tamKB:dataStr!==undefined?(new Blob([dataStr]).size/1024).toFixed(1):'—'
+  };
+  console.error(`Error real en ${key}:`,err);
+}
+
+// Reintenta el guardado ante fallas transitorias del servicio (ej: "Unexpected response type")
+// antes de darse por vencido. Usado por todos los guardados normales, no solo por "Guardar y verificar".
+async function setConReintentos(key,dataStr,maxIntentos=5){
+  let ultimoError=null;
+  for(let i=0;i<maxIntentos;i++){
+    try{
+      await window.storage.set(key,dataStr);
+      return true;
+    }catch(e){
+      ultimoError=e;
+    }
+    if(i<maxIntentos-1)await new Promise(r=>setTimeout(r,600*(i+1)));
+  }
+  registrarErrorDiagnostico(key,ultimoError,dataStr);
+  return false;
+}
+
+async function getConReintentos(key,maxIntentos=3){
+  let ultimoError=null;
+  for(let i=0;i<maxIntentos;i++){
+    try{
+      return await window.storage.get(key);
+    }catch(e){
+      ultimoError=e;
+    }
+    if(i<maxIntentos-1)await new Promise(r=>setTimeout(r,500*(i+1)));
+  }
+  registrarErrorDiagnostico(key+' (lectura)',ultimoError);
+  return null;
+}
+
+// Guardado escalonado: agrupa cambios rápidos en una sola escritura por clave y separa
+// en el tiempo las distintas claves (entries/accounts/pendientes/config) para no dispararlas
+// todas de golpe — eso era lo que agotaba el límite de solicitudes justo al abrir la app.
+const _saveTimers={};
+const _pendingSaveData={};
+const SAVE_DELAY_MS={entries_v3:300,accounts_v3:900,pendientes_v3:1500,config_v1:2100};
+
+function scheduleSave(key,dataStrFn){
+  if(cargaConFallos&&['entries_v3','accounts_v3','pendientes_v3','config_v1'].includes(key)){
+    // La carga falló: lo que hay en memoria puede ser el seed de ejemplo, no tus datos reales.
+    // Guardar ahora PISARÍA tus datos reales en la nube. Bloqueamos y avisamos.
+    const statusEl=document.getElementById('sync-status');
+    if(statusEl){
+      statusEl.style.display='block';
+      statusEl.style.opacity='1';
+      statusEl.textContent='🛑 Guardado bloqueado: tus datos no cargaron. Usa "Reintentar carga" en 🔧 Diagnóstico';
+      statusEl.className='sync-status error';
+    }
+    return;
+  }
+  if(!_pendingSaveData[key])pendingSaves++; // solo cuenta como "pendiente" la primera vez, no en cada llamada repetida
+  _pendingSaveData[key]=dataStrFn;
+  showSaveToast('saving');
+  clearTimeout(_saveTimers[key]);
+  _saveTimers[key]=setTimeout(()=>flushSaveKey(key),SAVE_DELAY_MS[key]||1200);
+}
+
+async function flushSaveKey(key){
+  const dataStrFn=_pendingSaveData[key];
+  if(!dataStrFn)return;
+  delete _pendingSaveData[key];
+  clearTimeout(_saveTimers[key]);
+  delete _saveTimers[key];
+  const dataStr=dataStrFn();
+  const ok=await setConReintentos(key,dataStr);
+  showSaveToast(ok?'saved':'error');
+  pendingSaves--;
+}
+
+function flushAllPendingSaves(){
+  Object.keys(_pendingSaveData).forEach(key=>flushSaveKey(key));
+}
+function cancelScheduledSave(key){
+  if(_pendingSaveData[key]){
+    delete _pendingSaveData[key];
+    clearTimeout(_saveTimers[key]);
+    delete _saveTimers[key];
+    pendingSaves--;
+  }
+}
+// Si el usuario minimiza/cierra la pestaña, forzamos que lo pendiente se escriba ya, sin esperar el retraso
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden')flushAllPendingSaves();
+});
+window.addEventListener('beforeunload',flushAllPendingSaves);
+
+
+async function reintentarCarga(){
+  cargaConFallos=false; // se re-evalúa durante la carga: si vuelve a fallar, se reactiva solo
+  await loadData();
+  if(!cargaConFallos){
+    await customConfirm('✓ Datos cargados correctamente. El guardado está desbloqueado.');
+  }else{
+    await customConfirm('⚠ El servidor sigue fallando — tus datos NO se pudieron traer todavía. El guardado sigue bloqueado por seguridad. Espera unos minutos y reintenta.');
+  }
+}
+
+async function repararArchiveIndex(){
+  const confirmado=await customConfirm('¿Reiniciar el índice de archivo?\n\nEsto NO borra tus movimientos, cuentas ni los meses ya archivados — solo reinicia la lista que recuerda cuáles meses fueron archivados, para eliminar el error persistente.');
+  if(!confirmado)return;
+  archiveIndex={};
+  const ok=await setConReintentos('archive_index_v1',JSON.stringify(archiveIndex));
+  await customConfirm(ok?'✓ Índice reparado correctamente.':'⚠ No se pudo reparar todavía — el servidor sigue fallando en este momento. Intenta de nuevo en unos minutos.');
+}
+
+function renderDiagnostico(){
+  const body=document.getElementById('diagnostico-body');
+  if(!body)return;
+  const datos={
+    'entries_v3 (movimientos)':entries,
+    'accounts_v3 (cuentas)':accounts,
+    'pendientes_v3':pendientes,
+    'config_v1 (metas+cuentas nuevas+topes+vehículos)':{goals,dynamicAccounts,vehiculos},
+    'archive_index_v1':archiveIndex,
+  };
+  body.innerHTML=Object.entries(datos).map(([nombre,obj])=>{
+    const texto=JSON.stringify(obj);
+    const bytes=new Blob([texto]).size;
+    const kb=(bytes/1024).toFixed(1);
+    const pctDeLimite=(bytes/(5*1024*1024)*100).toFixed(3);
+    const color=bytes>1000000?'var(--danger)':bytes>200000?'var(--warn)':'var(--accent)';
+    return `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:12px">${nombre}</span>
+      <span style="font-family:var(--mono);font-size:12px;color:${color}">${kb} KB (${pctDeLimite}% del límite)</span>
+    </div>`;
+  }).join('');
+
+  const errEl=document.getElementById('diagnostico-ultimo-error');
+  if(errEl){
+    errEl.textContent=ultimoErrorGuardado
+      ? `Clave: ${ultimoErrorGuardado.key}\nMensaje: ${ultimoErrorGuardado.mensaje}\nHora: ${ultimoErrorGuardado.hora}\nTamaño del dato en ese intento: ${ultimoErrorGuardado.tamKB} KB`
+      : 'Sin errores registrados en esta sesión todavía.';
+  }
+}
+
+document.getElementById('build-version').textContent='build '+BUILD_VERSION;
+let goals=[]; // metas dinámicas: [{id,name,type,target,acc?,cat?,accumulated?}]
+
+function onGoalTypeChange(){
+  const tipo=document.getElementById('goal-type').value;
+  document.getElementById('goal-cuenta-row').style.display=tipo==='cuenta'?'grid':'none';
+  document.getElementById('goal-categoria-row').style.display=tipo==='categoria'?'grid':'none';
+  if(tipo==='cuenta')populateGoalAccountOptions();
+}
+
+function onGoalAccountChange(){
+  const val=document.getElementById('goal-account').value;
+  document.getElementById('goal-newaccount-row').style.display=val==='__nueva__'?'grid':'none';
+}
+
+function populateGoalAccountOptions(){
+  const copGroup=document.getElementById('goal-acc-cop');
+  const usdGroup=document.getElementById('goal-acc-usd');
+  if(!copGroup||!usdGroup)return;
+  copGroup.innerHTML='';
+  usdGroup.innerHTML='';
+  Object.keys(ACCOUNTS_META).forEach(key=>{
+    const meta=ACCOUNTS_META[key];
+    if(meta.type==='credito')return; // las metas de ahorro no aplican a tarjetas de crédito
+    const opt=document.createElement('option');
+    opt.value=key;
+    opt.textContent=meta.label;
+    (meta.currency==='USD'?usdGroup:copGroup).appendChild(opt);
+  });
+}
+
+let dynamicAccounts={}; // registro de cuentas creadas por el usuario: {key:{label,currency}}
+
+function slugify(text){
+  return 'acc_'+text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'');
+}
+
+function abrirNuevaCuentaModal(){
+  document.getElementById('nueva-cuenta-nombre').value='';
+  document.getElementById('nueva-cuenta-moneda').value='COP';
+  document.getElementById('nueva-cuenta-modal').style.display='flex';
+}
+
+async function resolverNuevaCuentaModal(confirmado){
+  document.getElementById('nueva-cuenta-modal').style.display='none';
+  if(!confirmado)return;
+  const nombre=document.getElementById('nueva-cuenta-nombre').value.trim();
+  if(!nombre)return;
+  const moneda=document.getElementById('nueva-cuenta-moneda').value;
+  await createDynamicAccount(nombre,moneda);
+}
+
+async function createDynamicAccount(name,currency){
+  const key=slugify(name)+'_'+Date.now().toString(36).slice(-4);
+  ACCOUNTS_META[key]={label:name,currency,type:'debito'};
+  accounts[key]=0;
+  dynamicAccounts[key]={label:name,currency};
+  refreshAllAccountSelectors();
+  renderDynamicAccountCard(key);
+  await saveAccountsData(); // ya escribe esta cuenta nueva (y todas las demás) en Supabase, incluida esta
+  return key;
+}
+
+function refreshAllAccountSelectors(){
+  populateGoalAccountOptions();
+  // Movimientos, transferencias y pendientes: agregar cuentas dinámicas si no están
+  ['inp-account','tr-origen','tr-destino','pend-account'].forEach(id=>{
+    const sel=document.getElementById(id);
+    if(!sel)return;
+    Object.keys(dynamicAccounts).forEach(key=>{
+      if(sel.querySelector(`option[value="${key}"]`))return;
+      const meta=dynamicAccounts[key];
+      let group=sel.querySelector(meta.currency==='USD'?'optgroup[label*="Dólares"]':'optgroup[label*="líquidas"]');
+      const opt=document.createElement('option');
+      opt.value=key;
+      opt.textContent=meta.label;
+      if(group)group.appendChild(opt); else sel.appendChild(opt);
+    });
+  });
+}
+
+function renderDynamicAccountCard(key){
+  const grid=document.getElementById('metas-accounts-grid');
+  if(!grid||grid.querySelector('#card-'+key))return;
+  const meta=ACCOUNTS_META[key];
+  const card=document.createElement('div');
+  card.className='acc-card';
+  card.style.borderLeftColor='#5B8DEF';
+  card.id='card-'+key;
+  card.innerHTML=`<div class="acc-label"><span>${meta.label}</span><span>💰</span></div><input class="acc-value" id="acc-${key}" onblur="handleAccountFieldBlur('${key}')">`;
+  grid.appendChild(card);
+  document.getElementById('acc-'+key).value=meta.currency==='USD'?'$'+accounts[key]+' USD':fmtCOP(accounts[key]);
+}
+
+
+async function saveEntries(){
+  scheduleSave('entries_v3',()=>JSON.stringify(entries));
+}
+
+function showSaveToast(state){
+  const el=document.getElementById('save-toast');
+  if(!el)return;
+  clearTimeout(el._hideTimer);
+  if(state==='saving'){
+    el.textContent='⏳ Guardando…';
+    el.style.background='var(--surface2)';
+    el.style.color='var(--text2)';
+    el.style.border='1px solid var(--border2)';
+    el.style.display='block';
+    el.style.opacity='1';
+  }else if(state==='saved'){
+    el.textContent='✓ Guardado';
+    el.style.background='rgba(168,224,99,.15)';
+    el.style.color='var(--accent)';
+    el.style.border='1px solid rgba(168,224,99,.4)';
+    el.style.display='block';
+    el.style.opacity='1';
+    el._hideTimer=setTimeout(()=>{ el.style.opacity='0'; setTimeout(()=>el.style.display='none',300); },1200);
+  }else if(state==='error'){
+    el.textContent='⚠ No se pudo guardar — ver 🔧 Diagnóstico';
+    el.style.background='rgba(255,107,107,.15)';
+    el.style.color='var(--danger)';
+    el.style.border='1px solid rgba(255,107,107,.4)';
+    el.style.display='block';
+    el.style.opacity='1';
+    // A propósito NO se autooculta: un fallo de guardado real (ej. en una transferencia)
+    // no debe desaparecer solo en 3 segundos si cambiaste de pestaña justo después.
+    // Se queda visible hasta el próximo guardado exitoso.
+  }
+}
+
+let currentUserId=null; // se fija al iniciar sesión — necesario para escribir en Supabase
+
+async function guardarCuentasSupabase(){
+  if(!currentUserId)return false;
+  try{
+    const filas=Object.keys(ACCOUNTS_META).map(slug=>({
+      user_id:currentUserId,
+      slug,
+      label:ACCOUNTS_META[slug].label,
+      currency:ACCOUNTS_META[slug].currency,
+      account_type:ACCOUNTS_META[slug].type,
+      balance:accounts[slug]||0,
+      is_dynamic:!!dynamicAccounts[slug],
+    }));
+    const {data:filasGuardadas,error}=await sb.from('fin_accounts').upsert(filas,{onConflict:'user_id,slug'}).select('id,slug');
+    if(error)throw error;
+    (filasGuardadas||[]).forEach(f=>{ accountIdBySlug[f.slug]=f.id; });
+    return true;
+  }catch(e){
+    registrarErrorDiagnostico('fin_accounts (guardado)',e);
+    return false;
+  }
+}
+
+async function saveAccountsData(){
+  pendingSaves++;
+  showSaveToast('saving');
+  const ok=await guardarCuentasSupabase();
+  showSaveToast(ok?'saved':'error');
+  pendingSaves--;
+}
+
+async function saveConfiguracion(){
+  if(!currentUserId)return;
+  pendingSaves++;
+  showSaveToast('saving');
+  try{
+    const {error}=await sb.from('fin_configuracion').upsert(
+      {user_id:currentUserId,trm:accounts.trm,vehiculos:vehiculos&&vehiculos.length?vehiculos:['Moto']},
+      {onConflict:'user_id'}
+    );
+    if(error)throw error;
+    showSaveToast('saved');
+  }catch(e){
+    registrarErrorDiagnostico('fin_configuracion',e);
+    showSaveToast('error');
+  }finally{
+    pendingSaves--;
+  }
+}
+
+async function savePendientesData(){
+  scheduleSave('pendientes_v3',()=>JSON.stringify(pendientes));
+}
+
+async function actualizarAcumuladoMeta(goal){
+  if(!goal||!currentUserId)return;
+  try{
+    const {error}=await sb.from('fin_metas').update({acumulado:goal.accumulated}).eq('id',goal.id);
+    if(error)throw error;
+  }catch(e){ registrarErrorDiagnostico('fin_metas (acumulado)',e); }
+}
+
+async function addGoal(){
+  const name=document.getElementById('goal-name').value.trim();
+  const type=document.getElementById('goal-type').value;
+  const target=parseFloat(document.getElementById('goal-target').value)||0;
+  if(!name)return;
+  const goal={name,type,target};
+  if(type==='cuenta'){
+    let accSeleccionada=document.getElementById('goal-account').value;
+    if(accSeleccionada==='__nueva__'){
+      const nuevoNombre=document.getElementById('goal-newacc-name').value.trim();
+      const nuevaMoneda=document.getElementById('goal-newacc-currency').value;
+      if(!nuevoNombre)return;
+      accSeleccionada=await createDynamicAccount(nuevoNombre,nuevaMoneda);
+      document.getElementById('goal-newacc-name').value='';
+    }
+    goal.acc=accSeleccionada;
+  }else{
+    const catname=document.getElementById('goal-catname').value.trim();
+    if(!catname)return;
+    goal.cat=catname;
+    goal.accumulated=0;
+    // asigna un color de una paleta rotativa para que se vea bien en gráficos
+    const paleta=['#00D68F','#FFD54F','#5B8DEF','#F06292','#FFB347','#9B7FEA','#5EEAC8'];
+    goal.color=paleta[goals.filter(g=>g.type==='categoria').length%paleta.length];
+    COLORS[catname]=goal.color;
+  }
+
+  try{
+    const {data:nuevaFila,error}=await sb.from('fin_metas').insert({
+      user_id:currentUserId,
+      nombre:goal.name,
+      tipo:goal.type,
+      account_id:goal.type==='cuenta'?accountIdBySlug[goal.acc]:null,
+      categoria:goal.type==='categoria'?goal.cat:null,
+      monto_objetivo:goal.target,
+      acumulado:goal.accumulated||0,
+      color:goal.color||null,
+    }).select().single();
+    if(error)throw error;
+    goal.id=nuevaFila.id;
+  }catch(e){
+    registrarErrorDiagnostico('fin_metas (crear)',e);
+    return; // no la agregamos localmente si no se pudo guardar, para no mostrar algo que no existe en la nube
+  }
+
+  goals.push(goal);
+  document.getElementById('goal-name').value='';
+  document.getElementById('goal-target').value='';
+  document.getElementById('goal-catname').value='';
+  refreshGoalCategoryOptions();
+  renderGoals();
+}
+
+async function deleteGoal(id){
+  goals=goals.filter(g=>g.id!==id);
+  refreshGoalCategoryOptions();
+  renderGoals();
+  try{
+    const {error}=await sb.from('fin_metas').delete().eq('id',id);
+    if(error)throw error;
+  }catch(e){ registrarErrorDiagnostico('fin_metas (borrar)',e); }
+}
+
+function refreshGoalCategoryOptions(){
+  const catGoals=goals.filter(g=>g.type==='categoria');
+  ['inp-cat','pend-cat'].forEach(selectId=>{
+    const sel=document.getElementById(selectId);
+    if(!sel)return;
+    let optgroup=sel.querySelector('#goal-cats-optgroup-'+selectId);
+    if(optgroup)optgroup.remove();
+    if(catGoals.length===0)return;
+    optgroup=document.createElement('optgroup');
+    optgroup.id='goal-cats-optgroup-'+selectId;
+    optgroup.label='🏆 Metas';
+    catGoals.forEach(g=>{
+      const opt=document.createElement('option');
+      opt.value=g.cat;
+      opt.textContent=g.name;
+      optgroup.appendChild(opt);
+    });
+    sel.appendChild(optgroup);
+  });
+}
+
+function renderGoals(){
+  const list=document.getElementById('goals-list');
+  if(!list)return;
+  if(goals.length===0){
+    list.innerHTML='<div class="card"><div class="empty">🏆 Aún no tienes metas — crea la primera arriba (ej: Ahorro Vivienda vinculada a Lulo, o Inversión Cripto acumulada por categoría)</div></div>';
+    return;
+  }
+  list.innerHTML=goals.map(g=>{
+    let actual,moneda='COP';
+    if(g.type==='cuenta'){
+      const meta=ACCOUNTS_META[g.acc];
+      actual=accounts[g.acc]||0;
+      moneda=meta.currency;
+    }else{
+      actual=g.accumulated||0;
+    }
+    const actualCOP=moneda==='USD'?actual*accounts.trm:actual;
+    const targetCOP=g.target||0;
+    const pct=targetCOP>0?Math.min(100,Math.round(actualCOP/targetCOP*100)):null;
+    const actualStr=moneda==='USD'?'$'+actual.toFixed(2)+' USD':fmtCOP(actual);
+    return `<div class="card">
+      <div class="card-title">${g.type==='cuenta'?'💧':'🏷️'} ${g.name} <button class="btn-del" onclick="deleteGoal('${g.id}')" style="float:right">×</button></div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+        <span style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--accent)">${actualStr}</span>
+        ${g.target?`<span style="font-size:11px;color:var(--text3)">meta: ${fmtCOP(g.target)}</span>`:'<span style="font-size:11px;color:var(--text3)">sin meta fija — solo trazabilidad</span>'}
+      </div>
+      ${pct!==null?`<div class="debt-track"><div class="debt-fill" style="width:${pct}%"></div></div><div style="font-size:10px;color:var(--text3);margin-top:4px;text-align:right">${pct}% completado</div>`:''}
+      <div style="font-size:10px;color:var(--text3);margin-top:8px">${g.type==='cuenta'?'Vinculada a: '+ACCOUNTS_META[g.acc].label:'Acumula movimientos categorizados como "'+g.name+'"'}</div>
+    </div>`;
+  }).join('');
+}
+
+let accounts={};
+let accountIdBySlug={}; // slug ('nequi','davtc',...) -> UUID real de fin_accounts, necesario para referenciar cuentas desde metas/pendientes/movimientos
+
+let cargaConFallos=false; // true si alguna lectura falló durante loadData — bloquea cualquier siembra automática para no arriesgarse a sobrescribir datos reales con listas "vacías" por error
+
+async function loadData(){
+  const statusEl=document.getElementById('sync-status');
+  try{
+    let resA=null,resAFallo=false;
+    try{
+      const {data,error}=await sb.from('fin_accounts').select('*').eq('archived',false);
+      if(error)throw error;
+      resA=data;
+    }catch(e){ resAFallo=true; cargaConFallos=true; registrarErrorDiagnostico('fin_accounts (Supabase)',e); }
+    if(resA){
+      accounts={};
+      resA.forEach(row=>{
+        accounts[row.slug]=Number(row.balance);
+        accountIdBySlug[row.slug]=row.id;
+        if(row.is_dynamic){
+          ACCOUNTS_META[row.slug]={label:row.label,currency:row.currency,type:row.account_type};
+          dynamicAccounts[row.slug]={label:row.label,currency:row.currency};
+        }
+      });
+      if(accounts.trm===undefined)accounts.trm=4000; // valor de respaldo si la lectura de abajo también falla
+      try{
+        const {data:cfg,error:errCfg}=await sb.from('fin_configuracion').select('trm,vehiculos').maybeSingle();
+        if(!errCfg&&cfg){
+          accounts.trm=Number(cfg.trm);
+          if(cfg.vehiculos&&cfg.vehiculos.length)vehiculos=cfg.vehiculos;
+        }
+      }catch(e){ registrarErrorDiagnostico('fin_configuracion (lectura TRM/vehículos)',e); }
+    }else{
+      accounts=Object.assign({},SEED_ACCOUNTS);
+    }
+
+    let resFallo=false;
+    try{
+      const {data:movs,error:errMovs}=await sb.from('fin_movimientos').select('*').order('fecha',{ascending:false});
+      if(errMovs)throw errMovs;
+      entries=(movs||[]).map(m=>({
+        id:m.id,
+        date:m.fecha,
+        name:m.nombre,
+        amount:Number(m.monto),
+        cat:m.categoria,
+        acc:Object.keys(accountIdBySlug).find(slug=>accountIdBySlug[slug]===m.account_id),
+        txType:m.tx_type,
+        ...(m.moneda_override?{currency:m.moneda_override}:{}),
+        ...(m.vehiculo?{vehiculo:m.vehiculo}:{}),
+      }));
+    }catch(e){ resFallo=true; cargaConFallos=true; entries=SEED_ENTRIES.slice(); registrarErrorDiagnostico('fin_movimientos (lectura)',e); }
+
+    try{
+      const {data:topes,error:errTopes}=await sb.from('fin_presupuesto_topes').select('*');
+      if(errTopes)throw errTopes;
+      (topes||[]).forEach(t=>{ CAPS[t.categoria]=Number(t.tope); });
+    }catch(e){ registrarErrorDiagnostico('fin_presupuesto_topes (lectura)',e); }
+
+    try{
+      const {data:pends,error:errPends}=await sb.from('fin_pendientes').select('*');
+      if(errPends)throw errPends;
+      pendientes=(pends||[]).map(p=>({
+        id:p.id,
+        name:p.nombre,
+        amount:Number(p.monto),
+        date:p.fecha,
+        acc:Object.keys(accountIdBySlug).find(slug=>accountIdBySlug[slug]===p.account_id),
+        cat:p.categoria,
+        isIncome:p.is_income,
+      }));
+    }catch(e){ cargaConFallos=true; registrarErrorDiagnostico('fin_pendientes (lectura)',e); }
+
+    const resArch=await getConReintentos('archive_index_v1');
+    if(resArch&&resArch.value){ archiveIndex=JSON.parse(resArch.value); }
+
+    try{
+      const {data:metas,error:errMetas}=await sb.from('fin_metas').select('*');
+      if(errMetas)throw errMetas;
+      goals=(metas||[]).map(m=>({
+        id:m.id,
+        name:m.nombre,
+        type:m.tipo,
+        acc:m.tipo==='cuenta'?Object.keys(accountIdBySlug).find(slug=>accountIdBySlug[slug]===m.account_id):undefined,
+        cat:m.tipo==='categoria'?m.categoria:undefined,
+        target:Number(m.monto_objetivo),
+        accumulated:m.tipo==='categoria'?Number(m.acumulado):undefined,
+        color:m.color||undefined,
+      }));
+      goals.filter(g=>g.type==='categoria').forEach(g=>{ if(g.color)COLORS[g.cat]=g.color; });
+    }catch(e){ registrarErrorDiagnostico('fin_metas (lectura)',e); }
+
+    if(cargaConFallos){
+      statusEl.textContent='⚠ Tus datos NO cargaron (estás viendo el ejemplo) — guardado bloqueado. Reintenta en 🔧 Diagnóstico';
+      statusEl.className='sync-status error';
+    }else{
+      statusEl.textContent='✓ Sincronizado';
+      statusEl.className='sync-status ok';
+      setTimeout(()=>{statusEl.style.opacity='0.35'},1200);
+    }
+
+    await archiveOldMonths(); // mueve meses viejos fuera del archivo "caliente"
+  }catch(err){
+    cargaConFallos=true; // datos de ejemplo en pantalla — el guardado queda bloqueado hasta una carga/sincronización exitosa
+    entries=SEED_ENTRIES.slice();
+    accounts=Object.assign({},SEED_ACCOUNTS);
+    pendientes=[];
+    statusEl.textContent='⚠ No se pudieron cargar tus datos — guardado bloqueado por seguridad. Reintenta en 🔧 Diagnóstico';
+    statusEl.className='sync-status error';
+  }
+  fillAccountInputs();
+  populateMonthSelector();
+  await autoSeedRecurrentes();
+  refreshGoalCategoryOptions();
+  populateVehiculoSelect();
+  Object.keys(dynamicAccounts).forEach(key=>renderDynamicAccountCard(key));
+  refreshAllAccountSelectors();
+  render();
+  document.getElementById('loading-gate').style.display='none';
+}
+
+async function autoSeedRecurrentes(){
+  if(cargaConFallos){
+    // No confiamos en que 'pendientes' o 'entries' representen la realidad — no sembramos ni guardamos nada este ciclo.
+    const statusEl=document.getElementById('sync-status');
+    if(statusEl){
+      statusEl.style.display='block';
+      statusEl.textContent='⚠ Lectura incompleta — se omitió la siembra automática de pendientes por seguridad';
+      statusEl.className='sync-status error';
+      setTimeout(()=>{statusEl.style.opacity='0.35'},4000);
+    }
+    return;
+  }
+  const mesActual=todayStr().slice(0,7);
+  let seeded=[];
+  try{
+    const r=await window.storage.get('seeded_months_v3');
+    if(r&&r.value)seeded=JSON.parse(r.value);
+  }catch(e){}
+  if(seeded.includes(mesActual))return;
+
+  const yaExisten=new Set(pendientes.filter(p=>p.date&&p.date.slice(0,7)===mesActual).map(p=>p.name));
+  const yaGastados=new Set(entries.filter(e=>e.date.slice(0,7)===mesActual).map(e=>e.name));
+  const nuevos=[];
+  RECURRENTES.forEach(r=>{
+    if(yaExisten.has(r.name)||yaGastados.has(r.name))return;
+    const dd=String(r.day).padStart(2,'0');
+    nuevos.push({name:r.name,amount:r.amount,date:`${mesActual}-${dd}`,acc:r.acc,cat:r.cat,isIncome:r.isIncome||false});
+  });
+  seeded.push(mesActual);
+  let agregados=0;
+  if(nuevos.length>0){
+    try{
+      const {data:filas,error}=await sb.from('fin_pendientes').insert(nuevos.map(n=>({
+        user_id:currentUserId,
+        nombre:n.name,
+        monto:n.amount,
+        fecha:n.date,
+        account_id:accountIdBySlug[n.acc],
+        categoria:n.cat,
+        is_income:n.isIncome,
+      }))).select();
+      if(error)throw error;
+      filas.forEach((fila,i)=>{ pendientes.push(Object.assign({},nuevos[i],{id:fila.id})); });
+      agregados=filas.length;
+    }catch(e){ registrarErrorDiagnostico('fin_pendientes (siembra automática)',e); }
+  }
+  try{
+    await setConReintentos('seeded_months_v3',JSON.stringify(seeded));
+  }catch(e){}
+  if(agregados>0){
+    const statusEl=document.getElementById('sync-status');
+    statusEl.textContent=`✓ ${agregados} pendientes recurrentes cargados para este mes`;
+    statusEl.style.opacity='1';
+  }
+}
+
+function populateMonthSelector(){
+  const months=new Set(entries.map(e=>e.date.slice(0,7)));
+  Object.keys(archiveIndex).forEach(m=>months.add(m));
+  months.add(todayStr().slice(0,7));
+  const sortedMonths=[...months].sort().reverse();
+  const sel=document.getElementById('month-select');
+  const monthNames=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  sel.innerHTML=sortedMonths.map(m=>{
+    const [y,mo]=m.split('-');
+    const esArchivado=archiveIndex[m]&&!entries.some(e=>e.date.slice(0,7)===m);
+    return `<option value="${m}">${monthNames[parseInt(mo)-1]} ${y}${esArchivado?' 📦':''}</option>`;
+  }).join('');
+  if(!currentMonth||!sortedMonths.includes(currentMonth)){
+    currentMonth=todayStr().slice(0,7);
+  }
+  sel.value=currentMonth;
+}
+async function onMonthChange(){
+  currentMonth=document.getElementById('month-select').value;
+  const enVentanaActiva=entries.some(e=>e.date.slice(0,7)===currentMonth)||currentMonth>=monthsBack(todayStr().slice(0,7),ARCHIVE_WINDOW_MONTHS);
+  if(!enVentanaActiva&&archiveIndex[currentMonth]){
+    const statusEl=document.getElementById('sync-status');
+    statusEl.style.display='block';
+    statusEl.textContent='📦 Cargando mes archivado…';
+    await loadArchivedMonth(currentMonth);
+    statusEl.style.display='none';
+  }
+  render();
+}
+
+function fillAccountInputs(){
+  if(accounts.lulo===undefined)accounts.lulo=0; // migración para sesiones que no tenían esta cuenta
+  document.getElementById('acc-nequi').value=fmtCOP(accounts.nequi);
+  document.getElementById('acc-debito').value=fmtCOP(accounts.debito);
+  document.getElementById('acc-nu').value=fmtCOP(accounts.nu);
+  document.getElementById('acc-lulo').value=fmtCOP(accounts.lulo);
+  document.getElementById('acc-arq').value=fmtUSD(accounts.arq);
+  document.getElementById('acc-ontop').value=fmtUSD(accounts.ontop);
+  document.getElementById('acc-trm').value='$'+accounts.trm;
+  document.getElementById('acc-davtc').value=fmtCOP(accounts.davtc);
+  document.getElementById('acc-rappitc').value=fmtCOP(accounts.rappitc);
+  const trInp=document.getElementById('tr-trm');
+  if(trInp)trInp.value=accounts.trm;
+  Object.keys(dynamicAccounts).forEach(key=>{
+    const inp=document.getElementById('acc-'+key);
+    if(inp){
+      const meta=ACCOUNTS_META[key];
+      inp.value=meta.currency==='USD'?fmtUSD(accounts[key]):fmtCOP(accounts[key]);
+    }
+  });
+  updateNetWorth();
+  checkLowBalances();
+  updateDueDates();
+  updateDeudaTotalTarjetas();
+}
+
+function updateDeudaTotalTarjetas(){
+  const el=document.getElementById('deuda-total-tarjetas');
+  if(!el)return;
+  const totalCOP=Object.keys(ACCOUNTS_META).filter(k=>ACCOUNTS_META[k].type==='credito').reduce((sum,k)=>{
+    const meta=ACCOUNTS_META[k];
+    const saldo=accounts[k]||0;
+    return sum+(meta.currency==='USD'?saldo*accounts.trm:saldo);
+  },0);
+  el.textContent=fmtCOP(totalCOP);
+}
+
+function updateDueDates(){
+  const hoy=new Date();
+  const diaHoy=hoy.getDate();
+  const diaVencimiento=10; // Davivienda TC y Rappi Card vencen el día 10 de cada mes
+  let diasFaltantes=diaVencimiento-diaHoy;
+  if(diasFaltantes<0){
+    const diasEnMes=new Date(hoy.getFullYear(),hoy.getMonth()+1,0).getDate();
+    diasFaltantes=diasEnMes-diaHoy+diaVencimiento;
+  }
+  const texto=diasFaltantes===0?'⚠ Vence HOY (día 10)':diasFaltantes<=3?`⚠ Vence en ${diasFaltantes} día(s) — día 10`:`Vence día 10 · faltan ${diasFaltantes} días`;
+  const color=diasFaltantes<=3?'var(--danger)':'var(--text3)';
+  ['due-davtc','due-rappitc'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){ el.textContent=texto; el.style.color=color; }
+  });
+}
+
+const LOW_BALANCE_THRESHOLD={nequi:50000,debito:150000,nu:500000,arq:20,ontop:20};
+function checkLowBalances(){
+  Object.keys(LOW_BALANCE_THRESHOLD).forEach(key=>{
+    const card=document.getElementById('card-'+key);
+    if(!card)return;
+    const umbral=LOW_BALANCE_THRESHOLD[key];
+    const bajo=umbral>0&&accounts[key]<umbral&&accounts[key]>=0;
+    const existente=card.querySelector('.low-balance-badge');
+    card.classList.toggle('low-balance',bajo);
+    if(bajo&&!existente){
+      const badge=document.createElement('span');
+      badge.className='low-balance-badge';
+      badge.textContent='⚠ Bajo';
+      card.appendChild(badge);
+    }else if(!bajo&&existente){
+      existente.remove();
+    }
+  });
+}
+
+function parseNum(str){ return parseFloat(String(str).replace(/[^0-9.\-]/g,''))||0; }
+
+const FIELD_TO_ID={nequi:'acc-nequi',debito:'acc-debito',nu:'acc-nu',lulo:'acc-lulo',arq:'acc-arq',ontop:'acc-ontop',trm:'acc-trm',davtc:'acc-davtc',rappitc:'acc-rappitc'};
+let pendingAdjustment=null;
+
+async function handleAccountFieldBlur(key){
+  const el=document.getElementById(FIELD_TO_ID[key]||('acc-'+key));
+  const newVal=redondear3(parseNum(el.value));
+  const oldVal=accounts[key];
+
+  if(key==='trm'){
+    // La TRM no es un saldo — se aplica de inmediato y recalcula todo lo que dependa de ella
+    accounts.trm=newVal;
+    fillAccountInputs();
+    render();
+    try{ await saveConfiguracion(); }catch(e){}
+    const statusEl=document.getElementById('sync-status');
+    statusEl.style.display='block';
+    statusEl.textContent=`✓ TRM actualizada a $${newVal.toLocaleString('es-CO')} — saldos USD recalculados`;
+    statusEl.className='sync-status ok';
+    setTimeout(()=>{statusEl.style.display='none'},3000);
+    return;
+  }
+
+  if(newVal===oldVal){ fillAccountInputs(); return; } // sin cambio real, solo reformatea
+
+  const meta=ACCOUNTS_META[key];
+  const delta=newVal-oldVal;
+  const esCredito=meta.type==='credito';
+  // Para cuentas líquidas: delta negativo = Faltante, positivo = Ingreso
+  // Para tarjetas de crédito: delta positivo = más deuda (Gasto), negativo = menos deuda (Pago)
+  const tipoMovimiento=esCredito?(delta>0?'gasto':'ingreso'):(delta>0?'ingreso':'gasto');
+  const etiqueta=esCredito?(delta>0?'nuevo cargo detectado':'pago/reducción detectada'):(delta>0?'Ingreso':'Faltante');
+  const deltaAbsStr=meta.currency==='USD'?'$'+Math.abs(delta).toFixed(2)+' USD':fmtCOP(Math.abs(delta));
+
+  pendingAdjustment={key,oldVal,newVal,tipoMovimiento};
+  document.getElementById('adjust-banner-text').innerHTML=
+    `<strong>${meta.label}:</strong> detecté un cambio de <strong>${deltaAbsStr}</strong> (${etiqueta}).<br>Saldo anterior: ${meta.currency==='USD'?'$'+oldVal+' USD':fmtCOP(oldVal)} → nuevo: ${meta.currency==='USD'?'$'+newVal+' USD':fmtCOP(newVal)}.<br>¿Confirmas y registro el movimiento?`;
+  document.getElementById('adjust-banner').style.display='block';
+}
+
+async function confirmAdjustment(){
+  if(!pendingAdjustment)return;
+  const {key,oldVal,newVal,tipoMovimiento}=pendingAdjustment;
+  const meta=ACCOUNTS_META[key];
+  const delta=Math.abs(newVal-oldVal);
+  const nombre=meta.type==='credito'
+    ?(tipoMovimiento==='gasto'?`Ajuste ${meta.label}: cargo no registrado`:`Ajuste ${meta.label}: pago no registrado`)
+    :(tipoMovimiento==='ingreso'?`Ajuste ${meta.label}: Ingreso`:`Ajuste ${meta.label}: Faltante`);
+
+  entries.unshift({id:Date.now(),date:todayStr(),name:nombre,amount:delta,cat:'Otro',acc:key,txType:tipoMovimiento});
+  accounts[key]=newVal;
+
+  document.getElementById('adjust-banner').style.display='none';
+  pendingAdjustment=null;
+  fillAccountInputs();
+  populateMonthSelector();
+  currentMonth=todayStr().slice(0,7);
+  document.getElementById('month-select').value=currentMonth;
+  render();
+  try{
+    await saveEntries();
+    await saveAccountsData();
+  }catch(e){}
+}
+
+function cancelAdjustment(){
+  pendingAdjustment=null;
+  document.getElementById('adjust-banner').style.display='none';
+  fillAccountInputs(); // revierte el input al valor guardado real
+}
+
+function updateNetWorth(){
+  const liquidCOP=accounts.nequi+accounts.debito+accounts.nu+accounts.lulo+(accounts.arq*accounts.trm)+(accounts.ontop*accounts.trm);
+  const debtCOP=accounts.davtc+accounts.rappitc;
+  document.getElementById('nw-liquid').textContent=fmtCOP(liquidCOP);
+  document.getElementById('nw-debt').textContent=fmtCOP(debtCOP);
+  const net=liquidCOP-debtCOP;
+  const nwEl=document.getElementById('nw-net');
+  nwEl.textContent=fmtCOP(net);
+  nwEl.style.color=net>=0?'var(--accent)':'var(--danger)';
+
+  // Libre Real: Nequi + Débito + (ARQ y Ontop convertidos a COP con la TRM actual) — Nu queda FUERA (no es gasto)
+  const bruto=accounts.nequi+accounts.debito+(accounts.arq*accounts.trm)+(accounts.ontop*accounts.trm);
+  const pendCOP=pendientes.filter(p=>!p.isIncome&&['nequi','debito','arq','ontop'].includes(p.acc))
+    .reduce((s,p)=>{
+      const meta=ACCOUNTS_META[p.acc];
+      const monto=meta.currency==='USD'?p.amount*accounts.trm:p.amount;
+      return s+monto;
+    },0);
+  const libre=bruto-pendCOP;
+  document.getElementById('ats-bruto').textContent=fmtCOP(bruto);
+  document.getElementById('ats-pendientes').textContent=fmtCOP(pendCOP);
+  document.getElementById('ats-value').textContent=fmtCOP(libre);
+  document.getElementById('ats-value').style.color=libre>500000?'var(--accent)':libre>0?'var(--warn)':'var(--danger)';
+
+  // Fondo de emergencia — mini progreso en pestaña Cuentas
+  const metaEmergencia=7000000;
+  const pctEmergencia=Math.min(100,Math.round(accounts.nu/metaEmergencia*100));
+  const miniFill=document.getElementById('emergency-mini-fill');
+  const miniLabel=document.getElementById('emergency-mini-label');
+  if(miniFill){ miniFill.style.width=pctEmergencia+'%'; }
+  if(miniLabel){ miniLabel.textContent=`${pctEmergencia}% de la meta ($7,000,000)`; }
+
+  renderEstadoMes();
+  updateFilterBalanceBanner();
+}
+
+function renderEstadoMes(){
+  const body=document.getElementById('estado-mes-body');
+  const semaforoEl=document.getElementById('estado-mes-semaforo');
+  if(!body)return;
+  if(!currentMonth){ body.innerHTML='<div style="color:var(--text3);font-size:12px">Cargando…</div>'; if(semaforoEl)semaforoEl.textContent=''; return; }
+
+  const fuente=archivedCache[currentMonth]?archivedCache[currentMonth]:entries;
+  const monthEntries=fuente.filter(e=>e.date.slice(0,7)===currentMonth);
+  const ingresos=monthEntries.filter(e=>e.txType==='ingreso').reduce((s,e)=>s+entryCOP(e),0);
+  const gastos=monthEntries.filter(e=>e.txType!=='ingreso'&&e.cat!=='Transferencia').reduce((s,e)=>s+entryCOP(e),0);
+  const balanceNeto=ingresos-gastos;
+  const pctComprometido=ingresos>0?Math.round(gastos/ingresos*100):0;
+
+  // Ritmo de gasto: gasto/día actual vs gasto/día "ideal" según presupuesto variable
+  const [y,m]=currentMonth.split('-').map(Number);
+  const diasEnMes=new Date(y,m,0).getDate();
+  const hoy=new Date();
+  const esMesActual=currentMonth===todayStr().slice(0,7);
+  const diaActual=esMesActual?hoy.getDate():diasEnMes;
+  const gastoVariable=monthEntries.filter(e=>CAPS[e.cat]&&!CATEGORIAS_IRREGULARES.has(e.cat)&&e.txType!=='ingreso').reduce((s,e)=>s+entryCOP(e),0);
+  const ritmoIdeal=(BUDGET_TOTAL/diasEnMes)*diaActual;
+  const ritmoPct=ritmoIdeal>0?Math.round(gastoVariable/ritmoIdeal*100):0;
+
+  // Semáforo único: combina ritmo de gasto variable vs avance del mes
+  let semaforo='🟢',semaforoTexto='Vas bien';
+  if(ritmoPct>130){semaforo='🔴';semaforoTexto='Gastando más rápido de lo normal';}
+  else if(ritmoPct>105){semaforo='🟡';semaforoTexto='Cerca del límite de ritmo';}
+  semaforoEl.textContent=semaforo+' '+semaforoTexto;
+
+  body.innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div class="metric-box" style="padding:12px">
+        <div class="metric-label">Ingresos del mes</div>
+        <div class="metric-value green" style="font-size:18px">${fmtCOP(ingresos)}</div>
+      </div>
+      <div class="metric-box" style="padding:12px">
+        <div class="metric-label">Gastos del mes</div>
+        <div class="metric-value red" style="font-size:18px">${fmtCOP(gastos)}</div>
+      </div>
+    </div>
+    <div class="networth-row"><span class="networth-label">Balance neto del mes</span><span class="networth-value" style="color:${balanceNeto>=0?'var(--accent)':'var(--danger)'}">${balanceNeto>=0?'+':''}${fmtCOP(balanceNeto)}</span></div>
+    <div class="networth-row"><span class="networth-label">% del ingreso ya comprometido</span><span class="networth-value">${pctComprometido}%</span></div>
+    <div class="networth-row"><span class="networth-label">Ritmo de gasto variable</span><span class="networth-value" style="color:${ritmoPct>130?'var(--danger)':ritmoPct>105?'var(--warn)':'var(--accent)'}">${ritmoPct}% del ritmo esperado</span></div>
+    <div style="font-size:10px;color:var(--text3);margin-top:6px">Día ${diaActual} de ${diasEnMes} del mes · ${fmtCOP(gastoVariable)} gastado en categorías variables</div>
+  `;
+}
+
+function todayStr(){
+  const fmt=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Bogota',year:'numeric',month:'2-digit',day:'2-digit'});
+  return fmt.format(new Date()); // en-CA locale gives YYYY-MM-DD format
+}
+function fmtDate(s){const p=s.split('-');return p[2]+'/'+p[1]}
+function fmtCOP(n){return '$'+Math.round(n).toLocaleString('es-CO')}
+function redondear3(n){ return Math.round(n*100)/100; } // máximo 2 decimales en cualquier monto registrado (nombre de función sin cambiar para no romper referencias)
+function fmtUSD(n){ return '$'+n.toFixed(2)+' USD'; } // 2 decimales al MOSTRAR (estándar de moneda), incluso si el dato guardado tiene más
+function col(cat){return COLORS[cat]||'#607D8B'}
+function scat(cat){return cat.includes('·')?cat.split('·').slice(1).join('·').trim():cat}
+
+const KEYWORD_MAP=[
+  {keywords:['gas','luz','agua','acueducto','vanti','energia','electricidad','servicio publico'],cat:'Servicios'},
+  {keywords:['mercado','super','supermercado','exito','carulla','olimpica','ara','d1','jumbo'],cat:'Alimentación · Mercado'},
+  {keywords:['almuerzo','cena','desayuno','restaurante','comida','rappi food','ifood'],cat:null,special:'comida'},
+  {keywords:['uber','taxi','bus','transmilenio','metro','cabify','didi'],cat:'Transporte'},
+  {keywords:['gasolina','combustible','terpel','esso','biomax'],cat:'Vehículo · Gasolina'},
+  {keywords:['parqueadero','parking'],cat:'Vehículo · Parqueadero'},
+  {keywords:['taller','mecanico','mantenimiento moto','mantenimiento carro','aceite'],cat:'Vehículo · Taller'},
+  {keywords:['lavada','lavado'],cat:'Vehículo · Lavada'},
+  {keywords:['netflix','spotify','disney','hbo','suscripcion','capcut','adobe','google one','anthropic','claude'],cat:'Suscripciones'},
+  {keywords:['doctor','eps','medicina','farmacia','droga','salud','medico','odontologo'],cat:'Salud'},
+  {keywords:['ropa','zapatos','camisa','pantalon'],cat:'Ropa'},
+  {keywords:['celular','laptop','computador','tecnologia','amazon'],cat:'Tecnología'},
+  {keywords:['ciclismo','bicicleta','bici'],cat:'Deportes · Ciclismo'},
+  {keywords:['cine','pelicula','concierto','fiesta','entretenimiento','salida'],cat:'Entretenimiento'},
+  {keywords:['corte','peluqueria','barberia','manicure'],cat:'Cuidado personal'},
+  {keywords:['pago tarjeta','pago tc','pago rappi card','pago davivienda'],cat:'Pago Deuda'},
+];
+
+function suggestCategory(){
+  const raw=document.getElementById('inp-name').value;
+  const text=raw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+  const badge=document.getElementById('suggest-badge');
+  const catSelect=document.getElementById('inp-cat');
+
+  if(text.length===0){
+    badge.style.display='none';
+    return; // texto vacío: no tocar la categoría, el usuario puede elegirla manualmente
+  }
+  if(text.length<3){
+    badge.style.display='none';
+    return;
+  }
+
+  for(const rule of KEYWORD_MAP){
+    if(rule.keywords.some(k=>text.includes(k))){
+      let catFinal=rule.cat;
+      if(rule.special==='comida'){
+        const dow=new Date(document.getElementById('inp-date').value||todayStr()).getUTCDay();
+        catFinal=(dow===0||dow===6)?'Alimentación · Comidas afuera · Fin de semana':'Alimentación · Comidas afuera · Entre semana';
+      }
+      catSelect.value=catFinal;
+      catSelect.dispatchEvent(new Event('change'));
+      badge.style.display='block';
+      badge.textContent=`✨ Sugerido: ${scat(catFinal)} — cámbialo abajo si no aplica`;
+      catSelect.style.borderColor='var(--accent)';
+      catSelect.style.boxShadow='0 0 0 2px rgba(168,224,99,.15)';
+      setTimeout(()=>{catSelect.style.borderColor='';catSelect.style.boxShadow='';},1200);
+      return;
+    }
+  }
+  // No hubo match con el texto actual — se asume "Otro" por defecto en vez de dejar la categoría anterior
+  catSelect.value='Otro';
+  badge.style.display='none';
+}
+document.getElementById('inp-name')?.addEventListener('input',suggestCategory);
+document.getElementById('inp-name')?.addEventListener('keyup',suggestCategory);
+
+function suggestCategoryPend(){
+  const text=document.getElementById('pend-name').value.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const catSelect=document.getElementById('pend-cat');
+  if(text.length<3)return;
+  for(const rule of KEYWORD_MAP){
+    if(rule.keywords.some(k=>text.includes(k))){
+      const opts=[...catSelect.options].map(o=>o.value);
+      const target=rule.special==='comida'?'Alimentación · Comidas afuera · Entre semana':rule.cat;
+      if(opts.includes(target)){
+        catSelect.value=target;
+        catSelect.style.borderColor='var(--accent)';
+        setTimeout(()=>{catSelect.style.borderColor='';},1200);
+      }
+      return;
+    }
+  }
+}
+
+let vehiculos=['Moto']; // lista dinámica de vehículos — empieza con Moto, crece cuando agregues otro
+
+function onCategoryChange(){
+  const cat=document.getElementById('inp-cat').value;
+  const row=document.getElementById('vehiculo-tag-row');
+  row.style.display=cat.startsWith('Vehículo')?'grid':'none';
+  const tipoSel=document.getElementById('inp-type');
+  if(cat.startsWith('Ingreso ·')){ tipoSel.value='ingreso'; }
+  else if(tipoSel.value==='ingreso'){ tipoSel.value='gasto'; }
+  onAccountChange();
+}
+
+function populateVehiculoSelect(){
+  const sel=document.getElementById('inp-vehiculo');
+  if(!sel)return;
+  const actual=sel.value;
+  sel.innerHTML=vehiculos.map(v=>`<option value="${v}">🚗 ${v}</option>`).join('')+'<option value="__nuevo__">➕ Agregar otro vehículo…</option>';
+  if(vehiculos.includes(actual))sel.value=actual;
+}
+
+document.getElementById('inp-vehiculo')?.addEventListener('change',function(){
+  document.getElementById('inp-vehiculo-nuevo').style.display=this.value==='__nuevo__'?'block':'none';
+});
+
+function onAccountChange(){
+  const acc=document.getElementById('inp-account').value;
+  const meta=ACCOUNTS_META[acc];
+  const hint=document.getElementById('acc-hint');
+  const type=document.getElementById('inp-type').value;
+  if(meta.type==='credito'){
+    hint.textContent=`💳 Esto ${type==='gasto'?'aumentará':'reducirá'} la deuda de ${meta.label}.`;
+  }else{
+    hint.textContent=`${type==='gasto'?'Se descontará de':'Se sumará a'} ${meta.label} (${meta.currency}).`;
+  }
+  const curRow=document.getElementById('currency-override-row');
+  curRow.style.display=meta.currency==='USD'?'grid':'none';
+  if(meta.currency==='USD')document.getElementById('inp-currency').value='USD';
+}
+
+async function addEntry(){
+  const name=document.getElementById('inp-name').value.trim();
+  const amount=redondear3(parseFloat(document.getElementById('inp-amount').value));
+  const cat=document.getElementById('inp-cat').value;
+  const date=document.getElementById('inp-date').value||todayStr();
+  const acc=document.getElementById('inp-account').value;
+  const type=document.getElementById('inp-type').value;
+  if(!name||isNaN(amount)||amount<=0)return;
+
+  const meta=ACCOUNTS_META[acc];
+  const sign=type==='gasto'?1:-1;
+  const curOverride=meta.currency==='USD'?document.getElementById('inp-currency').value:null;
+  const entryCurrency=curOverride&&curOverride!==meta.currency?curOverride:undefined;
+
+  let nativeAmount=amount;
+  if(meta.currency==='USD'&&entryCurrency==='COP'){
+    nativeAmount=amount/accounts.trm; // el monto se escribió en COP pero la cuenta guarda USD
+  }
+
+  let vehiculoTag=null;
+  if(cat.startsWith('Vehículo')){
+    const selVeh=document.getElementById('inp-vehiculo').value;
+    if(selVeh==='__nuevo__'){
+      const nuevoVeh=document.getElementById('inp-vehiculo-nuevo').value.trim();
+      if(nuevoVeh){
+        vehiculoTag=nuevoVeh;
+        if(!vehiculos.includes(nuevoVeh)){
+          vehiculos.push(nuevoVeh);
+          populateVehiculoSelect();
+          await saveConfiguracion();
+        }
+        document.getElementById('inp-vehiculo-nuevo').value='';
+      }
+    }else{
+      vehiculoTag=selVeh;
+    }
+  }
+
+  // Guardamos primero el movimiento en Supabase; solo si funciona tocamos el saldo local —
+  // así nunca queda un saldo cambiado sin su movimiento correspondiente (o viceversa).
+  let nuevoId;
+  try{
+    const {data:fila,error}=await sb.from('fin_movimientos').insert({
+      user_id:currentUserId,
+      fecha:date,
+      nombre:name,
+      monto:amount,
+      moneda_override:entryCurrency||null,
+      categoria:cat,
+      account_id:accountIdBySlug[acc],
+      tx_type:type,
+      vehiculo:vehiculoTag||null,
+    }).select().single();
+    if(error)throw error;
+    nuevoId=fila.id;
+  }catch(e){
+    registrarErrorDiagnostico('fin_movimientos (crear)',e);
+    const statusEl=document.getElementById('sync-status');
+    statusEl.style.display='block'; statusEl.style.opacity='1';
+    statusEl.textContent='🛑 No se pudo guardar el movimiento — revisa 🔧 Diagnóstico';
+    statusEl.className='sync-status error';
+    return;
+  }
+
+  if(meta.type==='credito'){
+    accounts[acc]=redondear3(accounts[acc]+(sign*nativeAmount));
+  }else{
+    accounts[acc]=redondear3(accounts[acc]-(sign*nativeAmount));
+  }
+
+  entries.unshift({id:nuevoId,date,name,amount,cat,acc,txType:type,...(entryCurrency?{currency:entryCurrency}:{}),...(vehiculoTag?{vehiculo:vehiculoTag}:{})});
+
+  const metaGoal=goals.find(g=>g.type==='categoria'&&g.cat===cat);
+  if(metaGoal){
+    const montoCOP=entryCurrency==='COP'?amount:(meta.currency==='USD'?amount*accounts.trm:amount);
+    metaGoal.accumulated=(metaGoal.accumulated||0)+(type==='gasto'?montoCOP:-montoCOP);
+    await actualizarAcumuladoMeta(metaGoal);
+  }
+
+  document.getElementById('inp-name').value='';
+  document.getElementById('inp-amount').value='';
+  populateMonthSelector();
+  currentMonth=date.slice(0,7);
+  document.getElementById('month-select').value=currentMonth;
+  fillAccountInputs();
+  render();
+  try{
+    await saveAccountsData();
+  }catch(e){}
+}
+
+async function fixCurrency(id){
+  const e=entries.find(x=>x.id===id);
+  if(!e)return;
+  const meta=ACCOUNTS_META[e.acc];
+  const actual=e.currency||meta.currency;
+  e.currency=actual==='USD'?'COP':'USD';
+  render();
+  try{
+    const {error}=await sb.from('fin_movimientos').update({moneda_override:e.currency}).eq('id',id);
+    if(error)throw error;
+  }catch(err){ registrarErrorDiagnostico('fin_movimientos (corregir moneda)',err); }
+}
+
+let _editEntryId=null;
+function openEditEntryModal(id){
+  const e=entries.find(x=>x.id===id);
+  if(!e)return;
+  _editEntryId=id;
+  const meta=ACCOUNTS_META[e.acc];
+  const curDisplay=e.currency||meta.currency;
+  const amtStr=curDisplay==='USD'?fmtUSD(e.amount):fmtCOP(e.amount);
+  document.getElementById('edit-entry-modal-text').innerHTML=`✏️ <strong>Editar movimiento</strong><br><span style="color:var(--text2)">${e.name} — actualmente ${amtStr} en ${meta.label} · ${scat(e.cat)}</span>`;
+
+  const accSel=document.getElementById('edit-entry-account');
+  const liquidas=Object.keys(ACCOUNTS_META).filter(k=>ACCOUNTS_META[k].type!=='credito'&&ACCOUNTS_META[k].currency==='COP'&&!dynamicAccounts[k]);
+  const tarjetas=Object.keys(ACCOUNTS_META).filter(k=>ACCOUNTS_META[k].type==='credito');
+  const dolares=Object.keys(ACCOUNTS_META).filter(k=>ACCOUNTS_META[k].currency==='USD'&&!dynamicAccounts[k]);
+  const dinamicas=Object.keys(dynamicAccounts);
+  const opt=k=>`<option value="${k}">${ACCOUNTS_META[k].label}</option>`;
+  accSel.innerHTML=
+    (liquidas.length?`<optgroup label="🏦 Cuentas líquidas (COP)">${liquidas.map(opt).join('')}</optgroup>`:'')+
+    (tarjetas.length?`<optgroup label="💳 Tarjetas de crédito">${tarjetas.map(opt).join('')}</optgroup>`:'')+
+    (dolares.length?`<optgroup label="🌎 Dólares (USD)">${dolares.map(opt).join('')}</optgroup>`:'')+
+    (dinamicas.length?`<optgroup label="✨ Otras cuentas">${dinamicas.map(opt).join('')}</optgroup>`:'');
+  accSel.value=e.acc;
+
+  const catSel=document.getElementById('edit-entry-category');
+  catSel.innerHTML=document.getElementById('inp-cat').innerHTML; // mismas opciones/optgroups, incluye metas por categoría
+  catSel.value=e.cat;
+
+  document.getElementById('edit-entry-amount').value=e.amount;
+  document.getElementById('edit-entry-amount-label').textContent=`Monto (${curDisplay})`;
+
+  onEditEntryAccountChange();
+  document.getElementById('edit-entry-modal').style.display='flex';
+}
+
+function onEditEntryAccountChange(){
+  const acc=document.getElementById('edit-entry-account').value;
+  const meta=ACCOUNTS_META[acc];
+  const row=document.getElementById('edit-entry-currency-row');
+  row.style.display=meta.currency==='USD'?'block':'none';
+  if(meta.currency==='USD')document.getElementById('edit-entry-currency').value='USD';
+  const label=document.getElementById('edit-entry-amount-label');
+  const currencyChoice=meta.currency==='USD'?document.getElementById('edit-entry-currency').value:meta.currency;
+  label.textContent=`Monto (${currencyChoice})`;
+}
+document.getElementById('edit-entry-currency')?.addEventListener('change',onEditEntryAccountChange);
+
+async function resolverEditEntryModal(confirmado){
+  document.getElementById('edit-entry-modal').style.display='none';
+  const id=_editEntryId;
+  _editEntryId=null;
+  if(!confirmado||!id)return;
+  const e=entries.find(x=>x.id===id);
+  if(!e)return;
+
+  const newAcc=document.getElementById('edit-entry-account').value;
+  const newMeta=ACCOUNTS_META[newAcc];
+  const newCurrencyChoice=newMeta.currency==='USD'?document.getElementById('edit-entry-currency').value:newMeta.currency;
+  const newCat=document.getElementById('edit-entry-category').value;
+  const montoEscrito=redondear3(parseFloat(document.getElementById('edit-entry-amount').value));
+  if(isNaN(montoEscrito)||montoEscrito<=0)return;
+
+  const oldAcc=e.acc;
+  const oldMeta=ACCOUNTS_META[oldAcc];
+  const oldCurrency=e.currency||oldMeta.currency; // moneda REAL en la que ocurrió el gasto originalmente
+  const oldAmount=e.amount;
+  const oldCat=e.cat;
+  const sign=e.txType==='gasto'?1:-1;
+
+  // 1. Revertir el impacto en la cuenta anterior con el monto viejo (antes de cualquier cambio)
+  if(oldMeta.type==='credito'){ accounts[oldAcc]=redondear3(accounts[oldAcc]-(sign*oldAmount)); }
+  else{ accounts[oldAcc]=redondear3(accounts[oldAcc]+(sign*oldAmount)); }
+
+  // 2. El monto escrito en el formulario ya está en la moneda mostrada (newCurrencyChoice) — es el monto nativo final
+  const nuevoAmountNativo=montoEscrito;
+
+  // 3. Aplicar el impacto en la cuenta nueva con el monto nuevo
+  if(newMeta.type==='credito'){ accounts[newAcc]=redondear3(accounts[newAcc]+(sign*nuevoAmountNativo)); }
+  else{ accounts[newAcc]=redondear3(accounts[newAcc]-(sign*nuevoAmountNativo)); }
+
+  // 4. Ajustar metas acumuladas por categoría (considerando que categoría y/o monto pudieron cambiar)
+  const montoViejoCOP=oldCurrency==='USD'?oldAmount*accounts.trm:oldAmount;
+  const montoNuevoCOP=newCurrencyChoice==='USD'?nuevoAmountNativo*accounts.trm:nuevoAmountNativo;
+  const oldGoal=goals.find(g=>g.type==='categoria'&&g.cat===oldCat);
+  const newGoal=goals.find(g=>g.type==='categoria'&&g.cat===newCat);
+  let goalsChanged=false;
+  if(oldGoal){
+    oldGoal.accumulated=(oldGoal.accumulated||0)-(e.txType==='gasto'?montoViejoCOP:-montoViejoCOP);
+    goalsChanged=true;
+  }
+  if(newGoal){
+    newGoal.accumulated=(newGoal.accumulated||0)+(e.txType==='gasto'?montoNuevoCOP:-montoNuevoCOP);
+    goalsChanged=true;
+  }
+
+  // 5. Actualizar la entrada
+  e.acc=newAcc;
+  e.cat=newCat;
+  e.amount=nuevoAmountNativo;
+  if(newMeta.currency==='USD'&&newCurrencyChoice==='COP'){ e.currency='COP'; }
+  else{ delete e.currency; }
+  if(!newCat.startsWith('Vehículo')&&e.vehiculo)delete e.vehiculo;
+
+  fillAccountInputs();
+  render();
+  try{
+    const {error}=await sb.from('fin_movimientos').update({
+      categoria:e.cat,
+      account_id:accountIdBySlug[e.acc],
+      monto:e.amount,
+      moneda_override:e.currency||null,
+      vehiculo:e.vehiculo||null,
+    }).eq('id',id);
+    if(error)throw error;
+    await saveAccountsData();
+    if(goalsChanged){
+      if(oldGoal)await actualizarAcumuladoMeta(oldGoal);
+      if(newGoal&&newGoal!==oldGoal)await actualizarAcumuladoMeta(newGoal);
+    }
+  }catch(err){ registrarErrorDiagnostico('fin_movimientos (editar)',err); }
+}
+
+
+async function deleteEntry(id){
+  const e=entries.find(x=>x.id===id);
+  if(!e)return;
+  const meta=ACCOUNTS_META[e.acc];
+  const montoStr=(e.currency||meta.currency)==='USD'?fmtUSD(e.amount):fmtCOP(e.amount);
+  const confirmado=await customConfirm(`¿Eliminar este movimiento?\n\n"${e.name}"\n${montoStr} — ${meta.label}\n${fmtDate(e.date)}\n\nEsto también revertirá el saldo de la cuenta afectada.`);
+  if(!confirmado)return;
+
+  {
+    const sign=e.txType==='gasto'?1:-1;
+    if(meta.type==='credito'){ accounts[e.acc]=redondear3(accounts[e.acc]-(sign*e.amount)); }
+    else{ accounts[e.acc]=redondear3(accounts[e.acc]+(sign*e.amount)); }
+
+    const metaGoal=goals.find(g=>g.type==='categoria'&&g.cat===e.cat);
+    if(metaGoal){
+      const montoCOP=e.currency==='COP'?e.amount:(meta.currency==='USD'?e.amount*accounts.trm:e.amount);
+      metaGoal.accumulated=(metaGoal.accumulated||0)-(e.txType==='gasto'?montoCOP:-montoCOP);
+      await actualizarAcumuladoMeta(metaGoal);
+    }
+  }
+  entries=entries.filter(x=>x.id!==id);
+  fillAccountInputs();
+  render();
+  try{
+    const {error}=await sb.from('fin_movimientos').delete().eq('id',id);
+    if(error)throw error;
+    await saveAccountsData();
+  }catch(e){ registrarErrorDiagnostico('fin_movimientos (borrar)',e); }
+}
+
+function switchTab(tab,btn){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  btn.classList.add('active');
+  if(tab==='metricas')renderMetrics();
+  if(tab==='metas')renderGoals();
+  if(tab==='diagnostico')renderDiagnostico();
+}
+
+function entryCOP(e){
+  const meta=ACCOUNTS_META[e.acc];
+  const currency=e.currency||meta.currency;
+  return currency==='USD'?e.amount*accounts.trm:e.amount;
+}
+
+function render(){
+  const esArchivado=!!archivedCache[currentMonth];
+  const noticeEl=document.getElementById('archive-notice');
+  if(noticeEl)noticeEl.style.display=esArchivado?'block':'none';
+  const fuente=esArchivado?archivedCache[currentMonth]:entries;
+  const monthEntries=fuente.filter(e=>e.date.slice(0,7)===currentMonth);
+  const gastos=monthEntries.filter(e=>e.txType!=='ingreso'&&e.cat!=='Transferencia');
+  const total=gastos.reduce((s,e)=>s+entryCOP(e),0);
+  const today=gastos.filter(e=>e.date===todayStr()).reduce((s,e)=>s+entryCOP(e),0);
+
+  const ACCOUNT_ORDER={nequi:1,debito:2,nu:3,arq:4,ontop:5,davtc:6,rappitc:7};
+  const monthEntriesFiltradas=filterAccount==='todas'?monthEntries:monthEntries.filter(e=>e.acc===filterAccount);
+  let sorted;
+  if(sortMode==='cuenta'){
+    sorted=[...monthEntriesFiltradas].sort((a,b)=>{
+      const diff=ACCOUNT_ORDER[a.acc]-ACCOUNT_ORDER[b.acc];
+      return diff!==0?diff:b.date.localeCompare(a.date);
+    });
+  }else{
+    sorted=[...monthEntriesFiltradas].sort((a,b)=>b.date.localeCompare(a.date));
+  }
+  const list=document.getElementById('entries-list');
+  list.innerHTML=sorted.length?sorted.map(e=>{
+    const c=col(e.cat);
+    const meta=ACCOUNTS_META[e.acc];
+    const displayCurrency=e.currency||meta.currency;
+    const isIncome=e.txType==='ingreso';
+    const amtStr=(displayCurrency==='USD'?fmtUSD(e.amount):fmtCOP(e.amount));
+    const saldoActual=meta.currency==='USD'?'$'+accounts[e.acc]+' USD':fmtCOP(accounts[e.acc]);
+    const cop=entryCOP(e);
+    const esAnomalia=cop>5000000;
+    const cardColor=e.acc==='davtc'?'#EF4444':e.acc==='rappitc'?'#FF8C42':null;
+    const borderStyle=esAnomalia?'background:rgba(255,107,107,.12);border-left:3px solid var(--danger)':cardColor?`border-left:3px solid ${cardColor}`:'';
+    return`<div class="entry-row" style="${borderStyle}">
+      <span class="entry-date">${fmtDate(e.date)}</span>
+      <div class="entry-dot" style="background:${c}"></div>
+      <div style="flex:1;min-width:0">
+        <div class="entry-name">${esAnomalia?'⚠️ ':''}${e.name}</div>
+        <div class="entry-acc">${meta.label} · saldo actual: ${saldoActual}${e.vehiculo?' · 🚗 '+e.vehiculo:''}${esAnomalia?' · <span style="color:var(--danger)">monto inusualmente alto</span>':''}</div>
+      </div>
+      <span class="entry-cat" style="background:${c}22;color:${c}">${scat(e.cat)}</span>
+      <span class="entry-amount" style="color:${esAnomalia?'var(--danger)':isIncome?'var(--accent)':'var(--text)'}">${isIncome?'+':'−'}${amtStr}</span>
+      ${esAnomalia?`<button class="btn-add" style="width:auto;height:26px;padding:0 8px;font-size:10px;margin:0" onclick="fixCurrency('${e.id}')">💱 Era COP</button>`:''}
+      <button class="btn-add" style="width:auto;height:26px;padding:0 8px;font-size:12px;margin:0;background:var(--surface3);color:var(--text2)" onclick="openEditEntryModal('${e.id}')" title="Editar movimiento">✏️</button>
+      <button class="btn-del" onclick="deleteEntry('${e.id}')">×</button>
+    </div>`;
+  }).join(''):'<div class="empty">📋 Sin movimientos</div>';
+
+  const bycat={};
+  gastos.forEach(e=>bycat[e.cat]=(bycat[e.cat]||0)+entryCOP(e));
+  const varSpent=gastos.reduce((s,e)=>CAPS[e.cat]?s+entryCOP(e):s,0);
+  const pct=Math.min(Math.round(varSpent/BUDGET_TOTAL*100),100);
+
+  const CAPS_TOTAL=Object.values(CAPS).reduce((s,v)=>s+v,0);
+  const totalConsumidoCaps=Object.keys(CAPS).reduce((s,cat)=>s+(bycat[cat]||0),0);
+  const pctTotal=Math.min(100,Math.round(totalConsumidoCaps/CAPS_TOTAL*100));
+  const overTotal=totalConsumidoCaps>CAPS_TOTAL;
+  const nearTotal=pctTotal>=75&&!overTotal;
+  const colorTotal=overTotal?'var(--danger)':nearTotal?'var(--warn)':'var(--accent)';
+  const resumenHTML=`<div class="budget-row" style="border-bottom:2px solid var(--border2);margin-bottom:10px;padding-bottom:14px">
+    <div class="budget-top"><span class="budget-name" style="font-weight:700;font-size:14px">📊 Total de todos los topes</span><span class="budget-nums" style="font-size:13px;font-weight:700">${fmtCOP(totalConsumidoCaps)} / ${fmtCOP(CAPS_TOTAL)}</span></div>
+    <div class="budget-track" style="height:8px"><div class="budget-fill" style="width:${pctTotal}%;background:${colorTotal};height:8px"></div></div>
+    <div class="budget-status" style="color:${colorTotal};font-weight:600">${pctTotal}% consumido ${overTotal?'— ⚠ sobre el total combinado':nearTotal?'— cerca del límite':'— vas bien'}</div>
+  </div>`;
+
+  // Agrupar categorías por familia (ej. "Vehículo · Gasolina" → padre "Vehículo", hijo "Gasolina").
+  // Las categorías sin " · " se muestran solas, sin encabezado de grupo.
+  const grupos={}; // { 'Vehículo': ['Vehículo · Gasolina', ...], null: ['Servicios', ...] }
+  const ordenGrupos=[];
+  Object.keys(CAPS).forEach(cat=>{
+    const partes=cat.split(' · ');
+    const padre=partes.length>1?partes[0]:null;
+    const llave=padre||cat;
+    if(!grupos[llave]){ grupos[llave]=[]; ordenGrupos.push(llave); }
+    grupos[llave].push(cat);
+  });
+
+  function renderFilaCategoria(cat,idx,indentado){
+    const spent=bycat[cat]||0;const cap=CAPS[cat];
+    const p=Math.min(Math.round(spent/cap*100),100);
+    const over=spent>cap;const near=p>=75&&!over;
+    const bc=over?'#FF6B6B':near?'#FFB347':col(cat);
+    const sc=over?'over':near?'warn':'ok';
+    const st=over?'⚠ +'+fmtCOP(spent-cap)+' sobre tope':spent===0?'Sin gastos':fmtCOP(cap-spent)+' disponible';
+    const comprasCat=gastos.filter(e=>e.cat===cat).sort((a,b)=>b.date.localeCompare(a.date));
+    const detailId=`budget-detail-${idx}`;
+    const comprasHTML=comprasCat.length?comprasCat.map(e=>{
+      const meta=ACCOUNTS_META[e.acc];
+      const displayCurrency=e.currency||meta.currency;
+      const amtStr=displayCurrency==='USD'?fmtUSD(e.amount):fmtCOP(e.amount);
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px">
+        <span style="color:var(--text3);font-family:var(--mono);min-width:34px">${fmtDate(e.date)}</span>
+        <span style="flex:1;padding:0 8px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.name}</span>
+        <span style="color:var(--text3);font-size:9px;font-family:var(--mono);margin-right:8px">${meta.label}</span>
+        <span style="font-family:var(--mono);font-weight:600">${amtStr}</span>
+      </div>`;
+    }).join(''):'<div style="font-size:11px;color:var(--text3);padding:8px 0">Sin compras registradas en esta categoría este mes.</div>';
+    const nombreVisible=indentado?cat.split(' · ').slice(1).join(' · '):cat;
+    return`<div class="budget-row" style="${indentado?'padding-left:16px;border-left:2px solid var(--border2);margin-left:4px':''}">
+      <div class="budget-top" style="cursor:pointer" onclick="toggleBudgetDetail('${detailId}')"><span class="budget-name" style="${indentado?'font-size:11px;color:var(--text2)':''}">${indentado?'└ ':''}${nombreVisible} <span id="${detailId}-arrow" style="font-size:9px;color:var(--text3)">▾</span></span><span class="budget-nums">${fmtCOP(spent)} / <input type="text" class="cap-edit-input" data-cat="${cat.replace(/"/g,'&quot;')}" value="${cap.toLocaleString('es-CO')}" onblur="updateCap(this)" onclick="event.stopPropagation()" style="width:70px;background:none;border:none;border-bottom:1px dashed var(--text3);color:inherit;font-family:var(--mono);font-size:11px;text-align:right"></span></div>
+      <div class="budget-track" style="${indentado?'height:4px':''}"><div class="budget-fill" style="width:${p}%;background:${bc}"></div></div>
+      <div class="budget-status ${sc}">${st}</div>
+      <div id="${detailId}" style="display:none;margin-top:8px;padding:8px 10px;background:var(--surface2);border-radius:8px">${comprasHTML}</div>
+    </div>`;
+  }
+
+  let idxGlobal=0;
+  document.getElementById('budget-list').innerHTML=resumenHTML+ordenGrupos.map(llave=>{
+    const cats=grupos[llave];
+    if(cats.length===1&&!cats[0].includes(' · ')){
+      // Categoría suelta, sin familia — se muestra igual que antes
+      return renderFilaCategoria(cats[0],idxGlobal++,false);
+    }
+    // Grupo con padre: encabezado con progreso combinado + hijos indentados
+    const capTotal=cats.reduce((s,c)=>s+CAPS[c],0);
+    const spentTotal=cats.reduce((s,c)=>s+(bycat[c]||0),0);
+    const p=Math.min(Math.round(spentTotal/capTotal*100),100);
+    const over=spentTotal>capTotal;const near=p>=75&&!over;
+    const bc=over?'#FF6B6B':near?'#FFB347':col(cats[0]);
+    const groupId=`budget-group-${llave.replace(/\s+/g,'')}`;
+    const encabezado=`<div class="budget-row" style="padding-bottom:6px">
+      <div class="budget-top" style="cursor:pointer" onclick="toggleBudgetDetail('${groupId}')"><span class="budget-name" style="font-weight:700">📁 ${llave} <span id="${groupId}-arrow" style="font-size:9px;color:var(--text3)">▾</span></span><span class="budget-nums" style="font-weight:700">${fmtCOP(spentTotal)} / ${fmtCOP(capTotal)}</span></div>
+      <div class="budget-track"><div class="budget-fill" style="width:${p}%;background:${bc}"></div></div>
+    </div>`;
+    const hijosHTML=`<div id="${groupId}" style="display:none">${cats.map(c=>renderFilaCategoria(c,idxGlobal++,true)).join('')}</div>`;
+    return encabezado+hijosHTML;
+  }).join('');
+
+
+  window._bycat=bycat; window._total=total; window._today=today; window._pct=pct;
+  const monthNames=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  if(currentMonth){
+    const [y,mo]=currentMonth.split('-');
+    document.getElementById('budget-month-label').textContent='· '+monthNames[parseInt(mo)-1]+' '+y;
+  }
+  renderPendientes();
+  updateNetWorth();
+}
+
+function renderMetrics(){
+  const bycat=window._bycat||{};
+  const total=window._total||0;
+  document.getElementById('m-total').textContent=fmtCOP(total);
+  document.getElementById('m-total-sub').textContent=`en ${entries.filter(e=>e.txType!=='ingreso').length} movimientos`;
+  document.getElementById('m-today').textContent=fmtCOP(window._today||0);
+  document.getElementById('m-pct').textContent=(window._pct||0)+'%';
+  document.getElementById('m-pct').style.color=(window._pct||0)>85?'var(--danger)':(window._pct||0)>65?'var(--warn)':'var(--accent)';
+  const debtTotal=accounts.davtc+accounts.rappitc;
+  document.getElementById('m-debt').textContent=fmtCOP(debtTotal);
+
+  const sorted=Object.entries(bycat).sort((a,b)=>b[1]-a[1]).filter(([c,v])=>v>0);
+  const sum=sorted.reduce((s,[c,v])=>s+v,0)||1;
+  let acc=0;
+  const stops=sorted.map(([cat,val])=>{
+    const start=acc/sum*360;
+    acc+=val;
+    const end=acc/sum*360;
+    return `${col(cat)} ${start}deg ${end}deg`;
+  }).join(',');
+  document.getElementById('pie-chart').style.background=sorted.length?`conic-gradient(${stops})`:'var(--surface2)';
+  document.getElementById('pie-legend').innerHTML=sorted.slice(0,8).map(([cat,val])=>{
+    const pct=Math.round(val/sum*100);
+    return `<div class="legend-row"><div class="legend-dot" style="background:${col(cat)}"></div><span class="legend-name">${scat(cat)}</span><span class="legend-val">${pct}% · ${fmtCOP(val)}</span></div>`;
+  }).join('')||'<div style="color:var(--text3);font-size:12px">Sin datos aún</div>';
+
+  const davPct=Math.max(0,Math.min(100,Math.round((1-accounts.davtc/DEBT_ORIGINAL.davtc)*100)));
+  const rappiPct=Math.max(0,Math.min(100,Math.round((1-accounts.rappitc/DEBT_ORIGINAL.rappitc)*100)));
+  document.getElementById('dp-dav-pct').textContent=davPct+'% pagado';
+  document.getElementById('dp-dav-fill').style.width=davPct+'%';
+  document.getElementById('dp-dav-current').textContent='Actual: '+fmtCOP(accounts.davtc);
+  document.getElementById('dp-dav-original').textContent='Pico: '+fmtCOP(DEBT_ORIGINAL.davtc);
+  document.getElementById('dp-rappi-pct').textContent=rappiPct+'% pagado';
+  document.getElementById('dp-rappi-fill').style.width=rappiPct+'%';
+  document.getElementById('dp-rappi-current').textContent='Actual: '+fmtCOP(accounts.rappitc);
+  document.getElementById('dp-rappi-original').textContent='Pico: '+fmtCOP(DEBT_ORIGINAL.rappitc);
+
+  renderMonthComparison();
+  renderEmergencyGrowth();
+  renderDebtProjection();
+}
+
+function renderDebtProjection(){
+  const el=document.getElementById('debt-projection');
+  if(!el)return;
+  const pagosDeuda=entries.filter(e=>e.cat==='Pago Deuda'&&e.txType!=='ingreso');
+  const totalDeuda=accounts.davtc+accounts.rappitc;
+
+  if(pagosDeuda.length===0||totalDeuda<=0){
+    el.innerHTML=totalDeuda<=0
+      ?'🎉 <strong style="color:var(--accent)">¡Deuda en cero!</strong> No hay pagos pendientes que proyectar.'
+      :'Registra al menos un pago de deuda para calcular la proyección.';
+    return;
+  }
+  const mesesConPago=new Set(pagosDeuda.map(e=>e.date.slice(0,7))).size||1;
+  const totalPagado=pagosDeuda.reduce((s,e)=>s+entryCOP(e),0);
+  const promedioMensual=totalPagado/mesesConPago;
+  const mesesRestantes=Math.ceil(totalDeuda/promedioMensual);
+  const fechaProyectada=new Date();
+  fechaProyectada.setMonth(fechaProyectada.getMonth()+mesesRestantes);
+  const monthNames=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const fechaTexto=`${monthNames[fechaProyectada.getMonth()]} ${fechaProyectada.getFullYear()}`;
+
+  el.innerHTML=`📅 <strong>Proyección de pago:</strong> a tu ritmo promedio de ${fmtCOP(promedioMensual)}/mes, terminarías de pagar en <strong style="color:var(--accent)">~${mesesRestantes} mes(es) (${fechaTexto})</strong>.<br><span style="font-size:10px;color:var(--text3)">Basado en ${mesesConPago} mes(es) con pagos registrados. Si aumentas el pago mensual, esta fecha se acorta.</span>`;
+}
+
+function renderMonthComparison(){
+  const monthNames=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const byMonth={};
+  // Meses archivados: usar el resumen liviano ya calculado (no requiere cargar el detalle)
+  Object.keys(archiveIndex).forEach(m=>{ byMonth[m]=archiveIndex[m].total; });
+  // Meses en ventana activa: calcular en vivo desde entries
+  entries.filter(e=>e.txType!=='ingreso'&&e.cat!=='Transferencia').forEach(e=>{
+    const m=e.date.slice(0,7);
+    byMonth[m]=(byMonth[m]||0)+entryCOP(e);
+  });
+  const meses=Object.keys(byMonth).sort().slice(-6);
+  const maxVal=Math.max(...meses.map(m=>byMonth[m]),1);
+  const chart=document.getElementById('month-compare-chart');
+  const legend=document.getElementById('month-compare-legend');
+  if(meses.length===0){
+    chart.innerHTML='<div style="color:var(--text3);font-size:12px;margin:auto">Sin datos suficientes aún</div>';
+    legend.innerHTML='';
+    return;
+  }
+  chart.innerHTML=meses.map((m,i)=>{
+    const val=byMonth[m];
+    const h=Math.max(6,Math.round(val/maxVal*120));
+    const esMesActual=m===currentMonth;
+    const color=esMesActual?'var(--accent)':'#5B8DEF';
+    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+      <div style="font-size:9px;font-family:var(--mono);color:var(--text2)">${(val/1000000).toFixed(1)}M</div>
+      <div style="width:100%;max-width:40px;height:${h}px;background:${color};border-radius:4px 4px 0 0;transition:height .5s"></div>
+    </div>`;
+  }).join('');
+  legend.innerHTML=meses.map(m=>{
+    const [y,mo]=m.split('-');
+    return `<span>${monthNames[parseInt(mo)-1]}</span>`;
+  }).join('');
+}
+
+function renderEmergencyGrowth(){
+  const monthNames=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const nuByMonth={};
+  Object.keys(archiveIndex).forEach(m=>{ nuByMonth[m]=archiveIndex[m].nuDelta||0; });
+  entries.filter(e=>e.acc==='nu').forEach(e=>{
+    const m=e.date.slice(0,7);
+    const signo=e.txType==='ingreso'?1:-1;
+    nuByMonth[m]=(nuByMonth[m]||0)+(signo*e.amount);
+  });
+  const meses=Object.keys(nuByMonth).sort();
+  const container=document.getElementById('emergency-growth');
+  if(meses.length===0){
+    container.innerHTML=`<div style="color:var(--text3);font-size:12px">Aún no hay movimientos registrados en Nu cajitas este período.</div>
+      <div style="margin-top:10px"><strong>Saldo actual:</strong> ${fmtCOP(accounts.nu)}</div>`;
+    return;
+  }
+  const meta=7000000;
+  const pct=Math.min(100,Math.round(accounts.nu/meta*100));
+  let html=meses.map(m=>{
+    const [y,mo]=m.split('-');
+    const val=nuByMonth[m];
+    const signo=val>=0?'+':'';
+    const color=val>=0?'var(--accent)':'var(--danger)';
+    return `<div style="display:flex;justify-content:space-between"><span>${monthNames[parseInt(mo)-1]} ${y}</span><span style="color:${color};font-family:var(--mono)">${signo}${fmtCOP(val)}</span></div>`;
+  }).join('');
+  html+=`<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+    <div style="display:flex;justify-content:space-between;margin-bottom:6px"><strong>Saldo actual</strong><span style="font-family:var(--mono)">${fmtCOP(accounts.nu)}</span></div>
+    <div class="debt-track"><div class="debt-fill" style="width:${pct}%"></div></div>
+    <div style="font-size:10px;color:var(--text3);margin-top:4px;text-align:right">${pct}% de la meta ($7,000,000)</div>
+  </div>`;
+  container.innerHTML=html;
+}
+
+function renderPendientes(){
+  const list=document.getElementById('pendientes-list');
+  if(!list)return;
+  const sorted=[...pendientes].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  list.innerHTML=sorted.length?sorted.map(p=>{
+    const meta=ACCOUNTS_META[p.acc];
+    const c=p.isIncome?'#22D3B0':col(p.cat);
+    // Si el pendiente está vinculado a una tarjeta de crédito, siempre mostramos el saldo ACTUAL de la tarjeta,
+    // no el monto congelado de cuando se creó — el saldo cambia con cada compra nueva.
+    const montoVigente=meta.type==='credito'?accounts[p.acc]:p.amount;
+    const montoStr=meta.currency==='USD'?fmtUSD(montoVigente):fmtCOP(montoVigente);
+    const vencido=!p.isIncome&&p.date&&p.date<todayStr();
+    return `<div class="entry-row" style="${vencido?'background:rgba(255,107,107,.1);border-left:3px solid var(--danger)':''}">
+      <span class="entry-date">${p.date?fmtDate(p.date):'—'}</span>
+      <div class="entry-dot" style="background:${vencido?'var(--danger)':c}"></div>
+      <div style="flex:1;min-width:0">
+        <div class="entry-name">${vencido?'🔴 VENCIDO — ':p.isIncome?'💰 ':''}${p.name}</div>
+        <div class="entry-acc">${meta.label}${meta.type==='credito'?' · saldo actual':''}</div>
+      </div>
+      <span class="entry-cat" style="background:${c}22;color:${c}">${scat(p.cat)}</span>
+      <span class="entry-amount" style="color:${p.isIncome?'var(--accent)':vencido?'var(--danger)':'var(--text)'}">${p.isIncome?'+':''}${montoStr}</span>
+      <button class="btn-add" style="width:auto;height:28px;padding:0 10px;font-size:11px;margin:0" onclick="payPendiente('${p.id}')">${p.isIncome?'Recibir':'Pagar'}</button>
+      <button class="btn-del" onclick="deletePendiente('${p.id}')">×</button>
+    </div>`;
+  }).join(''):'<div class="empty">✅ Sin pendientes — todo al día</div>';
+}
+
+async function addPendiente(){
+  const name=document.getElementById('pend-name').value.trim();
+  const amount=redondear3(parseFloat(document.getElementById('pend-amount').value));
+  const date=document.getElementById('pend-date').value;
+  const acc=document.getElementById('pend-account').value;
+  const cat=document.getElementById('pend-cat').value;
+  const isIncome=document.getElementById('pend-income').checked;
+  if(!name||isNaN(amount)||amount<=0)return;
+  const nuevo={name,amount,date,acc,cat,isIncome};
+  try{
+    const {data:fila,error}=await sb.from('fin_pendientes').insert({
+      user_id:currentUserId,
+      nombre:name,
+      monto:amount,
+      fecha:date||null,
+      account_id:accountIdBySlug[acc],
+      categoria:cat,
+      is_income:isIncome,
+    }).select().single();
+    if(error)throw error;
+    nuevo.id=fila.id;
+  }catch(e){
+    registrarErrorDiagnostico('fin_pendientes (crear)',e);
+    return; // no lo agregamos localmente si no se pudo guardar en la nube
+  }
+  pendientes.push(nuevo);
+  document.getElementById('pend-name').value='';
+  document.getElementById('pend-amount').value='';
+  document.getElementById('pend-income').checked=false;
+  renderPendientes();
+  updateNetWorth();
+}
+
+async function deletePendiente(id){
+  pendientes=pendientes.filter(p=>p.id!==id);
+  renderPendientes();
+  updateNetWorth();
+  try{
+    const {error}=await sb.from('fin_pendientes').delete().eq('id',id);
+    if(error)throw error;
+  }catch(e){ registrarErrorDiagnostico('fin_pendientes (borrar)',e); }
+}
+
+async function payPendiente(id){
+  const p=pendientes.find(x=>x.id===id);
+  if(!p)return;
+  const metaOrigen=ACCOUNTS_META[p.acc];
+  // Si está vinculado a una tarjeta de crédito, se paga/muestra el saldo ACTUAL, no el monto congelado al crearlo
+  const montoVigente=metaOrigen.type==='credito'?accounts[p.acc]:p.amount;
+  const accion=p.isIncome?'Recibir':'Pagar';
+  const montoStr=metaOrigen.currency==='USD'?fmtUSD(montoVigente):fmtCOP(montoVigente);
+  const accFinal=await customAccountPrompt(`${accion} "${p.name}" — ${montoStr}`,p.acc);
+  if(accFinal===null)return; // cancelado
+  const meta=ACCOUNTS_META[accFinal];
+  const txType=p.isIncome?'ingreso':'gasto';
+  const sign=p.isIncome?-1:1; // misma convención que addEntry: gasto=+resta, ingreso=+suma
+  if(meta.type==='credito'){ accounts[accFinal]=redondear3(accounts[accFinal]+(sign*montoVigente)); }
+  else{ accounts[accFinal]=redondear3(accounts[accFinal]-(sign*montoVigente)); }
+  try{
+    const {data:fila,error}=await sb.from('fin_movimientos').insert({
+      user_id:currentUserId,
+      fecha:todayStr(),
+      nombre:p.name,
+      monto:montoVigente,
+      categoria:p.cat,
+      account_id:accountIdBySlug[accFinal],
+      tx_type:txType,
+    }).select().single();
+    if(error)throw error;
+    entries.unshift({id:fila.id,date:todayStr(),name:p.name,amount:montoVigente,cat:p.cat,acc:accFinal,txType});
+  }catch(e){ registrarErrorDiagnostico('fin_movimientos (pagar pendiente)',e); }
+  pendientes=pendientes.filter(x=>x.id!==id);
+  fillAccountInputs();
+  populateMonthSelector();
+  document.getElementById('month-select').value=currentMonth;
+  render();
+  try{
+    await saveAccountsData();
+    const {error}=await sb.from('fin_pendientes').delete().eq('id',id);
+    if(error)throw error;
+  }catch(e){ registrarErrorDiagnostico('fin_pendientes (pagar/borrar)',e); }
+}
+
+function onTransferAccChange(){
+  const origen=document.getElementById('tr-origen').value;
+  const destino=document.getElementById('tr-destino').value;
+  const mismaMoneda=ACCOUNTS_META[origen].currency===ACCOUNTS_META[destino].currency;
+  const trmInp=document.getElementById('tr-trm');
+  const hint=document.getElementById('tr-hint');
+  if(mismaMoneda){
+    trmInp.style.display='none';
+    trmInp.value='';
+    hint.textContent='Misma moneda — se transfiere el monto exacto, sin TRM.';
+  }else{
+    trmInp.style.display='block';
+    hint.textContent='Si dejas "Monto recibido" vacío, se calcula automático con la TRM.';
+  }
+}
+
+async function doTransfer(){
+  const origen=document.getElementById('tr-origen').value;
+  const destino=document.getElementById('tr-destino').value;
+  const monto=redondear3(parseFloat(document.getElementById('tr-monto').value));
+  const trm=parseFloat(document.getElementById('tr-trm').value)||accounts.trm;
+  let recibido=redondear3(parseFloat(document.getElementById('tr-recibido').value));
+  if(!monto||monto<=0||origen===destino)return;
+
+  const metaO=ACCOUNTS_META[origen], metaD=ACCOUNTS_META[destino];
+  let recibidoTeorico;
+  if(metaO.currency===metaD.currency){ recibidoTeorico=monto; }
+  else if(metaO.currency==='USD'&&metaD.currency==='COP'){ recibidoTeorico=redondear3(monto*trm); }
+  else if(metaO.currency==='COP'&&metaD.currency==='USD'){ recibidoTeorico=redondear3(monto/trm); }
+
+  const huboMontoManual=!isNaN(recibido);
+  if(!huboMontoManual)recibido=recibidoTeorico;
+
+  accounts[origen]=redondear3(accounts[origen]-monto);
+  accounts[destino]=redondear3(accounts[destino]+recibido);
+  accounts.trm=trm;
+
+  const filasNuevas=[{
+    fecha:todayStr(),nombre:`Transferencia ${metaO.label} → ${metaD.label}`,
+    monto,categoria:'Transferencia',acc:origen,txType:'gasto',
+  }];
+
+  // Comisión detectada: si lo recibido es menor a lo teórico, se registra como movimiento visible (sin volver a tocar saldos, solo para trazabilidad)
+  const comision=recibidoTeorico-recibido;
+  const huboComision=huboMontoManual&&comision>0.009;
+  if(huboComision){
+    filasNuevas.push({
+      fecha:todayStr(),nombre:`Comisión transferencia ${metaO.label} → ${metaD.label}`,
+      monto:comision,categoria:'Comisión',acc:destino,txType:'gasto',currency:metaD.currency,
+    });
+  }
+
+  document.getElementById('tr-monto').value='';
+  document.getElementById('tr-recibido').value='';
+  fillAccountInputs();
+  populateMonthSelector();
+  document.getElementById('month-select').value=currentMonth;
+  render();
+
+  // Una transferencia mueve dinero entre DOS cuentas: si una escritura se guarda y la otra no,
+  // queda un estado inconsistente en la nube (el movimiento existe pero el saldo no cuadra, o viceversa).
+  // Por eso aquí escribimos ambas de inmediato y confirmamos las dos, en vez del guardado diferido normal.
+  const statusEl=document.getElementById('sync-status');
+  statusEl.style.display='block';
+  statusEl.style.opacity='1';
+  statusEl.textContent='💾 Guardando transferencia…';
+  statusEl.className='sync-status';
+
+  let okEntries=false;
+  try{
+    const {data:filasGuardadas,error}=await sb.from('fin_movimientos').insert(filasNuevas.map(f=>({
+      user_id:currentUserId,
+      fecha:f.fecha,
+      nombre:f.nombre,
+      monto:f.monto,
+      moneda_override:f.currency||null,
+      categoria:f.categoria,
+      account_id:accountIdBySlug[f.acc],
+      tx_type:f.txType,
+    }))).select();
+    if(error)throw error;
+    entries.unshift({id:filasGuardadas[0].id,date:filasNuevas[0].fecha,name:filasNuevas[0].nombre,amount:filasNuevas[0].monto,cat:filasNuevas[0].categoria,acc:filasNuevas[0].acc,txType:filasNuevas[0].txType});
+    if(huboComision){
+      entries.unshift({id:filasGuardadas[1].id,date:filasNuevas[1].fecha,name:filasNuevas[1].nombre,amount:filasNuevas[1].monto,cat:filasNuevas[1].categoria,acc:filasNuevas[1].acc,txType:filasNuevas[1].txType,currency:filasNuevas[1].currency});
+    }
+    okEntries=true;
+    render();
+  }catch(e){ registrarErrorDiagnostico('fin_movimientos (transferencia)',e); }
+
+  const okAccounts=await guardarCuentasSupabase();
+  if(okEntries&&okAccounts){
+    statusEl.textContent='✓ Transferencia guardada';
+    statusEl.className='sync-status ok';
+    setTimeout(()=>{statusEl.style.opacity='0.35'},1500);
+  }else{
+    const faltante=[!okEntries&&'el movimiento',!okAccounts&&'el saldo'].filter(Boolean).join(' y ');
+    statusEl.textContent=`🛑 La transferencia quedó a medias: no se pudo guardar ${faltante}. Revisa 🔧 Diagnóstico`;
+    statusEl.className='sync-status error';
+  }
+}
+
+async function sendSummary(){
+  const bycat=window._bycat||{};
+  const total=window._total||0;
+  const lines=Object.entries(bycat).sort((a,b)=>b[1]-a[1]).map(([c,v])=>`${c}: ${fmtCOP(v)}`).join(' | ');
+  const debtTotal=accounts.davtc+accounts.rappitc;
+  const resumen=`Analiza mis movimientos del mes. Total gastado: ${fmtCOP(total)} en ${entries.length} registros. Por categoría: ${lines}. Cuentas — Nequi: ${fmtCOP(accounts.nequi)}, Débito: ${fmtCOP(accounts.debito)}, Nu: ${fmtCOP(accounts.nu)}, ARQ: ${fmtUSD(accounts.arq)}, Ontop: ${fmtUSD(accounts.ontop)}. Deuda total: ${fmtCOP(debtTotal)} (Davivienda ${fmtCOP(accounts.davtc)}, Rappi ${fmtCOP(accounts.rappitc)}). Dame tu análisis como estratega financiero.`;
+  const btn=document.querySelector('.btn-analyze');
+  const textoOriginal=btn?btn.textContent:'';
+  try{
+    await navigator.clipboard.writeText(resumen);
+    if(btn){ btn.textContent='✓ Copiado — pégalo en el chat con Ctrl+V'; setTimeout(()=>{btn.textContent=textoOriginal;},3000); }
+  }catch(e){
+    // Si el navegador bloquea el portapapeles, mostramos el texto para copiarlo a mano
+    await customConfirm('No se pudo copiar automáticamente. Copia este texto manualmente:\n\n'+resumen);
+  }
+}
+
+const months=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+document.getElementById('nav-month').textContent=months[new Date().getMonth()]+' '+new Date().getFullYear();
+document.getElementById('inp-date').value=todayStr();
+document.getElementById('pend-date').value=todayStr();
+document.getElementById('inp-type').addEventListener('change',onAccountChange);
+onTransferAccChange();
+onGoalTypeChange();
+document.getElementById('sort-fecha')?.classList.add('active');
+onAccountChange();
+function abrirImportModal(){
+  document.getElementById('import-paste-text').value='';
+  document.getElementById('import-modal').style.display='flex';
+}
+
+async function procesarImportPegado(){
+  const texto=document.getElementById('import-paste-text').value.trim();
+  if(!texto)return;
+  document.getElementById('import-modal').style.display='none';
+  await aplicarRespaldo(texto);
+}
+
+async function aplicarRespaldo(texto){
+  let datos;
+  try{ datos=JSON.parse(texto); }
+  catch(e){
+    await customConfirm('⚠ Ese texto no es un respaldo válido de este tracker. Verifica que sea el contenido completo del JSON exportado.',{soloOk:true,textoSi:'Entendido'});
+    return;
+  }
+
+  const fechaExport=datos.fecha_exportacion?new Date(datos.fecha_exportacion).toLocaleString('es-CO'):'desconocida';
+  const confirmado=await customConfirm(`¿Reemplazar TODOS los datos actuales con el respaldo del ${fechaExport}?\n\nEsto sobrescribirá movimientos, cuentas, pendientes, metas y topes en ESTE dispositivo con lo que traiga el respaldo.\n\nEsta acción no se puede deshacer.`,{textoSi:'Sí, reemplazar todo'});
+  if(!confirmado)return;
+
+  if(datos.entries)entries=datos.entries;
+  if(datos.accounts)accounts=datos.accounts;
+  if(datos.pendientes)pendientes=datos.pendientes;
+  if(datos.goals)goals=datos.goals;
+  if(datos.dynamicAccounts){
+    dynamicAccounts=datos.dynamicAccounts;
+    Object.keys(dynamicAccounts).forEach(key=>{
+      ACCOUNTS_META[key]=Object.assign({type:'debito'},dynamicAccounts[key]);
+    });
+  }
+  if(datos.caps_overrides)Object.keys(datos.caps_overrides).forEach(cat=>{ CAPS[cat]=datos.caps_overrides[cat]; });
+  if(datos.vehiculos)vehiculos=datos.vehiculos;
+  if(datos.archiveIndex)archiveIndex=datos.archiveIndex;
+
+  await saveEntries();
+  await saveAccountsData();
+  await savePendientesData();
+  await saveConfig();
+
+  fillAccountInputs();
+  populateMonthSelector();
+  document.getElementById('month-select').value=currentMonth;
+  Object.keys(dynamicAccounts).forEach(key=>renderDynamicAccountCard(key));
+  refreshAllAccountSelectors();
+  refreshGoalCategoryOptions();
+  render();
+
+  await customConfirm('✅ Respaldo importado y guardado en este dispositivo correctamente.',{soloOk:true,textoSi:'Perfecto'});
+}
+
+async function exportarRespaldo(){
+  const respaldo={
+    fecha_exportacion:new Date().toISOString(),
+    entries,accounts,pendientes,goals,dynamicAccounts,vehiculos,
+    caps_overrides:Object.fromEntries(Object.keys(CAPS).filter(c=>CAPS[c]!==CAPS_DEFAULT[c]).map(c=>[c,CAPS[c]])),
+    archiveIndex
+  };
+  const jsonTexto=JSON.stringify(respaldo,null,2);
+
+  try{
+    const blob=new Blob([jsonTexto],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=`respaldo_tracker_${todayStr()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }catch(e){}
+
+  // Respaldo del respaldo: si la descarga automática no funcionó en tu navegador,
+  // aquí tienes el texto completo para copiar y guardar manualmente.
+  document.getElementById('export-fallback-text').value=jsonTexto;
+  document.getElementById('export-fallback-modal').style.display='flex';
+}
+
+function cerrarExportFallback(){
+  document.getElementById('export-fallback-modal').style.display='none';
+}
+
+async function guardarConVerificacion(){
+  const statusEl=document.getElementById('sync-status');
+  statusEl.style.display='block';
+  statusEl.style.opacity='1';
+  if(cargaConFallos){
+    statusEl.textContent='🛑 Guardado bloqueado: tus datos reales no cargaron y guardar ahora los pisaría. Usa "🔁 Reintentar carga" en 🔧 Diagnóstico primero';
+    statusEl.className='sync-status error';
+    return;
+  }
+  statusEl.className='sync-status';
+  statusEl.textContent='💾 Guardando…';
+
+  pendingSaves++;
+  const resultados={};
+  try{
+    cancelScheduledSave('config_v1');
+    resultados.accounts=await guardarCuentasSupabase();
+    resultados.configuracion=await (async()=>{
+      try{
+        const {error}=await sb.from('fin_configuracion').upsert({user_id:currentUserId,trm:accounts.trm,vehiculos:vehiculos&&vehiculos.length?vehiculos:['Moto']},{onConflict:'user_id'});
+        if(error)throw error;
+        return true;
+      }catch(e){ registrarErrorDiagnostico('fin_configuracion (verificación)',e); return false; }
+    })();
+    resultados.topes=await (async()=>{
+      try{
+        const filas=Object.keys(CAPS).map(categoria=>({user_id:currentUserId,categoria,tope:CAPS[categoria]}));
+        const {error}=await sb.from('fin_presupuesto_topes').upsert(filas,{onConflict:'user_id,categoria'});
+        if(error)throw error;
+        return true;
+      }catch(e){ registrarErrorDiagnostico('fin_presupuesto_topes (verificación)',e); return false; }
+    })();
+    const configConsolidado={goals,vehiculos};
+    resultados.config=await setConReintentos('config_v1',JSON.stringify(configConsolidado));
+
+    const todoOk=Object.values(resultados).every(v=>v===true);
+    if(todoOk){
+      statusEl.textContent='✓ Verificado — todo tu tracker está guardado correctamente';
+      statusEl.className='sync-status ok';
+    }else{
+      const fallidos=Object.keys(resultados).filter(k=>!resultados[k]);
+      statusEl.textContent=`⚠ No se pudo confirmar: ${fallidos.join(', ')} — revisa la pestaña 🔧 Diagnóstico para ver el error real`;
+      statusEl.className='sync-status error';
+    }
+  }catch(err){
+    statusEl.textContent='⚠ Error inesperado — reintenta';
+    statusEl.className='sync-status error';
+  }finally{
+    pendingSaves--;
+    setTimeout(()=>{statusEl.style.opacity='0.35'},4000);
+  }
+}
+
+let lastSyncAttempt=0;
+const SYNC_COOLDOWN_MS=8000; // evita disparar de más y agotar el límite de solicitudes por minuto de la API
+
+async function syncNow(){
+  const statusEl=document.getElementById('sync-status');
+  const ahoraMs=Date.now();
+  if(ahoraMs-lastSyncAttempt<SYNC_COOLDOWN_MS){
+    statusEl.style.display='block';
+    statusEl.style.opacity='1';
+    statusEl.className='sync-status';
+    statusEl.textContent='Ya sincronizado hace un momento — espera unos segundos';
+    setTimeout(()=>{statusEl.style.opacity='0.35'},1500);
+    return;
+  }
+  lastSyncAttempt=ahoraMs;
+  if(pendingSaves>0){
+    // Hay un guardado local en curso — esperamos un poco para no pisarlo con datos viejos
+    statusEl.style.display='block';
+    statusEl.textContent='Terminando de guardar tus cambios…';
+    let intentos=0;
+    while(pendingSaves>0&&intentos<35){ await new Promise(r=>setTimeout(r,150)); intentos++; }
+  }
+  const activeTabBtn=document.querySelector('.tab.active');
+  const activeTab=activeTabBtn?activeTabBtn.getAttribute('onclick').match(/'(\w+)'/)[1]:'cuentas';
+  statusEl.textContent='Sincronizando…';
+  statusEl.style.opacity='1';
+  statusEl.className='sync-status';
+  try{
+    let resA=null;
+    try{
+      const {data,error}=await sb.from('fin_accounts').select('*').eq('archived',false);
+      if(error)throw error;
+      resA=data;
+      accounts={};
+      resA.forEach(row=>{
+        accounts[row.slug]=Number(row.balance);
+        accountIdBySlug[row.slug]=row.id;
+        if(row.is_dynamic){
+          ACCOUNTS_META[row.slug]={label:row.label,currency:row.currency,type:row.account_type};
+          dynamicAccounts[row.slug]={label:row.label,currency:row.currency};
+        }
+      });
+      const {data:cfg}=await sb.from('fin_configuracion').select('trm,vehiculos').maybeSingle();
+      if(cfg){
+        accounts.trm=Number(cfg.trm);
+        if(cfg.vehiculos&&cfg.vehiculos.length)vehiculos=cfg.vehiculos;
+      }
+    }catch(e){ resA=null; registrarErrorDiagnostico('fin_accounts (sync)',e); }
+
+    let resE=null;
+    try{
+      const {data:movs,error:errMovs}=await sb.from('fin_movimientos').select('*').order('fecha',{ascending:false});
+      if(errMovs)throw errMovs;
+      resE=movs;
+      entries=(movs||[]).map(m=>({
+        id:m.id,
+        date:m.fecha,
+        name:m.nombre,
+        amount:Number(m.monto),
+        cat:m.categoria,
+        acc:Object.keys(accountIdBySlug).find(slug=>accountIdBySlug[slug]===m.account_id),
+        txType:m.tx_type,
+        ...(m.moneda_override?{currency:m.moneda_override}:{}),
+        ...(m.vehiculo?{vehiculo:m.vehiculo}:{}),
+      }));
+    }catch(e){ resE=null; registrarErrorDiagnostico('fin_movimientos (sync)',e); }
+
+    try{
+      const {data:topes,error:errTopes}=await sb.from('fin_presupuesto_topes').select('*');
+      if(errTopes)throw errTopes;
+      (topes||[]).forEach(t=>{ CAPS[t.categoria]=Number(t.tope); });
+    }catch(e){ registrarErrorDiagnostico('fin_presupuesto_topes (sync)',e); }
+
+    let resP=null;
+    try{
+      const {data:pends,error:errPends}=await sb.from('fin_pendientes').select('*');
+      if(errPends)throw errPends;
+      resP=pends;
+      pendientes=(pends||[]).map(p=>({
+        id:p.id,
+        name:p.nombre,
+        amount:Number(p.monto),
+        date:p.fecha,
+        acc:Object.keys(accountIdBySlug).find(slug=>accountIdBySlug[slug]===p.account_id),
+        cat:p.categoria,
+        isIncome:p.is_income,
+      }));
+    }catch(e){ resP=null; registrarErrorDiagnostico('fin_pendientes (sync)',e); }
+
+    // Si las 3 lecturas críticas funcionaron, ya tenemos los datos reales en memoria: se desbloquea el guardado
+    if(resE!==null&&resA!==null&&resP!==null)cargaConFallos=false;
+    const lecturasFallidas=[];
+    if(resE===null)lecturasFallidas.push('movimientos');
+    if(resA===null)lecturasFallidas.push('cuentas');
+    if(resP===null)lecturasFallidas.push('pendientes');
+
+    const resArch=await getConReintentos('archive_index_v1');
+    if(resArch&&resArch.value)archiveIndex=JSON.parse(resArch.value);
+
+    try{
+      const {data:metas,error:errMetas}=await sb.from('fin_metas').select('*');
+      if(errMetas)throw errMetas;
+      goals=(metas||[]).map(m=>({
+        id:m.id,
+        name:m.nombre,
+        type:m.tipo,
+        acc:m.tipo==='cuenta'?Object.keys(accountIdBySlug).find(slug=>accountIdBySlug[slug]===m.account_id):undefined,
+        cat:m.tipo==='categoria'?m.categoria:undefined,
+        target:Number(m.monto_objetivo),
+        accumulated:m.tipo==='categoria'?Number(m.acumulado):undefined,
+        color:m.color||undefined,
+      }));
+      goals.filter(g=>g.type==='categoria').forEach(g=>{ if(g.color)COLORS[g.cat]=g.color; });
+    }catch(e){ registrarErrorDiagnostico('fin_metas (sync)',e); }
+
+    fillAccountInputs();
+    populateMonthSelector();
+    document.getElementById('month-select').value=currentMonth;
+    Object.keys(dynamicAccounts).forEach(key=>renderDynamicAccountCard(key));
+    refreshAllAccountSelectors();
+    refreshGoalCategoryOptions();
+    populateVehiculoSelect();
+    render();
+    if(activeTab==='metricas')renderMetrics();
+    const ahora=new Intl.DateTimeFormat('es-CO',{timeZone:'America/Bogota',hour:'2-digit',minute:'2-digit'}).format(new Date());
+    if(lecturasFallidas.length>0){
+      statusEl.textContent=`🛑 NO sincronizado — el servidor falló al traer: ${lecturasFallidas.join(', ')}. Lo que ves puede estar desactualizado`;
+      statusEl.className='sync-status error';
+    }else{
+      statusEl.textContent=`✓ Sincronizado ${ahora}`;
+      statusEl.className='sync-status ok';
+      setTimeout(()=>{statusEl.style.opacity='0.35'},2000);
+    }
+  }catch(err){
+    registrarErrorDiagnostico('syncNow (error general)',err);
+    statusEl.textContent='⚠ Error inesperado al sincronizar — revisa 🔧 Diagnóstico';
+    statusEl.className='sync-status error';
+  }
+}
+
+// ============================================================
+// FASE 4 — Autenticación y conexión a Supabase (solo para CUENTAS por ahora;
+// movimientos/pendientes/metas/presupuesto siguen usando window.storage sin tocarse)
+// ============================================================
+const SUPABASE_URL = 'https://mfixkkqtjyjcigeqhlvz.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_l9nDbU6-a3lB6RKWEXA8UQ_ndrUICBx';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+async function intentarLogin(){
+  const btn=document.getElementById('login-btn');
+  const errEl=document.getElementById('login-error');
+  const email=document.getElementById('login-email').value.trim();
+  const password=document.getElementById('login-password').value;
+  errEl.style.display='none';
+  if(!email||!password){
+    errEl.textContent='Escribe correo y contraseña.';
+    errEl.style.display='block';
+    return;
+  }
+  btn.disabled=true;
+  btn.textContent='Conectando…';
+  const {data,error}=await sb.auth.signInWithPassword({email,password});
+  btn.disabled=false;
+  btn.textContent='Entrar';
+  if(error){
+    errEl.textContent='✗ '+error.message;
+    errEl.style.display='block';
+    return;
+  }
+  currentUserId=data.user.id;
+  document.getElementById('login-gate').style.display='none';
+  document.getElementById('loading-gate').style.display='flex';
+  loadData();
+}
+
+// Si ya había una sesión guardada en este navegador, entra directo sin pedir login de nuevo
+sb.auth.getSession().then(({data})=>{
+  if(data.session){
+    currentUserId=data.session.user.id;
+    document.getElementById('login-gate').style.display='none';
+    document.getElementById('loading-gate').style.display='flex';
+    loadData();
+  }
+});
+document.getElementById('login-password')?.addEventListener('keydown',e=>{ if(e.key==='Enter')intentarLogin(); });
+
+// Sincronización automática — un solo disparador (visibilitychange) para no duplicar llamadas
+// con el evento 'focus', que en móvil suele activarse junto con visibilitychange y agotaba
+// el límite de solicitudes por minuto de la API de almacenamiento.
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'&&pendingSaves===0)syncNow();
+});
+</script>
+</body>
+</html>
