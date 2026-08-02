@@ -94,12 +94,6 @@ function irAMes(mes){
   render();
 }
 
-async function saveConfig(){
-  scheduleSave('config_v1',()=>JSON.stringify({goals}));
-}
-// Alias de compatibilidad — goals es lo único que sigue viviendo en config_v1 por ahora (siguiente en la fila de migración)
-const saveGoals=saveConfig;
-
 function toggleBudgetDetail(detailId){
   const el=document.getElementById(detailId);
   const arrow=document.getElementById(detailId+'-arrow');

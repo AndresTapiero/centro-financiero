@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Centro Financiero · Andrés</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="login-gate" style="position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px;max-width:340px;width:100%">
+    <div style="font-size:16px;font-weight:700;margin-bottom:4px">🔐 Centro Financiero</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:20px">Inicia sesión para ver tus datos</div>
+    <label style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Correo</label>
+    <input class="inp" id="login-email" type="email" placeholder="tu@correo.com" autocomplete="email" style="width:100%;margin-bottom:14px">
+    <label style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Contraseña</label>
+    <input class="inp" id="login-password" type="password" placeholder="••••••••" autocomplete="current-password" style="width:100%;margin-bottom:16px">
+    <button class="btn-add" id="login-btn" style="width:100%;margin:0" onclick="intentarLogin()">Entrar</button>
+    <div id="login-error" style="display:none;margin-top:12px;font-size:11px;color:var(--danger);background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.35);border-radius:8px;padding:10px"></div>
+  </div>
+</div>
+<div id="loading-gate" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:9998;align-items:center;justify-content:center;padding:20px">
+  <div style="text-align:center">
+    <div style="width:36px;height:36px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;margin:0 auto 16px;animation:spin .8s linear infinite"></div>
+    <div style="font-size:13px;color:var(--text2)">Cargando tus datos…</div>
+  </div>
+</div>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+<div id="confirm-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
+  <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:340px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+    <div id="confirm-modal-text" style="font-size:13px;line-height:1.6;margin-bottom:16px;white-space:pre-line"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-add" id="confirm-btn-yes" style="margin:0;background:var(--danger)" onclick="resolverConfirm(true)">Sí, eliminar</button>
+      <button class="btn-add" id="confirm-btn-no" style="margin:0;background:var(--surface3);color:var(--text)" onclick="resolverConfirm(false)">Cancelar</button>
+    </div>
+  </div>
+</div>
+<div id="pay-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
+  <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:340px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+    <div id="pay-modal-text" style="font-size:13px;line-height:1.6;margin-bottom:12px"></div>
+    <div style="margin-bottom:16px">
+      <label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">¿En qué cuenta?</label>
+      <select class="inp" id="pay-modal-account" style="width:100%"></select>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-add" style="margin:0" onclick="resolverPayModal(true)">Confirmar</button>
+      <button class="btn-add" style="margin:0;background:var(--surface3);color:var(--text)" onclick="resolverPayModal(false)">Cancelar</button>
+    </div>
+  </div>
+</div>
+<div id="nueva-cuenta-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
+  <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:340px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+    <div style="font-size:13px;line-height:1.6;margin-bottom:14px">➕ <strong>Crear cuenta nueva</strong></div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Nombre</label>
+      <input class="inp" id="nueva-cuenta-nombre" type="text" placeholder="Ej: Bolsillo Ahorro" style="width:100%">
+    </div>
+    <div style="margin-bottom:16px">
+      <label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Moneda</label>
+      <select class="inp" id="nueva-cuenta-moneda" style="width:100%">
+        <option value="COP">Pesos (COP)</option>
+        <option value="USD">Dólares (USD)</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-add" style="margin:0" onclick="resolverNuevaCuentaModal(true)">Crear cuenta</button>
+      <button class="btn-add" style="margin:0;background:var(--surface3);color:var(--text)" onclick="resolverNuevaCuentaModal(false)">Cancelar</button>
+    </div>
+  </div>
+</div>
+<div id="edit-entry-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
+  <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:360px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.5);max-height:85vh;overflow-y:auto">
+    <div id="edit-entry-modal-text" style="font-size:13px;line-height:1.6;margin-bottom:14px">✏️ <strong>Editar movimiento</strong></div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Cuenta</label>
+      <select class="inp" id="edit-entry-account" style="width:100%" onchange="onEditEntryAccountChange()"></select>
+    </div>
+    <div style="margin-bottom:12px" id="edit-entry-currency-row">
+      <label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">¿En qué moneda fue este gasto realmente?</label>
+      <select class="inp" id="edit-entry-currency" style="width:100%">
+        <option value="USD">Dólares (USD)</option>
+        <option value="COP">Pesos (COP)</option>
+      </select>
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Categoría / etiqueta</label>
+      <select class="inp" id="edit-entry-category" style="width:100%"></select>
+    </div>
+    <div style="margin-bottom:16px">
+      <label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px" id="edit-entry-amount-label">Monto</label>
+      <input class="inp inp-num" id="edit-entry-amount" type="number" step="0.01" style="width:100%">
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-add" style="margin:0" onclick="resolverEditEntryModal(true)">Guardar cambios</button>
+      <button class="btn-add" style="margin:0;background:var(--surface3);color:var(--text)" onclick="resolverEditEntryModal(false)">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div id="export-fallback-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
+  <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:420px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+    <div style="font-size:13px;line-height:1.6;margin-bottom:10px">📋 <strong>Respaldo generado.</strong> Si la descarga automática no se guardó en tu celular, copia este texto y pégalo en una nota o correo para guardarlo tú mismo:</div>
+    <textarea id="export-fallback-text" readonly style="width:100%;height:140px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;color:var(--text2);font-family:var(--mono);font-size:10px;padding:8px;margin-bottom:12px" onclick="this.select()"></textarea>
+    <button class="btn-add" style="margin:0" onclick="cerrarExportFallback()">Cerrar</button>
+  </div>
+</div>
+<div id="edit-pendiente-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
+  <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:340px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+    <div style="font-size:13px;line-height:1.6;margin-bottom:10px">✏️ <strong>Editar monto</strong></div>
+    <div id="edit-pendiente-hint" style="font-size:11px;color:var(--text3);margin-bottom:10px"></div>
+    <input class="inp inp-num" id="edit-pendiente-amount" type="number" step="0.01" style="width:100%;margin-bottom:10px">
+    <button class="btn-add" id="edit-pendiente-usar-saldo" style="display:none;margin:0 0 14px;background:var(--surface3);color:var(--text2);font-size:11px;height:32px" onclick="usarSaldoActualEnEdicion()">🔄 Usar saldo actual de la tarjeta</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn-add" style="margin:0" onclick="resolverEditPendienteModal(true)">Guardar</button>
+      <button class="btn-add" style="margin:0;background:var(--surface3);color:var(--text)" onclick="resolverEditPendienteModal(false)">Cancelar</button>
+    </div>
+  </div>
+</div>
+<div id="opciones-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
+  <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:340px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+    <div style="font-size:13px;font-weight:700;margin-bottom:14px">⚙️ Opciones</div>
+    <button class="btn-add" style="margin:0 0 8px;background:var(--surface3);color:var(--text)" onclick="document.getElementById('opciones-modal').style.display='none';syncNow()">🔄 Sincronizar</button>
+    <button class="btn-add" style="margin:0 0 8px;background:var(--surface3);color:var(--accent);border:1px solid var(--accent)" onclick="document.getElementById('opciones-modal').style.display='none';guardarConVerificacion()">💾 Guardar y verificar</button>
+    <button class="btn-add" style="margin:0 0 14px;background:var(--surface3);color:var(--blue);border:1px solid var(--blue)" onclick="document.getElementById('opciones-modal').style.display='none';exportarRespaldo()">⬇️ Exportar respaldo</button>
+    <button class="btn-add" style="margin:0;background:none;color:var(--text2)" onclick="document.getElementById('opciones-modal').style.display='none'">Cerrar</button>
+  </div>
+</div>
+<div id="save-toast" style="display:none;position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:1100;padding:8px 16px;border-radius:99px;font-size:12px;font-family:var(--mono);font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,.4);transition:opacity .3s"></div>
+<div class="app">
+  <div class="nav">
+    <span class="nav-brand">Centro Financiero <span id="build-version" style="opacity:.5;font-size:9px;letter-spacing:0"></span></span>
+    <span class="nav-month" id="nav-month"></span>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px;margin-bottom:1rem">
+    <span class="sync-status" id="sync-status" style="margin-bottom:0">Cargando…</span>
+    <button onclick="document.getElementById('opciones-modal').style.display='flex'" style="background:var(--surface2);border:1px solid var(--border2);color:var(--text2);font-size:10px;padding:3px 10px;border-radius:99px;cursor:pointer;font-family:var(--mono)">⚙️ Opciones</button>
+  </div>
+
+  <div id="adjust-banner" style="display:none;position:fixed;bottom:16px;left:50%;transform:translateX(-50%);max-width:92%;width:480px;background:var(--surface2);border:1px solid var(--accent);border-radius:12px;padding:16px;z-index:1000;box-shadow:0 10px 40px rgba(0,0,0,.5)">
+    <div id="adjust-banner-text" style="font-size:13px;margin-bottom:12px;line-height:1.5"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-add" style="margin:0;background:var(--accent)" onclick="confirmAdjustment()">✓ Confirmar y registrar</button>
+      <button class="btn-add" style="margin:0;background:var(--surface3);color:var(--text)" onclick="cancelAdjustment()">Cancelar</button>
+    </div>
+  </div>
+
+  <div class="ats-card">
+    <div style="display:flex;justify-content:center;margin-bottom:14px">
+      <select class="inp" id="month-select" style="width:auto;height:34px;font-size:12px" onchange="onMonthChange()"></select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+      <div style="min-width:0">
+        <div class="ats-label" style="font-size:9px">Disponible bruto</div>
+        <div class="ats-value" id="ats-bruto" style="font-size:clamp(13px,4.2vw,22px);color:var(--text2);overflow-wrap:anywhere">$0</div>
+      </div>
+      <div style="min-width:0">
+        <div class="ats-label" style="font-size:9px">− Pendientes</div>
+        <div class="ats-value" id="ats-pendientes" style="font-size:clamp(13px,4.2vw,22px);color:var(--warn);overflow-wrap:anywhere">$0</div>
+      </div>
+      <div style="min-width:0">
+        <div class="ats-label" style="font-size:9px">= Libre real</div>
+        <div class="ats-value" id="ats-value" style="font-size:clamp(13px,4.2vw,22px);overflow-wrap:anywhere">$0</div>
+      </div>
+    </div>
+    <div class="ats-sub" style="margin-top:12px">Liquidez en pesos y dólares, menos compromisos pendientes del mes</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('cuentas',this)">🏦 Cuentas</button>
+    <button class="tab" onclick="switchTab('movimientos',this)">📝 Movimientos</button>
+    <button class="tab" onclick="switchTab('pendientes',this)">⏳ Pendientes</button>
+    <button class="tab" onclick="switchTab('presupuesto',this)">🎯 Presupuesto</button>
+    <button class="tab" onclick="switchTab('metricas',this)">📊 Métricas</button>
+    <button class="tab" onclick="switchTab('metas',this)">🏆 Metas</button>
+    <button class="tab" onclick="switchTab('diagnostico',this)">🔧 Diagnóstico</button>
+  </div>
+
+  <div id="tab-cuentas" class="tab-content active">
+    <div class="card" id="estado-mes-card">
+      <div class="card-title">📊 Estado del mes <span id="estado-mes-semaforo"></span></div>
+      <div id="estado-mes-body"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">💧 Cuentas líquidas — disponibles para gastar <span>(clic para editar)</span></div>
+      <div class="accounts-grid">
+        <div class="acc-card b-nequi" id="card-nequi"><div class="acc-label"><span>Nequi</span><span>💳</span></div><input class="acc-value" id="acc-nequi" onblur="handleAccountFieldBlur('nequi')"></div>
+        <div class="acc-card b-davivienda" id="card-debito"><div class="acc-label"><span>Davivienda</span><span>🏦</span></div><input class="acc-value" id="acc-debito" onblur="handleAccountFieldBlur('debito')"></div>
+        <div class="acc-card b-arq" id="card-arq"><div class="acc-label"><span>ARQ</span><span>🌎</span></div><input class="acc-value" id="acc-arq" onblur="handleAccountFieldBlur('arq')"></div>
+        <div class="acc-card b-ontop" id="card-ontop"><div class="acc-label"><span>Ontop</span><span>🌎</span></div><input class="acc-value" id="acc-ontop" onblur="handleAccountFieldBlur('ontop')"></div>
+        <div class="acc-card"><div class="acc-label"><span>TRM referencia</span><span>💱</span></div><input class="acc-value" id="acc-trm" onblur="handleAccountFieldBlur('trm')"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🛡️ Fondo de emergencia <span>— solo crisis reales, nunca metas</span></div>
+      <div class="accounts-grid" style="grid-template-columns:1fr">
+        <div class="acc-card b-nu" id="card-nu"><div class="acc-label"><span>Nu cajitas</span><span>🛡️</span></div><input class="acc-value" id="acc-nu" onblur="handleAccountFieldBlur('nu')"></div>
+      </div>
+      <div style="margin-top:12px">
+        <div class="debt-track"><div class="debt-fill" id="emergency-mini-fill" style="width:0%"></div></div>
+        <div style="font-size:10px;color:var(--text3);margin-top:4px;text-align:right" id="emergency-mini-label">0% de la meta ($7,000,000)</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🎯 Cuentas de ahorro para metas <span>— vivienda, cámara, lo que definas</span></div>
+      <div class="accounts-grid" id="metas-accounts-grid">
+        <div class="acc-card b-lulo" id="card-lulo"><div class="acc-label"><span>Lulo</span><span>🏠</span></div><input class="acc-value" id="acc-lulo" onblur="handleAccountFieldBlur('lulo')"></div>
+      </div>
+      <div style="font-size:10px;color:var(--text3);margin-top:8px">Crea nuevas cuentas de ahorro directamente desde la pestaña 🏆 Metas.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">💳 Tarjetas de crédito (deuda)</div>
+      <div class="accounts-grid" style="grid-template-columns:repeat(2,1fr)">
+        <div class="acc-card debt"><div class="acc-label"><span>Davivienda TC</span><span>🔴</span></div><input class="acc-value debt" id="acc-davtc" onblur="handleAccountFieldBlur('davtc')"><div id="due-davtc" style="font-size:9px;color:var(--text3);margin-top:4px"></div></div>
+        <div class="acc-card" style="border-left-color:#FF8C42"><div class="acc-label"><span>Rappi Card</span><span>🟠</span></div><input class="acc-value" style="color:#FF8C42" id="acc-rappitc" onblur="handleAccountFieldBlur('rappitc')"><div id="due-rappitc" style="font-size:9px;color:var(--text3);margin-top:4px"></div></div>
+      </div>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Deuda total en tarjetas</span>
+        <span id="deuda-total-tarjetas" style="font-family:var(--mono);font-weight:700;font-size:15px;color:#FF6B6B"></span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🔄 Transferir entre cuentas</div>
+      <button class="btn-add" style="margin-bottom:10px;background:var(--surface3);color:var(--text)" onclick="abrirNuevaCuentaModal()">➕ Crear cuenta nueva (bolsillo de ahorro, etc.)</button>
+      <div class="input-grid2" style="margin-bottom:8px">
+        <select class="inp" id="tr-origen" onchange="onTransferAccChange()">
+          <optgroup label="🏦 Cuentas líquidas (COP)">
+            <option value="debito">Davivienda</option>
+            <option value="nequi">Nequi</option>
+            <option value="nu">Nu cajitas</option>
+          </optgroup>
+          <optgroup label="🌎 Dólares (USD)">
+            <option value="arq">ARQ</option>
+            <option value="ontop">Ontop</option>
+          </optgroup>
+        </select>
+        <select class="inp" id="tr-destino" onchange="onTransferAccChange()">
+          <optgroup label="🏦 Cuentas líquidas (COP)">
+            <option value="debito">Davivienda</option>
+            <option value="nequi">Nequi</option>
+            <option value="nu">Nu cajitas</option>
+          </optgroup>
+          <optgroup label="🌎 Dólares (USD)">
+            <option value="arq">ARQ</option>
+            <option value="ontop">Ontop</option>
+          </optgroup>
+        </select>
+        <input class="inp inp-num" id="tr-monto" type="number" placeholder="Monto origen" step="0.01">
+      </div>
+      <div class="input-grid2" id="tr-row2">
+        <input class="inp inp-num" id="tr-trm" type="number" placeholder="TRM del envío">
+        <input class="inp inp-num" id="tr-recibido" type="number" placeholder="Monto recibido (si hay comisión)" step="0.01">
+        <button class="btn-add" style="margin-top:0" onclick="doTransfer()">Transferir</button>
+      </div>
+      <div class="acc-hint" id="tr-hint">Si dejas "Monto recibido" vacío, se calcula automático con la TRM.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">📐 Resumen patrimonial</div>
+      <div class="networth-row"><span class="networth-label">Liquidez total (COP)</span><span class="networth-value" id="nw-liquid">$0</span></div>
+      <div class="networth-row"><span class="networth-label">Deuda total TC</span><span class="networth-value" style="color:var(--danger)" id="nw-debt">$0</span></div>
+      <div class="networth-row networth-total"><span class="networth-label">Patrimonio neto líquido</span><span class="networth-value" id="nw-net">$0</span></div>
+    </div>
+  </div>
+
+  <div id="tab-movimientos" class="tab-content">
+    <div class="input-section">
+      <div class="input-label">➕ Nuevo movimiento</div>
+      <div class="input-grid">
+        <input class="inp inp-desc" id="inp-name" type="text" placeholder="Descripción" oninput="suggestCategory()" autocomplete="off"/>
+        <input class="inp inp-num" id="inp-amount" type="number" placeholder="Monto" step="0.01"/>
+        <input class="inp inp-date" id="inp-date" type="date"/>
+      </div>
+      <div id="suggest-badge" style="display:none;font-size:11px;color:var(--accent);margin-bottom:8px;padding:6px 10px;background:rgba(168,224,99,.08);border-radius:6px;border:1px solid rgba(168,224,99,.25)">✨ Categoría sugerida — puedes cambiarla si no aplica</div>
+      <div class="input-grid2" id="currency-override-row" style="display:none">
+        <span class="acc-hint" style="align-self:center">Esta cuenta es USD por defecto — ¿en qué moneda fue realmente este gasto?</span>
+        <select class="inp" id="inp-currency">
+          <option value="USD">Dólares (USD)</option>
+          <option value="COP">Pesos (COP)</option>
+        </select>
+        <span></span>
+      </div>
+      <div class="input-grid2">
+        <select class="inp" id="inp-account" onchange="onAccountChange()">
+          <optgroup label="🏦 Cuentas líquidas (COP)">
+            <option value="debito">🏦 Davivienda</option>
+            <option value="nequi">💳 Nequi</option>
+            <option value="nu">🛡️ Nu cajitas</option>
+          </optgroup>
+          <optgroup label="💳 Tarjetas de crédito">
+            <option value="davtc">🔴 Davivienda TC</option>
+            <option value="rappitc">🔴 Rappi Card</option>
+          </optgroup>
+          <optgroup label="🌎 Dólares (USD)">
+            <option value="arq">🌎 ARQ</option>
+            <option value="ontop">🌎 Ontop</option>
+          </optgroup>
+        </select>
+        <select class="inp" id="inp-cat" onchange="onCategoryChange()">
+          <optgroup label="💰 Ingresos">
+            <option value="Ingreso · Salario">Salario</option>
+            <option value="Ingreso · Freelance/Media">Freelance / Media</option>
+            <option value="Ingreso · Donación">Donación</option>
+            <option value="Ingreso · Otro">Otro ingreso</option>
+          </optgroup>
+          <optgroup label="🥦 Alimentación">
+            <option value="Alimentación · Comidas afuera · Fin de semana">Comidas (finde)</option>
+            <option value="Alimentación · Comidas afuera · Entre semana">Comidas (semana)</option>
+            <option value="Alimentación · Mercado">Mercado</option>
+          </optgroup>
+          <optgroup label="🏍️ Vehículo">
+            <option value="Vehículo · Gasolina">Gasolina</option>
+            <option value="Vehículo · Lavada">Lavada</option>
+            <option value="Vehículo · Parqueadero">Parqueadero</option>
+            <option value="Vehículo · Seguros">Seguros</option>
+            <option value="Vehículo · Taller">Taller</option>
+          </optgroup>
+          <optgroup label="🚴 Deportes">
+            <option value="Deportes · Ciclismo">Ciclismo</option>
+          </optgroup>
+          <optgroup label="Otras">
+            <option value="Cuidado personal">Cuidado personal</option>
+            <option value="Entretenimiento">Entretenimiento</option>
+            <option value="Hogar">Hogar</option>
+            <option value="Otro">Otro</option>
+            <option value="Pago Deuda">Pago Deuda</option>
+            <option value="Regalos">Regalos</option>
+            <option value="Ropa">Ropa</option>
+            <option value="Salud">Salud</option>
+            <option value="Servicios">Servicios</option>
+            <option value="Suscripciones">Suscripciones</option>
+            <option value="Tecnología">Tecnología</option>
+            <option value="Transporte">Transporte</option>
+          </optgroup>
+        </select>
+        <select class="inp" id="inp-type">
+          <option value="gasto">➖ Gasto</option>
+          <option value="ingreso">➕ Ingreso</option>
+        </select>
+      </div>
+      <div class="acc-hint" id="acc-hint">La cuenta Nequi se reducirá por este monto.</div>
+      <div class="input-grid2" id="vehiculo-tag-row" style="display:none">
+        <select class="inp" id="inp-vehiculo">
+          <option value="Moto">🏍️ Moto</option>
+          <option value="__nuevo__">➕ Agregar otro vehículo…</option>
+        </select>
+        <input class="inp" id="inp-vehiculo-nuevo" type="text" placeholder="Nombre del vehículo (ej: Carro)" style="display:none">
+        <span></span>
+      </div>
+      <button class="btn-add" onclick="addEntry()">Registrar movimiento</button>
+    </div>
+    <div class="input-section">
+      <div class="input-label">🔍 Buscar en todo tu historial</div>
+      <input class="inp" id="search-text" type="text" placeholder='Ej: "taller", "moto"...' oninput="buscarEnHistorial()" style="width:100%;margin-bottom:8px">
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <input class="inp" id="search-desde" type="date" style="flex:1;min-width:110px;height:32px;font-size:11px" onchange="buscarEnHistorial()">
+        <input class="inp" id="search-hasta" type="date" style="flex:1;min-width:110px;height:32px;font-size:11px" onchange="buscarEnHistorial()">
+        <select class="inp" id="search-tipo" style="flex:1;min-width:90px;height:32px;font-size:11px" onchange="buscarEnHistorial()">
+          <option value="todos">Todo tipo</option>
+          <option value="gasto">➖ Gastos</option>
+          <option value="ingreso">➕ Ingresos</option>
+        </select>
+        <select class="inp" id="search-cuenta" style="flex:1;min-width:90px;height:32px;font-size:11px" onchange="buscarEnHistorial()">
+          <option value="todas">Toda cuenta</option>
+        </select>
+      </div>
+      <button id="search-limpiar-btn" style="display:none;background:none;border:none;color:var(--text3);font-size:10px;cursor:pointer;text-decoration:underline;margin-top:8px" onclick="limpiarBusqueda()">Limpiar búsqueda</button>
+      <div id="search-results" style="margin-top:10px"></div>
+    </div>
+    <div id="filter-balance-banner" style="display:none;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:10px 14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:11px;color:var(--text2)" id="filter-balance-label"></span>
+      <span style="font-family:var(--mono);font-size:16px;font-weight:700" id="filter-balance-value"></span>
+    </div>
+    <div class="entries-wrap">
+      <div class="entries-header" style="flex-direction:column;align-items:stretch;gap:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span class="entries-title">Movimientos del mes</span>
+          <button class="btn-analyze" onclick="sendSummary()">📋 Copiar resumen para Claude</button>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <select class="inp" id="filter-type" style="height:30px;font-size:10px;padding:0 8px;flex:1;min-width:90px" onchange="setFilterType()">
+            <option value="todos">Todo tipo</option>
+            <option value="gasto">➖ Gastos</option>
+            <option value="ingreso">➕ Ingresos</option>
+          </select>
+          <select class="inp" id="filter-account" style="height:30px;font-size:10px;padding:0 8px;flex:1;min-width:90px" onchange="setFilterAccount()">
+            <option value="todas">Toda cuenta</option>
+            <optgroup label="🇨🇴 Pesos">
+              <option value="nequi">Nequi</option>
+              <option value="debito">Davivienda</option>
+              <option value="nu">Nu cajitas</option>
+              <option value="lulo">Lulo</option>
+              <option value="davtc">Davivienda TC</option>
+              <option value="rappitc">Rappi Card</option>
+            </optgroup>
+            <optgroup label="🌎 Dólares">
+              <option value="arq">ARQ</option>
+              <option value="ontop">Ontop</option>
+            </optgroup>
+          </select>
+          <select class="inp" id="filter-category" style="height:30px;font-size:10px;padding:0 8px;flex:1;min-width:100px" onchange="setFilterCategory()">
+            <option value="todas">Toda categoría</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <button class="tab" id="sort-fecha" style="padding:4px 10px;font-size:10px" onclick="setSortMode('fecha')">📅 Fecha</button>
+          <button class="tab" id="sort-cuenta" style="padding:4px 10px;font-size:10px" onclick="setSortMode('cuenta')">🏦 Cuenta</button>
+          <button id="clear-filters-btn" style="display:none;background:none;border:none;color:var(--text3);font-size:10px;cursor:pointer;text-decoration:underline;margin-left:auto" onclick="limpiarFiltros()">Limpiar filtros</button>
+        </div>
+      </div>
+      <div class="entries-list" id="entries-list"></div>
+    </div>
+  </div>
+
+  <div id="tab-pendientes" class="tab-content">
+    <div class="input-section">
+      <div class="input-label">⏳ Nuevo pendiente por pagar</div>
+      <div class="input-grid">
+        <input class="inp" id="pend-name" type="text" placeholder="Ej: Arriendo, Colmédica..." oninput="suggestCategoryPend()" autocomplete="off"/>
+        <input class="inp inp-num" id="pend-amount" type="number" placeholder="Monto" step="0.01"/>
+        <input class="inp" id="pend-date" type="date"/>
+      </div>
+      <div class="input-grid2">
+        <select class="inp" id="pend-account" onchange="onPendAccountChange()">
+          <optgroup label="🏦 Cuentas líquidas (COP)">
+            <option value="debito">🏦 Davivienda</option>
+            <option value="nequi">💳 Nequi</option>
+            <option value="nu">🛡️ Nu cajitas</option>
+          </optgroup>
+          <optgroup label="💳 Tarjetas de crédito">
+            <option value="davtc">🔴 Davivienda TC</option>
+            <option value="rappitc">🔴 Rappi Card</option>
+          </optgroup>
+          <optgroup label="🌎 Dólares (USD)">
+            <option value="arq">🌎 ARQ</option>
+            <option value="ontop">🌎 Ontop</option>
+          </optgroup>
+        </select>
+        <select class="inp" id="pend-cat">
+          <optgroup label="🥦 Alimentación">
+            <option value="Alimentación · Comidas afuera · Fin de semana">Comidas (finde)</option>
+            <option value="Alimentación · Comidas afuera · Entre semana">Comidas (semana)</option>
+            <option value="Alimentación · Mercado">Mercado</option>
+          </optgroup>
+          <optgroup label="Otras">
+            <option value="Otro" selected>Otro</option>
+            <option value="Pago Deuda">Pago Deuda</option>
+            <option value="Salud">Salud</option>
+            <option value="Servicios">Servicios</option>
+            <option value="Suscripciones">Suscripciones</option>
+            <option value="Vehículo · Taller">Taller</option>
+          </optgroup>
+        </select>
+        <button class="btn-add" style="margin-top:0" onclick="addPendiente()">Agregar pendiente</button>
+      </div>
+      <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);margin-top:8px;cursor:pointer">
+        <input type="checkbox" id="pend-income" style="width:14px;height:14px;cursor:pointer"> Es un ingreso (no un gasto)
+      </label>
+    </div>
+    <div class="entries-wrap">
+      <div class="entries-header"><span class="entries-title">Pendientes por pagar</span></div>
+      <div class="entries-list" id="pendientes-list" style="max-height:none"></div>
+    </div>
+  </div>
+
+  <div id="tab-presupuesto" class="tab-content">
+    <div class="card">
+      <div class="card-title">🎯 Topes mensuales <span id="budget-month-label"></span></div>
+      <div id="budget-list"></div>
+    </div>
+  </div>
+
+  <div id="tab-metricas" class="tab-content">
+    <div class="metrics-grid">
+      <div class="metric-box">
+        <div class="metric-label">Total gastado (mes)</div>
+        <div class="metric-value red" id="m-total">$0</div>
+        <div class="metric-sub" id="m-total-sub">en 0 movimientos</div>
+      </div>
+      <div class="metric-box">
+        <div class="metric-label">Gastado hoy</div>
+        <div class="metric-value" id="m-today" style="color:var(--warn)">$0</div>
+        <div class="metric-sub">vs promedio diario</div>
+      </div>
+      <div class="metric-box">
+        <div class="metric-label">Variable vs tope</div>
+        <div class="metric-value green" id="m-pct">0%</div>
+        <div class="metric-sub">del presupuesto controlable</div>
+      </div>
+      <div class="metric-box">
+        <div class="metric-label">Deuda total</div>
+        <div class="metric-value red" id="m-debt">$0</div>
+        <div class="metric-sub">Davivienda + Rappi</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🥧 Distribución del gasto por categoría</div>
+      <div class="pie-wrap">
+        <div class="pie" id="pie-chart"></div>
+        <div class="pie-legend" id="pie-legend"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">💳 Progreso de liquidación de deuda</div>
+      <div class="debt-progress">
+        <div class="debt-top"><span class="debt-name">Davivienda TC</span><span id="dp-dav-pct">0%</span></div>
+        <div class="debt-track"><div class="debt-fill" id="dp-dav-fill" style="width:0%"></div></div>
+        <div class="debt-nums"><span id="dp-dav-current">$0</span><span id="dp-dav-original">Pico: $0</span></div>
+      </div>
+      <div class="debt-progress">
+        <div class="debt-top"><span class="debt-name">Rappi Card</span><span id="dp-rappi-pct">0%</span></div>
+        <div class="debt-track"><div class="debt-fill" id="dp-rappi-fill" style="width:0%"></div></div>
+        <div class="debt-nums"><span id="dp-rappi-current">$0</span><span id="dp-rappi-original">Pico: $0</span></div>
+      </div>
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);font-size:12px;color:var(--text2)" id="debt-projection"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📅 Comparativa mes a mes — ¿gastas más o menos?</div>
+      <div id="month-compare-chart" style="display:flex;align-items:flex-end;gap:12px;height:140px;padding:0 8px 8px"></div>
+      <div id="month-compare-legend" style="display:flex;justify-content:space-around;font-size:10px;color:var(--text3);font-family:var(--mono)"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🛡️ Crecimiento del fondo de emergencia</div>
+      <div id="emergency-growth" style="font-size:13px;line-height:2"></div>
+    </div>
+  </div>
+
+  <div id="tab-metas" class="tab-content">
+    <div class="input-section">
+      <div class="input-label">➕ Nueva meta</div>
+      <div class="input-grid2" style="margin-bottom:8px">
+        <input class="inp" id="goal-name" type="text" placeholder="Nombre (ej: Vivienda, Cripto)"/>
+        <select class="inp" id="goal-type" onchange="onGoalTypeChange()">
+          <option value="cuenta">💧 Vinculada a una cuenta</option>
+          <option value="categoria">🏷️ Acumulada por categoría</option>
+        </select>
+        <input class="inp inp-num" id="goal-target" type="number" placeholder="Meta (opcional)"/>
+      </div>
+      <div class="input-grid2" id="goal-cuenta-row">
+        <select class="inp" id="goal-account" onchange="onGoalAccountChange()">
+          <optgroup label="🏦 Cuentas líquidas (COP)" id="goal-acc-cop"></optgroup>
+          <optgroup label="🌎 Dólares (USD)" id="goal-acc-usd"></optgroup>
+          <option value="__nueva__">➕ Crear cuenta nueva…</option>
+        </select>
+        <span></span><span></span>
+      </div>
+      <div class="input-grid2" id="goal-newaccount-row" style="display:none">
+        <input class="inp" id="goal-newacc-name" type="text" placeholder="Nombre (ej: Bancolombia, Efectivo)"/>
+        <select class="inp" id="goal-newacc-currency">
+          <option value="COP">Pesos (COP)</option>
+          <option value="USD">Dólares (USD)</option>
+        </select>
+        <span></span>
+      </div>
+      <div class="input-grid2" id="goal-categoria-row" style="display:none">
+        <input class="inp" id="goal-catname" type="text" placeholder="Nombre de la categoría (ej: Inversión Cripto)"/>
+        <span></span><span></span>
+      </div>
+      <button class="btn-add" onclick="addGoal()">Crear meta</button>
+    </div>
+    <div id="goals-list"></div>
+  </div>
+
+  <div id="tab-diagnostico" class="tab-content">
+    <div class="card">
+      <div class="card-title">👤 Sesión</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Conectado como <strong id="diagnostico-email" style="color:var(--text)"></strong></div>
+      <button class="btn-add" style="background:var(--surface3);color:var(--danger);border:1px solid var(--danger)" onclick="cerrarSesion()">🚪 Cerrar sesión</button>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 Datos en Supabase</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:12px">Cantidad de filas por tabla — compáralo con lo que ves en pantalla si algo no cuadra.</div>
+      <div id="diagnostico-conteos" style="font-size:12px;font-family:var(--mono)"></div>
+      <button class="btn-add" style="margin-top:14px;background:var(--surface3);color:var(--text)" onclick="renderDiagnostico()">🔄 Recalcular ahora</button>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 Último error real registrado</div>
+      <div id="diagnostico-ultimo-error" style="font-size:11px;color:var(--text3);font-family:var(--mono);white-space:pre-wrap"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">🔁 Reintentar carga de datos</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Si al abrir viste el aviso de "guardado bloqueado" o estás viendo datos de ejemplo en vez de los tuyos, la conexión falló al cargar. Presiona aquí para reintentar traer tus datos reales — si funciona, el guardado se desbloquea automáticamente.</div>
+      <button class="btn-add" onclick="reintentarCarga()">🔁 Reintentar carga</button>
+    </div>
+  </div>
+
+  <div class="hint">💾 Todo se guarda automáticamente en tu base de datos y persiste en cualquier dispositivo donde inicies sesión.<br>Selecciona la cuenta correcta en cada movimiento — el saldo se actualiza solo.</div>
+</div>
+<script src="constantes.js"></script>
+<script src="filtros-busqueda.js"></script>
+<script src="modales.js"></script>
+<script src="guardado-core.js"></script>
+<script src="metas.js"></script>
+<script src="cuentas-carga.js"></script>
+<script src="balances-formato.js"></script>
+<script src="movimientos.js"></script>
+<script src="render-metricas.js"></script>
+<script src="pendientes-transferencias.js"></script>
+<script src="respaldo.js"></script>
+<script src="verificacion-sync.js"></script>
+<script src="auth-arranque.js"></script>
+</body>
+</html>

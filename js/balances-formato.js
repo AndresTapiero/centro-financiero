@@ -45,7 +45,29 @@ async function confirmAdjustment(){
     ?(tipoMovimiento==='gasto'?`Ajuste ${meta.label}: cargo no registrado`:`Ajuste ${meta.label}: pago no registrado`)
     :(tipoMovimiento==='ingreso'?`Ajuste ${meta.label}: Ingreso`:`Ajuste ${meta.label}: Faltante`);
 
-  entries.unshift({id:Date.now(),date:todayStr(),name:nombre,amount:delta,cat:'Otro',acc:key,txType:tipoMovimiento});
+  let nuevoId;
+  try{
+    const {data:fila,error}=await sb.from('fin_movimientos').insert({
+      user_id:currentUserId,
+      fecha:todayStr(),
+      nombre,
+      monto:delta,
+      categoria:'Otro',
+      account_id:accountIdBySlug[key],
+      tx_type:tipoMovimiento,
+    }).select().single();
+    if(error)throw error;
+    nuevoId=fila.id;
+  }catch(e){
+    registrarErrorDiagnostico('fin_movimientos (ajuste)',e);
+    const statusEl=document.getElementById('sync-status');
+    statusEl.style.display='block'; statusEl.style.opacity='1';
+    statusEl.textContent='🛑 No se pudo guardar el ajuste — revisa 🔧 Diagnóstico';
+    statusEl.className='sync-status error';
+    return;
+  }
+
+  entries.unshift({id:nuevoId,date:todayStr(),name:nombre,amount:delta,cat:'Otro',acc:key,txType:tipoMovimiento});
   accounts[key]=newVal;
 
   document.getElementById('adjust-banner').style.display='none';
@@ -56,7 +78,6 @@ async function confirmAdjustment(){
   document.getElementById('month-select').value=currentMonth;
   render();
   try{
-    await saveEntries();
     await saveAccountsData();
   }catch(e){}
 }

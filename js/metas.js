@@ -93,10 +93,6 @@ function renderDynamicAccountCard(key){
 }
 
 
-async function saveEntries(){
-  scheduleSave('entries_v3',()=>JSON.stringify(entries));
-}
-
 function showSaveToast(state){
   const el=document.getElementById('save-toast');
   if(!el)return;
@@ -178,10 +174,6 @@ async function saveConfiguracion(){
   }finally{
     pendingSaves--;
   }
-}
-
-async function savePendientesData(){
-  scheduleSave('pendientes_v3',()=>JSON.stringify(pendientes));
 }
 
 async function actualizarAcumuladoMeta(goal){

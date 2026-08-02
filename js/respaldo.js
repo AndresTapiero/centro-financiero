@@ -24,59 +24,6 @@ onTransferAccChange();
 onGoalTypeChange();
 document.getElementById('sort-fecha')?.classList.add('active');
 onAccountChange();
-function abrirImportModal(){
-  document.getElementById('import-paste-text').value='';
-  document.getElementById('import-modal').style.display='flex';
-}
-
-async function procesarImportPegado(){
-  const texto=document.getElementById('import-paste-text').value.trim();
-  if(!texto)return;
-  document.getElementById('import-modal').style.display='none';
-  await aplicarRespaldo(texto);
-}
-
-async function aplicarRespaldo(texto){
-  let datos;
-  try{ datos=JSON.parse(texto); }
-  catch(e){
-    await customConfirm('⚠ Ese texto no es un respaldo válido de este tracker. Verifica que sea el contenido completo del JSON exportado.',{soloOk:true,textoSi:'Entendido'});
-    return;
-  }
-
-  const fechaExport=datos.fecha_exportacion?new Date(datos.fecha_exportacion).toLocaleString('es-CO'):'desconocida';
-  const confirmado=await customConfirm(`¿Reemplazar TODOS los datos actuales con el respaldo del ${fechaExport}?\n\nEsto sobrescribirá movimientos, cuentas, pendientes, metas y topes en ESTE dispositivo con lo que traiga el respaldo.\n\nEsta acción no se puede deshacer.`,{textoSi:'Sí, reemplazar todo'});
-  if(!confirmado)return;
-
-  if(datos.entries)entries=datos.entries;
-  if(datos.accounts)accounts=datos.accounts;
-  if(datos.pendientes)pendientes=datos.pendientes;
-  if(datos.goals)goals=datos.goals;
-  if(datos.dynamicAccounts){
-    dynamicAccounts=datos.dynamicAccounts;
-    Object.keys(dynamicAccounts).forEach(key=>{
-      ACCOUNTS_META[key]=Object.assign({type:'debito'},dynamicAccounts[key]);
-    });
-  }
-  if(datos.caps_overrides)Object.keys(datos.caps_overrides).forEach(cat=>{ CAPS[cat]=datos.caps_overrides[cat]; });
-  if(datos.vehiculos)vehiculos=datos.vehiculos;
-
-  await saveEntries();
-  await saveAccountsData();
-  await savePendientesData();
-  await saveConfig();
-
-  fillAccountInputs();
-  populateMonthSelector();
-  document.getElementById('month-select').value=currentMonth;
-  Object.keys(dynamicAccounts).forEach(key=>renderDynamicAccountCard(key));
-  refreshAllAccountSelectors();
-  refreshGoalCategoryOptions();
-  render();
-
-  await customConfirm('✅ Respaldo importado y guardado en este dispositivo correctamente.',{soloOk:true,textoSi:'Perfecto'});
-}
-
 async function exportarRespaldo(){
   const respaldo={
     fecha_exportacion:new Date().toISOString(),
@@ -122,7 +69,6 @@ async function guardarConVerificacion(){
   pendingSaves++;
   const resultados={};
   try{
-    cancelScheduledSave('config_v1');
     resultados.accounts=await guardarCuentasSupabase();
     resultados.configuracion=await (async()=>{
       try{
@@ -139,8 +85,6 @@ async function guardarConVerificacion(){
         return true;
       }catch(e){ registrarErrorDiagnostico('fin_presupuesto_topes (verificación)',e); return false; }
     })();
-    const configConsolidado={goals,vehiculos};
-    resultados.config=await setConReintentos('config_v1',JSON.stringify(configConsolidado));
 
     const todoOk=Object.values(resultados).every(v=>v===true);
     if(todoOk){
