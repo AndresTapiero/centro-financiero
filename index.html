@@ -20,7 +20,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh}
 .app{max-width:960px;margin:0 auto;padding:1.5rem 1rem 4rem}
-.nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem}
+.nav{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-bottom:.5rem}
 .nav-brand{font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text2)}
 .nav-month{font-family:var(--mono);font-size:12px;color:var(--accent);background:rgba(168,224,99,.1);padding:4px 12px;border-radius:99px;border:1px solid rgba(168,224,99,.2)}
 .sync-status{font-size:10px;color:var(--text3);text-align:center;margin-bottom:1rem;font-family:var(--mono);transition:opacity .5s}
@@ -270,7 +270,7 @@ option{color:var(--text);padding:6px}
     <span class="nav-brand">Centro Financiero <span id="build-version" style="opacity:.5;font-size:9px;letter-spacing:0"></span></span>
     <span class="nav-month" id="nav-month"></span>
   </div>
-  <div style="display:flex;justify-content:center;align-items:center;gap:10px;margin-bottom:1rem">
+  <div style="display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px;margin-bottom:1rem">
     <span class="sync-status" id="sync-status" style="margin-bottom:0">Cargando…</span>
     <button onclick="syncNow()" style="background:var(--surface2);border:1px solid var(--border2);color:var(--text2);font-size:10px;padding:3px 10px;border-radius:99px;cursor:pointer;font-family:var(--mono)">🔄 Sincronizar</button>
     <button onclick="guardarConVerificacion()" style="background:var(--surface2);border:1px solid var(--accent);color:var(--accent);font-size:10px;padding:3px 10px;border-radius:99px;cursor:pointer;font-family:var(--mono)">💾 Guardar y verificar</button>
@@ -290,18 +290,18 @@ option{color:var(--text);padding:6px}
     <div style="display:flex;justify-content:center;margin-bottom:14px">
       <select class="inp" id="month-select" style="width:auto;height:34px;font-size:12px" onchange="onMonthChange()"></select>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
-      <div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+      <div style="min-width:0">
         <div class="ats-label" style="font-size:9px">Disponible bruto</div>
-        <div class="ats-value" id="ats-bruto" style="font-size:22px;color:var(--text2)">$0</div>
+        <div class="ats-value" id="ats-bruto" style="font-size:clamp(13px,4.2vw,22px);color:var(--text2);overflow-wrap:anywhere">$0</div>
       </div>
-      <div>
+      <div style="min-width:0">
         <div class="ats-label" style="font-size:9px">− Pendientes</div>
-        <div class="ats-value" id="ats-pendientes" style="font-size:22px;color:var(--warn)">$0</div>
+        <div class="ats-value" id="ats-pendientes" style="font-size:clamp(13px,4.2vw,22px);color:var(--warn);overflow-wrap:anywhere">$0</div>
       </div>
-      <div>
+      <div style="min-width:0">
         <div class="ats-label" style="font-size:9px">= Libre real</div>
-        <div class="ats-value" id="ats-value" style="font-size:22px">$0</div>
+        <div class="ats-value" id="ats-value" style="font-size:clamp(13px,4.2vw,22px);overflow-wrap:anywhere">$0</div>
       </div>
     </div>
     <div class="ats-sub" style="margin-top:12px">Liquidez en pesos y dólares, menos compromisos pendientes del mes</div>
@@ -1017,7 +1017,7 @@ function resolverPayModal(confirmado){
 
 let entries=[];
 let pendingSaves=0; // contador de guardados en curso — evita que la sincronización pise cambios recién hechos
-const BUILD_VERSION='2026-08-01.loader'; // súbelo cada vez que se publique una versión nueva — sirve para confirmar que celular y PC corren el mismo código
+const BUILD_VERSION='2026-08-01.mobile-fix'; // súbelo cada vez que se publique una versión nueva — sirve para confirmar que celular y PC corren el mismo código
 
 let ultimoErrorGuardado=null;
 
