@@ -289,13 +289,14 @@ function renderGoals(){
     const targetCOP=g.target||0;
     const pct=targetCOP>0?Math.min(100,Math.round(actualCOP/targetCOP*100)):null;
     const actualStr=moneda==='USD'?'$'+actual.toFixed(2)+' USD':fmtCOP(actual);
+    const {color:colorMeta,mensaje:mensajeMeta}=pct!==null?colorYMensajeProgreso(pct):{color:null,mensaje:null};
     return `<div class="card">
       <div class="card-title">${g.type==='cuenta'?'💧':'🏷️'} ${g.name} <button class="btn-del" onclick="deleteGoal('${g.id}')" style="float:right">×</button></div>
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
         <span style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--accent)">${actualStr}</span>
         ${g.target?`<span style="font-size:11px;color:var(--text3)">meta: ${fmtCOP(g.target)}</span>`:'<span style="font-size:11px;color:var(--text3)">sin meta fija — solo trazabilidad</span>'}
       </div>
-      ${pct!==null?`<div class="debt-track"><div class="debt-fill" style="width:${pct}%"></div></div><div style="font-size:10px;color:var(--text3);margin-top:4px;text-align:right">${pct}% completado</div>`:''}
+      ${pct!==null?`<div class="debt-track"><div class="debt-fill" style="width:${pct}%;background:${colorMeta}"></div></div><div style="font-size:10px;margin-top:4px;display:flex;justify-content:space-between"><span style="color:${colorMeta};font-weight:600">${mensajeMeta}</span><span style="color:var(--text3)">${pct}%</span></div>`:''}
       <div style="font-size:10px;color:var(--text3);margin-top:8px">${g.type==='cuenta'?'Vinculada a: '+ACCOUNTS_META[g.acc].label:'Acumula movimientos categorizados como "'+g.name+'"'}</div>
     </div>`;
   }).join('');

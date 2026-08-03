@@ -94,3 +94,12 @@ const DEBT_ORIGINAL={davtc:5150000,rappitc:5150000};
 let pendientes=[];
 let currentMonth=null;
 
+/** Color y mensaje de aliento según el % de avance de una meta o fondo de ahorro — mismo criterio en todos lados */
+function colorYMensajeProgreso(pct){
+  if(pct>=100)return{color:'#0E9F6E',mensaje:'🎉 ¡Meta cumplida!'};
+  if(pct>=75)return{color:'#0E9F6E',mensaje:'🎯 Ya casi — no aflojes ahora'};
+  if(pct>=50)return{color:'#0EA5E9',mensaje:'🔥 Más de la mitad, vas muy bien'};
+  if(pct>=25)return{color:'#D97706',mensaje:'🚀 Buen avance, sigue aportando'};
+  return{color:'#DC2626',mensaje:'💪 Cada aporte cuenta — vas arrancando'};
+}
+

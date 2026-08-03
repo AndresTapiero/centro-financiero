@@ -147,11 +147,13 @@ function updateNetWorth(){
 
   // Fondo de emergencia — mini progreso en pestaña Cuentas
   const metaEmergencia=7000000;
-  const pctEmergencia=Math.min(100,Math.round(accounts.nu/metaEmergencia*100));
+  const pctEmergenciaReal=accounts.nu/metaEmergencia*100;
+  const pctEmergencia=Math.min(100,Math.round(pctEmergenciaReal));
+  const {color:colorEmergencia,mensaje:mensajeEmergencia}=colorYMensajeProgreso(pctEmergenciaReal);
   const miniFill=document.getElementById('emergency-mini-fill');
   const miniLabel=document.getElementById('emergency-mini-label');
-  if(miniFill){ miniFill.style.width=pctEmergencia+'%'; }
-  if(miniLabel){ miniLabel.textContent=`${pctEmergencia}% de la meta ($7,000,000)`; }
+  if(miniFill){ miniFill.style.width=pctEmergencia+'%'; miniFill.style.background=colorEmergencia; }
+  if(miniLabel){ miniLabel.innerHTML=`<span style="color:${colorEmergencia};font-weight:600">${mensajeEmergencia}</span> · ${pctEmergencia}% de la meta ($7,000,000)`; }
 
   renderEstadoMes();
   updateFilterBalanceBanner();
