@@ -1,46 +1,7 @@
 function renderPendientes(){
   const list=document.getElementById('pendientes-list');
   if(!list)return;
-  const hoy=todayStr();
-  const sorted=[...pendientes].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
-  list.innerHTML=sorted.length?sorted.map(p=>{
-    const meta=ACCOUNTS_META[p.acc];
-    const c=p.isIncome?'#22D3B0':col(p.cat);
-    const montoStr=meta.currency==='USD'?fmtUSD(p.amount):fmtCOP(p.amount);
-    const esTarjeta=meta.type==='credito';
-    // El monto es el que tú decidiste (editable) — para tarjetas mostramos el saldo actual como referencia,
-    // sin forzarlo, porque el pago del mes (ej. mínimo) puede ser distinto al saldo total.
-    const saldoActualStr=esTarjeta?(meta.currency==='USD'?fmtUSD(accounts[p.acc]):fmtCOP(accounts[p.acc])):null;
-    const vencido=!p.isIncome&&p.date&&p.date<hoy;
-    let proximoAVencer=false;
-    if(!p.isIncome&&p.date&&!vencido){
-      const diffDias=Math.round((new Date(p.date+'T00:00:00')-new Date(hoy+'T00:00:00'))/86400000);
-      proximoAVencer=diffDias>=0&&diffDias<=3; // hoy, mañana, o dentro de los próximos 3 días
-    }
-    const estiloFila=vencido?'background:rgba(255,107,107,.1);border-left:3px solid var(--danger)'
-      :proximoAVencer?'background:rgba(255,179,71,.08);border-left:3px solid var(--warn)'
-      :'';
-    const prefijoNombre=vencido?'🔴 VENCIDO — ':proximoAVencer?'⏰ PRONTO — ':p.isIncome?'💰 ':'';
-    const colorPunto=vencido?'var(--danger)':proximoAVencer?'var(--warn)':c;
-    const colorMonto=p.isIncome?'var(--accent)':vencido?'var(--danger)':proximoAVencer?'var(--warn)':'var(--text)';
-    return `<div class="entry-row" style="${estiloFila}">
-      <div class="entry-row-top">
-        <span class="entry-date">${p.date?fmtDate(p.date):'—'}</span>
-        <div class="entry-dot" style="background:${colorPunto}"></div>
-        <div class="entry-name">${prefijoNombre}${p.name}</div>
-        <span class="entry-amount" style="color:${colorMonto}">${p.isIncome?'+':''}${montoStr}</span>
-      </div>
-      <div class="entry-row-bottom">
-        <span class="entry-cat" style="background:${c}22;color:${c}">${scat(p.cat)}</span>
-        <span class="entry-acc">${meta.label}${esTarjeta?` · saldo actual: ${saldoActualStr}`:''}</span>
-      </div>
-      <div class="entry-actions">
-        <button class="entry-icon-btn" onclick="editPendiente('${p.id}')" title="Editar monto">✏️</button>
-        <button class="entry-primary-btn" onclick="payPendiente('${p.id}')">${p.isIncome?'Recibir':'Pagar'}</button>
-        <button class="entry-del-btn" onclick="deletePendiente('${p.id}')" title="Eliminar">×</button>
-      </div>
-    </div>`;
-  }).join(''):'<div class="empty">✅ Sin pendientes — todo al día</div>';
+  list.innerHTML=new PendienteListRenderer(pendientes, todayStr()).render();
 }
 
 async function addPendiente(){

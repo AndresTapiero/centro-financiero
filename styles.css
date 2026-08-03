@@ -26,7 +26,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .main-nav{display:flex;gap:2px;overflow-x:auto;margin-bottom:1.25rem;border-bottom:1px solid var(--border);-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .main-nav::-webkit-scrollbar{display:none}
 .nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0;padding:10px 14px 8px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text3);font-size:10px;font-weight:600;cursor:pointer;transition:color .15s,border-color .15s;white-space:nowrap}
-.nav-icon{font-size:17px}
+.nav-icon{display:flex;align-items:center;justify-content:center}
 .nav-item:hover{color:var(--text2)}
 .nav-item.active{color:var(--accent);border-bottom-color:var(--accent)}
 .tipo-tab{flex:1;padding:10px 4px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
