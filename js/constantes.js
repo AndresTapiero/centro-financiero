@@ -1,5 +1,5 @@
 
-const CAPS_DEFAULT={'Alimentación · Mercado':800000,'Alimentación · Comidas afuera · Entre semana':200000,'Alimentación · Comidas afuera · Fin de semana':300000,'Deportes · Ciclismo':150000,'Servicios':400000,'Salud':1000000,'Vehículo · Seguros':615500,'Vehículo · Gasolina':150000,'Vehículo · Taller':200000,'Vehículo · Lavada':50000,'Vehículo · Parqueadero':80000,'Entretenimiento':450000,'Suscripciones':150000,'Ropa':200000,'Tecnología':200000,'Hogar':200000,'Transporte':150000,'Regalos':100000};
+const CAPS_DEFAULT={'Alimentación · Mercado':800000,'Alimentación · Comidas afuera · Entre semana':200000,'Alimentación · Comidas afuera · Fin de semana':300000,'Deportes · Ciclismo':150000,'Servicios':400000,'Salud':1000000,'Vehículo · Seguros':615500,'Vehículo · Gasolina':150000,'Vehículo · Taller':200000,'Vehículo · Lavada':50000,'Vehículo · Parqueadero':80000,'Entretenimiento':450000,'Suscripciones':150000,'Ropa':200000,'Tecnología':200000,'Hogar':200000,'Transporte':150000,'Regalos':100000,'Arriendo':1630000};
 let CAPS=Object.assign({},CAPS_DEFAULT);
 const COLORS={
   // Alimentación e Ingresos comparten familia esmeralda (dinero que entra / sustento) — 3 tonos
@@ -7,7 +7,7 @@ const COLORS={
   'Ingreso · Salario':'#10B981','Ingreso · Freelance/Media':'#34D399','Ingreso · Donación':'#6EE7B7','Ingreso · Otro':'#A7F3D0',
   // Vehículo y Hogar: familia ámbar (combustible/mantenimiento) — 5 tonos progresivos
   'Vehículo · Gasolina':'#F59E0B','Vehículo · Taller':'#D97706','Vehículo · Lavada':'#FBBF24','Vehículo · Seguros':'#B45309','Vehículo · Parqueadero':'#92400E',
-  'Regalos':'#FCD34D',
+  'Regalos':'#FCD34D','Arriendo':'#C2410C',
   // Salud y Deportes: familia cian (bienestar)
   'Deportes · Ciclismo':'#06B6D4','Salud':'#0891B2',
   // Transporte y Tecnología: familia azul/violeta
