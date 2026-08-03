@@ -62,7 +62,7 @@ class MovimientoListRenderer {
       ? 'background:rgba(255,107,107,.12);border-left:3px solid var(--danger)'
       : cardColor ? `border-left:3px solid ${cardColor}` : '';
 
-    return `<div class="entry-row" style="${borderStyle}">
+    return `<div class="entry-row" style="${borderStyle};cursor:pointer" onclick="openEditEntryModal('${e.id}')">
       <div class="entry-row-top">
         <div class="entry-dot" style="background:${c}"></div>
         <div class="entry-name">${esAnomalia ? '⚠️ ' : ''}${e.name}</div>
@@ -73,9 +73,8 @@ class MovimientoListRenderer {
         <span class="entry-acc">${meta.label} · ${saldoActual}${e.vehiculo ? ' · 🚗 ' + e.vehiculo : ''}${esAnomalia ? ' · <span style="color:var(--danger)">monto alto</span>' : ''}</span>
       </div>
       <div class="entry-actions">
-        ${esAnomalia ? `<button class="entry-icon-btn" style="width:auto;padding:0 8px" onclick="fixCurrency('${e.id}')">💱 Era COP</button>` : ''}
-        <button class="entry-icon-btn" onclick="openEditEntryModal('${e.id}')" title="Editar movimiento">✏️</button>
-        <button class="entry-del-btn" onclick="deleteEntry('${e.id}')" title="Eliminar">×</button>
+        ${esAnomalia ? `<button class="entry-icon-btn" style="width:auto;padding:0 8px" onclick="event.stopPropagation();fixCurrency('${e.id}')">💱 Era COP</button>` : ''}
+        <button class="entry-del-btn" onclick="event.stopPropagation();deleteEntry('${e.id}')" title="Eliminar">×</button>
       </div>
     </div>`;
   }

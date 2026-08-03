@@ -33,7 +33,7 @@ function render(){
     const esAnomalia=cop>5000000;
     const cardColor=e.acc==='davtc'?'#EF4444':e.acc==='rappitc'?'#FF8C42':null;
     const borderStyle=esAnomalia?'background:rgba(255,107,107,.12);border-left:3px solid var(--danger)':cardColor?`border-left:3px solid ${cardColor}`:'';
-    return`<div class="entry-row" style="${borderStyle}">
+    return`<div class="entry-row" style="${borderStyle};cursor:pointer" onclick="openEditEntryModal('${e.id}')">
       <div class="entry-row-top">
         <span class="entry-date">${fmtDate(e.date)}</span>
         <div class="entry-dot" style="background:${c}"></div>
@@ -45,9 +45,8 @@ function render(){
         <span class="entry-acc">${meta.label} · ${saldoActual}${e.vehiculo?' · 🚗 '+e.vehiculo:''}${esAnomalia?' · <span style="color:var(--danger)">monto alto</span>':''}</span>
       </div>
       <div class="entry-actions">
-        ${esAnomalia?`<button class="entry-icon-btn" style="width:auto;padding:0 8px" onclick="fixCurrency('${e.id}')">💱 Era COP</button>`:''}
-        <button class="entry-icon-btn" onclick="openEditEntryModal('${e.id}')" title="Editar movimiento">✏️</button>
-        <button class="entry-del-btn" onclick="deleteEntry('${e.id}')" title="Eliminar">×</button>
+        ${esAnomalia?`<button class="entry-icon-btn" style="width:auto;padding:0 8px" onclick="event.stopPropagation();fixCurrency('${e.id}')">💱 Era COP</button>`:''}
+        <button class="entry-del-btn" onclick="event.stopPropagation();deleteEntry('${e.id}')" title="Eliminar">×</button>
       </div>
     </div>`;
     }).join(''):'<div class="empty">📋 Sin movimientos</div>';

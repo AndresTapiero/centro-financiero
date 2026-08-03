@@ -274,14 +274,6 @@ function actualizarTabsTipo(){
   if(tabIngreso)tabIngreso.classList.toggle('active',tipo==='ingreso');
 }
 
-function irATransferencia(){
-  const btnCuentas=document.querySelector('.tab[onclick*="cuentas"]');
-  switchTab('cuentas',btnCuentas);
-  setTimeout(()=>{
-    document.getElementById('transfer-card')?.scrollIntoView({behavior:'smooth',block:'start'});
-  },50);
-}
-
 function onCategoryChange(){
   const cat=document.getElementById('inp-cat').value;
   const row=document.getElementById('vehiculo-tag-row');
