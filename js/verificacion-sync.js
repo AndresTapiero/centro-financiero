@@ -20,7 +20,7 @@ async function syncNow(){
     let intentos=0;
     while(pendingSaves>0&&intentos<35){ await new Promise(r=>setTimeout(r,150)); intentos++; }
   }
-  const activeTabBtn=document.querySelector('.tab.active');
+  const activeTabBtn=document.querySelector('.nav-item.active');
   const activeTab=activeTabBtn?activeTabBtn.getAttribute('onclick').match(/'(\w+)'/)[1]:'cuentas';
   statusEl.textContent='Sincronizando…';
   statusEl.style.opacity='1';

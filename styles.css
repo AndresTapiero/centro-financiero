@@ -23,12 +23,15 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .ats-label{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text2);margin-bottom:8px}
 .ats-value{font-family:var(--mono);font-size:38px;font-weight:700;color:var(--accent);line-height:1}
 .ats-sub{font-size:11px;color:var(--text3);margin-top:8px}
-.tabs{display:flex;gap:4px;margin-bottom:1rem;flex-wrap:wrap}
-.tab{font-size:12px;font-weight:600;padding:8px 16px;border-radius:99px;border:1px solid var(--border);background:none;color:var(--text2);cursor:pointer;transition:all .15s}
+.main-nav{display:flex;gap:2px;overflow-x:auto;margin-bottom:1.25rem;border-bottom:1px solid var(--border);-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.main-nav::-webkit-scrollbar{display:none}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0;padding:10px 14px 8px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text3);font-size:10px;font-weight:600;cursor:pointer;transition:color .15s,border-color .15s;white-space:nowrap}
+.nav-icon{font-size:17px}
+.nav-item:hover{color:var(--text2)}
+.nav-item.active{color:var(--accent);border-bottom-color:var(--accent)}
 .tipo-tab{flex:1;padding:10px 4px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
 .tipo-tab-gasto.active{background:var(--danger);border-color:var(--danger);color:#0F1117}
 .tipo-tab-ingreso.active{background:var(--accent);border-color:var(--accent);color:#0F1117}
-.tab.active{background:var(--accent);color:#0F1117;border-color:var(--accent)}
 .tab-content{display:none}
 .tab-content.active{display:block}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem;margin-bottom:1rem}

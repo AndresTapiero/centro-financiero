@@ -141,7 +141,7 @@
         <div id="user-menu" style="display:none;position:absolute;top:38px;right:0;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:6px;min-width:190px;box-shadow:0 8px 30px rgba(0,0,0,.4);z-index:500">
           <div id="user-menu-email" style="font-size:11px;color:var(--text2);padding:8px 10px;border-bottom:1px solid var(--border);margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
           <button class="user-menu-item" onclick="toggleUserMenu();document.getElementById('opciones-modal').style.display='flex'">⚙️ Opciones</button>
-          <button class="user-menu-item" onclick="toggleUserMenu();switchTab('diagnostico',document.querySelector('.tab[onclick*=diagnostico]'))">🔧 Diagnóstico</button>
+          <button class="user-menu-item" onclick="toggleUserMenu();switchTab('diagnostico')">🔧 Diagnóstico</button>
           <button class="user-menu-item" style="color:var(--danger)" onclick="toggleUserMenu();cerrarSesion()">🚪 Cerrar sesión</button>
         </div>
       </div>
@@ -180,15 +180,14 @@
     <div class="ats-sub" style="margin-top:12px">Liquidez en pesos y dólares, menos compromisos pendientes del mes</div>
   </div>
 
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('cuentas',this)">🏦 Cuentas</button>
-    <button class="tab" onclick="switchTab('movimientos',this)">📝 Movimientos</button>
-    <button class="tab" onclick="switchTab('pendientes',this)">⏳ Pendientes</button>
-    <button class="tab" onclick="switchTab('presupuesto',this)">🎯 Presupuesto</button>
-    <button class="tab" onclick="switchTab('metricas',this)">📊 Métricas</button>
-    <button class="tab" onclick="switchTab('metas',this)">🏆 Metas</button>
-    <button class="tab" onclick="switchTab('diagnostico',this)">🔧 Diagnóstico</button>
-  </div>
+  <nav class="main-nav">
+    <button class="nav-item active" onclick="switchTab('cuentas',this)"><span class="nav-icon">🏦</span><span>Cuentas</span></button>
+    <button class="nav-item" onclick="switchTab('movimientos',this)"><span class="nav-icon">📝</span><span>Movimientos</span></button>
+    <button class="nav-item" onclick="switchTab('pendientes',this)"><span class="nav-icon">⏳</span><span>Pendientes</span></button>
+    <button class="nav-item" onclick="switchTab('presupuesto',this)"><span class="nav-icon">🎯</span><span>Presupuesto</span></button>
+    <button class="nav-item" onclick="switchTab('metricas',this)"><span class="nav-icon">📊</span><span>Métricas</span></button>
+    <button class="nav-item" onclick="switchTab('metas',this)"><span class="nav-icon">🏆</span><span>Metas</span></button>
+  </nav>
 
   <div id="tab-cuentas" class="tab-content active">
     <div class="card" id="estado-mes-card">

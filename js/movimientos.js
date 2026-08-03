@@ -278,9 +278,9 @@ async function deleteEntry(id){
 
 function switchTab(tab,btn){
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(t=>t.classList.remove('active'));
   document.getElementById('tab-'+tab).classList.add('active');
-  btn.classList.add('active');
+  if(btn)btn.classList.add('active'); // Diagnóstico ya no tiene botón visible en la barra principal — se abre desde el menú de usuario, sin marcar ningún ítem de nav como activo
   if(tab==='metricas')renderMetrics();
   if(tab==='metas')renderGoals();
   if(tab==='diagnostico')renderDiagnostico();
