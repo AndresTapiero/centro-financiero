@@ -177,7 +177,7 @@
         <div class="ats-value" id="ats-value" style="font-size:clamp(13px,4.2vw,22px);overflow-wrap:anywhere">$0</div>
       </div>
     </div>
-    <div class="ats-sub" style="margin-top:12px">Liquidez en pesos y dólares, menos compromisos pendientes del mes</div>
+    <div class="ats-sub" id="ats-sub" style="margin-top:12px">Liquidez en pesos y dólares, menos compromisos pendientes del mes</div>
   </div>
 
   <nav class="main-nav">
@@ -364,7 +364,7 @@
         <input class="inp" id="inp-vehiculo-nuevo" type="text" placeholder="Nombre del vehículo (ej: Carro)" style="display:none">
         <span></span>
       </div>
-      <div style="display:flex;gap:8px">
+      <div class="btn-row">
         <button class="btn-add" style="flex:1" onclick="addEntry()">Registrar movimiento</button>
         <button class="btn-add" style="flex:1;background:var(--surface3);color:var(--text2);border:1px solid var(--border2)" onclick="addEntry(true)">+ Registrar y agregar otro</button>
       </div>

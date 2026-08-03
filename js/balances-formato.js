@@ -88,6 +88,31 @@ function cancelAdjustment(){
   fillAccountInputs(); // revierte el input al valor guardado real
 }
 
+/**
+ * Reconstruye el saldo de nequi/debito/arq/ontop al CIERRE del mes dado, deshaciendo
+ * (en memoria, sin tocar nada real) todos los movimientos posteriores a ese mes.
+ * Límites conocidos, comunicados en la interfaz:
+ *  - Las transferencias solo tienen registro en la cuenta de ORIGEN (no en la que recibe),
+ *    así que el saldo reconstruido de la cuenta receptora puede desviarse cerca de esas fechas.
+ *  - ARQ/Ontop se convierten con la TRM de HOY, no la del mes reconstruido (no se guarda TRM histórica).
+ */
+function calcularSaldoHistorico(mesSeleccionado){
+  const hoy=todayStr().slice(0,7);
+  if(mesSeleccionado>=hoy){
+    return {nequi:accounts.nequi,debito:accounts.debito,arq:accounts.arq,ontop:accounts.ontop,esHistorico:false};
+  }
+  const cuentas=['nequi','debito','arq','ontop'];
+  const saldos={};
+  cuentas.forEach(acc=>{ saldos[acc]=accounts[acc]; });
+  entries.forEach(e=>{
+    if(e.date.slice(0,7)<=mesSeleccionado)return; // solo deshacemos lo que pasó DESPUÉS del mes seleccionado
+    if(!cuentas.includes(e.acc))return;
+    const sign=e.txType==='gasto'?1:-1;
+    saldos[e.acc]+=sign*e.amount; // reversa exacta de la operación que hizo addEntry/deleteEntry en su momento
+  });
+  return {...saldos,esHistorico:true};
+}
+
 function updateNetWorth(){
   const liquidCOP=accounts.nequi+accounts.debito+accounts.nu+accounts.lulo+(accounts.arq*accounts.trm)+(accounts.ontop*accounts.trm);
   const debtCOP=accounts.davtc+accounts.rappitc;
@@ -99,8 +124,10 @@ function updateNetWorth(){
   nwEl.style.color=net>=0?'var(--accent)':'var(--danger)';
 
   // Libre Real: Nequi + Débito + (ARQ y Ontop convertidos a COP con la TRM actual) — Nu queda FUERA (no es gasto)
-  const bruto=accounts.nequi+accounts.debito+(accounts.arq*accounts.trm)+(accounts.ontop*accounts.trm);
-  const pendCOP=pendientes.filter(p=>!p.isIncome&&['nequi','debito','arq','ontop'].includes(p.acc))
+  // Si el mes seleccionado ya pasó, reconstruimos el saldo real de ESE mes en vez de usar el de hoy.
+  const saldoHist=calcularSaldoHistorico(currentMonth);
+  const bruto=saldoHist.nequi+saldoHist.debito+(saldoHist.arq*accounts.trm)+(saldoHist.ontop*accounts.trm);
+  const pendCOP=saldoHist.esHistorico?0:pendientes.filter(p=>!p.isIncome&&['nequi','debito','arq','ontop'].includes(p.acc))
     .reduce((s,p)=>{
       const meta=ACCOUNTS_META[p.acc];
       const monto=meta.currency==='USD'?p.amount*accounts.trm:p.amount;
@@ -111,6 +138,12 @@ function updateNetWorth(){
   document.getElementById('ats-pendientes').textContent=fmtCOP(pendCOP);
   document.getElementById('ats-value').textContent=fmtCOP(libre);
   document.getElementById('ats-value').style.color=libre>500000?'var(--accent)':libre>0?'var(--warn)':'var(--danger)';
+  const subEl=document.getElementById('ats-sub');
+  if(subEl){
+    subEl.innerHTML=saldoHist.esHistorico
+      ?`📅 Saldo reconstruido al cierre de ese mes (no se restan pendientes, ya resueltos). ARQ/Ontop con TRM de hoy, y las transferencias recibidas ese mes pueden no reflejarse del todo.`
+      :'Liquidez en pesos y dólares, menos compromisos pendientes del mes';
+  }
 
   // Fondo de emergencia — mini progreso en pestaña Cuentas
   const metaEmergencia=7000000;

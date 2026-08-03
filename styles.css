@@ -135,24 +135,19 @@ option{color:var(--text);padding:6px}
 .debt-fill{height:10px;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .8s cubic-bezier(.4,0,.2,1)}
 .debt-nums{display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:4px;font-family:var(--mono)}
 .hint{font-size:10px;color:var(--text3);text-align:center;margin-top:1rem;line-height:1.7}
+.btn-row{display:flex;gap:8px}
 @media(max-width:640px){
   .accounts-grid{grid-template-columns:repeat(2,1fr)}
   .input-grid,.input-grid2{grid-template-columns:1fr 1fr}
   .metrics-grid{grid-template-columns:1fr}
   .pie-wrap{justify-content:center}
-  .entry-row{flex-wrap:wrap;padding:10px 12px;gap:6px 8px}
-  .entry-date{min-width:auto;order:1}
-  .entry-dot{order:2}
-  .entry-row>div[style*="flex:1"]{order:3;flex-basis:100%;min-width:0}
-  .entry-cat{order:4;font-size:9px;padding:2px 6px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .entry-amount{order:5;min-width:auto;margin-left:auto}
-  .btn-add[onclick*="fixCurrency"]{order:6}
-  .btn-del{order:7}
-  .entry-acc{font-size:8px;white-space:normal;line-height:1.4}
   .entries-header{flex-wrap:wrap;gap:8px}
   .card-title{flex-wrap:wrap;gap:6px}
   .ats-card{padding:1.25rem}
   .ats-value{font-size:26px}
+  .btn-row{flex-direction:column}
+  .btn-row .btn-add{margin-top:0}
+  .btn-row .btn-add+.btn-add{margin-top:8px}
 }
 @media(max-width:400px){
   .app{padding:1rem .75rem 3rem}
