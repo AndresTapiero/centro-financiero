@@ -70,7 +70,7 @@ class PendienteListRenderer {
 
     return `<div class="entry-row" style="${estiloFila};cursor:pointer" onclick="editPendiente('${p.id}')">
       <div class="entry-row-top">
-        <div class="entry-dot" style="background:${colorPunto}"></div>
+        <span class="avatar-square" style="background:${colorPunto};width:28px;height:28px;font-size:11px;border-radius:8px">${p.name.charAt(0).toUpperCase()}</span>
         <div class="entry-name">${prefijoNombre}${p.name}</div>
         <span class="entry-amount" style="color:${colorMonto}">${p.isIncome ? '+' : ''}${montoStr}</span>
       </div>

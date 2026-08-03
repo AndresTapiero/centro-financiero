@@ -166,7 +166,7 @@
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
       <div style="min-width:0">
         <div class="ats-label" style="font-size:9px">Disponible bruto</div>
-        <div class="ats-value" id="ats-bruto" style="font-size:clamp(13px,4.2vw,22px);color:var(--text2);overflow-wrap:anywhere">$0</div>
+        <div class="ats-value" id="ats-bruto" style="font-size:clamp(13px,4.2vw,22px);color:var(--hero-text2);overflow-wrap:anywhere">$0</div>
       </div>
       <div style="min-width:0">
         <div class="ats-label" style="font-size:9px">− Pendientes</div>
@@ -197,17 +197,17 @@
     <div class="card">
       <div class="card-title">💧 Cuentas líquidas — disponibles para gastar <span>(clic para editar)</span></div>
       <div class="accounts-grid">
-        <div class="acc-card b-nequi" id="card-nequi"><div class="acc-label"><span>Nequi</span><span>💳</span></div><input class="acc-value" id="acc-nequi" onblur="handleAccountFieldBlur('nequi')"></div>
-        <div class="acc-card b-davivienda" id="card-debito"><div class="acc-label"><span>Davivienda</span><span>🏦</span></div><input class="acc-value" id="acc-debito" onblur="handleAccountFieldBlur('debito')"></div>
-        <div class="acc-card b-arq" id="card-arq"><div class="acc-label"><span>ARQ</span><span>🌎</span></div><input class="acc-value" id="acc-arq" onblur="handleAccountFieldBlur('arq')"></div>
-        <div class="acc-card b-ontop" id="card-ontop"><div class="acc-label"><span>Ontop</span><span>🌎</span></div><input class="acc-value" id="acc-ontop" onblur="handleAccountFieldBlur('ontop')"></div>
-        <div class="acc-card"><div class="acc-label"><span>TRM referencia</span><span>💱</span></div><input class="acc-value" id="acc-trm" onblur="handleAccountFieldBlur('trm')"></div>
+        <div class="acc-card" id="card-nequi"><div class="acc-label"><span class="avatar-square" style="background:#C147E9">N</span><span>Nequi</span><span class="currency-badge">Pesos</span></div><input class="acc-value" id="acc-nequi" onblur="handleAccountFieldBlur('nequi')"></div>
+        <div class="acc-card" id="card-debito"><div class="acc-label"><span class="avatar-square" style="background:#EF4444">D</span><span>Davivienda</span><span class="currency-badge">Pesos</span></div><input class="acc-value" id="acc-debito" onblur="handleAccountFieldBlur('debito')"></div>
+        <div class="acc-card" id="card-arq"><div class="acc-label"><span class="avatar-square" style="background:#1B7A4D">A</span><span>ARQ</span><span class="currency-badge">Dólares</span></div><input class="acc-value" id="acc-arq" onblur="handleAccountFieldBlur('arq')"></div>
+        <div class="acc-card" id="card-ontop"><div class="acc-label"><span class="avatar-square" style="background:#14B8A6">O</span><span>Ontop</span><span class="currency-badge">Dólares</span></div><input class="acc-value" id="acc-ontop" onblur="handleAccountFieldBlur('ontop')"></div>
+        <div class="acc-card"><div class="acc-label"><span class="avatar-square" style="background:#6B7280">T</span><span>TRM referencia</span></div><input class="acc-value" id="acc-trm" onblur="handleAccountFieldBlur('trm')"></div>
       </div>
     </div>
     <div class="card">
       <div class="card-title">🛡️ Fondo de emergencia <span>— solo crisis reales, nunca metas</span></div>
       <div class="accounts-grid" style="grid-template-columns:1fr">
-        <div class="acc-card b-nu" id="card-nu"><div class="acc-label"><span>Nu cajitas</span><span>🛡️</span></div><input class="acc-value" id="acc-nu" onblur="handleAccountFieldBlur('nu')"></div>
+        <div class="acc-card" id="card-nu"><div class="acc-label"><span class="avatar-square" style="background:#8A05BE">N</span><span>Nu cajitas</span><span class="currency-badge">Pesos</span></div><input class="acc-value" id="acc-nu" onblur="handleAccountFieldBlur('nu')"></div>
       </div>
       <div style="margin-top:12px">
         <div class="debt-track"><div class="debt-fill" id="emergency-mini-fill" style="width:0%"></div></div>
@@ -217,15 +217,15 @@
     <div class="card">
       <div class="card-title">🎯 Cuentas de ahorro para metas <span>— vivienda, cámara, lo que definas</span></div>
       <div class="accounts-grid" id="metas-accounts-grid">
-        <div class="acc-card b-lulo" id="card-lulo"><div class="acc-label"><span>Lulo</span><span>🏠</span></div><input class="acc-value" id="acc-lulo" onblur="handleAccountFieldBlur('lulo')"></div>
+        <div class="acc-card" id="card-lulo"><div class="acc-label"><span class="avatar-square" style="background:#0E9F6E">L</span><span>Lulo</span><span class="currency-badge">Pesos</span></div><input class="acc-value" id="acc-lulo" onblur="handleAccountFieldBlur('lulo')"></div>
       </div>
       <div style="font-size:10px;color:var(--text3);margin-top:8px">Crea nuevas cuentas de ahorro directamente desde la pestaña 🏆 Metas.</div>
     </div>
     <div class="card">
       <div class="card-title">💳 Tarjetas de crédito (deuda)</div>
       <div class="accounts-grid" style="grid-template-columns:repeat(2,1fr)">
-        <div class="acc-card debt"><div class="acc-label"><span>Davivienda TC</span><span>🔴</span></div><input class="acc-value debt" id="acc-davtc" onblur="handleAccountFieldBlur('davtc')"><div id="due-davtc" style="font-size:9px;color:var(--text3);margin-top:4px"></div></div>
-        <div class="acc-card" style="border-left-color:#FF8C42;background:linear-gradient(135deg,rgba(255,140,66,.10),var(--surface2) 60%)"><div class="acc-label"><span>Rappi Card</span><span>🟠</span></div><input class="acc-value" style="color:#FF8C42" id="acc-rappitc" onblur="handleAccountFieldBlur('rappitc')"><div id="due-rappitc" style="font-size:9px;color:var(--text3);margin-top:4px"></div></div>
+        <div class="acc-card debt"><div class="acc-label"><span class="avatar-square" style="background:#DC2626">D</span><span>Davivienda TC</span><span class="currency-badge">Crédito</span></div><input class="acc-value debt" id="acc-davtc" onblur="handleAccountFieldBlur('davtc')"><div id="due-davtc" style="font-size:9px;color:var(--text3);margin-top:4px"></div></div>
+        <div class="acc-card debt"><div class="acc-label"><span class="avatar-square" style="background:#FF8C42">R</span><span>Rappi Card</span><span class="currency-badge">Crédito</span></div><input class="acc-value" style="color:#FF8C42" id="acc-rappitc" onblur="handleAccountFieldBlur('rappitc')"><div id="due-rappitc" style="font-size:9px;color:var(--text3);margin-top:4px"></div></div>
       </div>
       <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
         <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Deuda total en tarjetas</span>

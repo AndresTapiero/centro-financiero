@@ -64,7 +64,7 @@ class MovimientoListRenderer {
 
     return `<div class="entry-row" style="${borderStyle};cursor:pointer" onclick="openEditEntryModal('${e.id}')">
       <div class="entry-row-top">
-        <div class="entry-dot" style="background:${c}"></div>
+        <span class="avatar-square" style="background:${c};width:28px;height:28px;font-size:11px;border-radius:8px">${e.name.charAt(0).toUpperCase()}</span>
         <div class="entry-name">${esAnomalia ? '⚠️ ' : ''}${e.name}</div>
         <span class="entry-amount" style="color:${esAnomalia ? 'var(--danger)' : isIncome ? 'var(--accent)' : 'var(--text)'}">${isIncome ? '+' : '−'}${amtStr}</span>
       </div>

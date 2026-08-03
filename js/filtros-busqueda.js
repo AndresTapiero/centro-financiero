@@ -74,7 +74,7 @@ function renderSearchResults(matches,q){
       return `<div class="entry-row" style="cursor:pointer" onclick="irAMes('${mes}')">
         <div class="entry-row-top">
           <span class="entry-date">${fmtDate(e.date)}</span>
-          <div class="entry-dot" style="background:${c}"></div>
+          <span class="avatar-square" style="background:${c};width:28px;height:28px;font-size:11px;border-radius:8px">${e.name.charAt(0).toUpperCase()}</span>
           <div class="entry-name">${e.name}</div>
           <span class="entry-amount">${montoStr}</span>
         </div>

@@ -85,10 +85,10 @@ function renderDynamicAccountCard(key){
   const meta=ACCOUNTS_META[key];
   const card=document.createElement('div');
   card.className='acc-card';
-  card.style.borderLeftColor='#5B8DEF';
-  card.style.background='linear-gradient(135deg,rgba(91,141,239,.10),var(--surface2) 60%)';
   card.id='card-'+key;
-  card.innerHTML=`<div class="acc-label"><span>${meta.label}</span><span>💰</span></div><input class="acc-value" id="acc-${key}" onblur="handleAccountFieldBlur('${key}')">`;
+  const inicial=meta.label.charAt(0).toUpperCase();
+  const monedaTexto=meta.currency==='USD'?'Dólares':'Pesos';
+  card.innerHTML=`<div class="acc-label"><span class="avatar-square" style="background:#2563EB">${inicial}</span><span>${meta.label}</span><span class="currency-badge">${monedaTexto}</span></div><input class="acc-value" id="acc-${key}" onblur="handleAccountFieldBlur('${key}')">`;
   grid.appendChild(card);
   document.getElementById('acc-'+key).value=meta.currency==='USD'?'$'+accounts[key]+' USD':fmtCOP(accounts[key]);
 }
