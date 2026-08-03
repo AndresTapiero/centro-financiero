@@ -2,6 +2,25 @@ const SUPABASE_URL = 'https://mfixkkqtjyjcigeqhlvz.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_l9nDbU6-a3lB6RKWEXA8UQ_ndrUICBx';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
+function poblarMenuUsuario(email){
+  const btn=document.getElementById('user-menu-btn');
+  const emailEl=document.getElementById('user-menu-email');
+  if(btn)btn.textContent=(email||'?').charAt(0).toUpperCase();
+  if(emailEl)emailEl.textContent=email||'';
+}
+
+function toggleUserMenu(){
+  const menu=document.getElementById('user-menu');
+  menu.style.display=menu.style.display==='block'?'none':'block';
+}
+document.addEventListener('click',e=>{
+  const menu=document.getElementById('user-menu');
+  const btn=document.getElementById('user-menu-btn');
+  if(menu&&menu.style.display==='block'&&!menu.contains(e.target)&&e.target!==btn){
+    menu.style.display='none';
+  }
+});
+
 async function intentarLogin(){
   const btn=document.getElementById('login-btn');
   const errEl=document.getElementById('login-error');
@@ -24,6 +43,7 @@ async function intentarLogin(){
     return;
   }
   currentUserId=data.user.id;
+  poblarMenuUsuario(data.user.email);
   document.getElementById('login-gate').style.display='none';
   document.getElementById('loading-gate').style.display='flex';
   loadData();
@@ -33,6 +53,7 @@ async function intentarLogin(){
 sb.auth.getSession().then(({data})=>{
   if(data.session){
     currentUserId=data.session.user.id;
+    poblarMenuUsuario(data.session.user.email);
     document.getElementById('login-gate').style.display='none';
     document.getElementById('loading-gate').style.display='flex';
     loadData();

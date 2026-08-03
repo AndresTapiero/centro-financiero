@@ -119,7 +119,13 @@ function openEditEntryModal(id){
   const meta=ACCOUNTS_META[e.acc];
   const curDisplay=e.currency||meta.currency;
   const amtStr=curDisplay==='USD'?fmtUSD(e.amount):fmtCOP(e.amount);
-  document.getElementById('edit-entry-modal-text').innerHTML=`✏️ <strong>Editar movimiento</strong><br><span style="color:var(--text2)">${e.name} — actualmente ${amtStr} en ${meta.label} · ${scat(e.cat)}</span>`;
+  const esIngreso=e.txType==='ingreso';
+  document.getElementById('edit-entry-modal-text').textContent=`${e.name} — actualmente ${amtStr} en ${meta.label} · ${scat(e.cat)}`;
+  const badge=document.getElementById('edit-entry-tipo-badge');
+  badge.textContent=esIngreso?'➕ Ingreso':'➖ Gasto';
+  badge.className='tipo-tab '+(esIngreso?'tipo-tab-ingreso active':'tipo-tab-gasto active');
+  badge.style.padding='5px 12px';
+  badge.style.cursor='default';
 
   const accSel=document.getElementById('edit-entry-account');
   const liquidas=Object.keys(ACCOUNTS_META).filter(k=>ACCOUNTS_META[k].type!=='credito'&&ACCOUNTS_META[k].currency==='COP'&&!dynamicAccounts[k]);
@@ -232,6 +238,13 @@ async function resolverEditEntryModal(confirmado){
   }catch(err){ registrarErrorDiagnostico('fin_movimientos (editar)',err); }
 }
 
+
+async function eliminarDesdeModalEdicion(){
+  const id=_editEntryId;
+  if(!id)return;
+  document.getElementById('edit-entry-modal').style.display='none';
+  await deleteEntry(id);
+}
 
 async function deleteEntry(id){
   const e=entries.find(x=>x.id===id);

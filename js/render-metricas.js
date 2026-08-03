@@ -19,7 +19,10 @@ function render(){
     sorted=[...monthEntriesFiltradas].sort((a,b)=>b.date.localeCompare(a.date));
   }
   const list=document.getElementById('entries-list');
-  list.innerHTML=sorted.length?sorted.map(e=>{
+  if(sortMode==='fecha'){
+    list.innerHTML=new MovimientoListRenderer(sorted).render();
+  }else{
+    list.innerHTML=sorted.length?sorted.map(e=>{
     const c=col(e.cat);
     const meta=ACCOUNTS_META[e.acc];
     const displayCurrency=e.currency||meta.currency;
@@ -47,7 +50,8 @@ function render(){
         <button class="entry-del-btn" onclick="deleteEntry('${e.id}')" title="Eliminar">×</button>
       </div>
     </div>`;
-  }).join(''):'<div class="empty">📋 Sin movimientos</div>';
+    }).join(''):'<div class="empty">📋 Sin movimientos</div>';
+  }
 
   const bycat={};
   gastos.forEach(e=>bycat[e.cat]=(bycat[e.cat]||0)+entryCOP(e));
