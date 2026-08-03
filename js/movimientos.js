@@ -1,4 +1,4 @@
-async function addEntry(){
+async function addEntry(seguirAgregando){
   const name=document.getElementById('inp-name').value.trim();
   const amount=redondear3(parseFloat(document.getElementById('inp-amount').value));
   const cat=document.getElementById('inp-cat').value;
@@ -87,6 +87,15 @@ async function addEntry(){
   try{
     await saveAccountsData();
   }catch(e){}
+  if(seguirAgregando){
+    // Deja cuenta/categoría/fecha tal como están (lo normal es seguir registrando cosas parecidas) y solo enfoca el nombre
+    document.getElementById('inp-name').focus();
+    const statusEl=document.getElementById('sync-status');
+    statusEl.style.display='block'; statusEl.style.opacity='1';
+    statusEl.textContent='✓ Guardado — listo para el siguiente';
+    statusEl.className='sync-status ok';
+    setTimeout(()=>{statusEl.style.opacity='0.35'},1200);
+  }
 }
 
 async function fixCurrency(id){

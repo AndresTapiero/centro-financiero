@@ -161,6 +161,8 @@ function renderMetrics(){
     return `${col(cat)} ${start}deg ${end}deg`;
   }).join(',');
   document.getElementById('pie-chart').style.background=sorted.length?`conic-gradient(${stops})`:'var(--surface2)';
+  const centerTotalEl=document.getElementById('pie-center-total');
+  if(centerTotalEl)centerTotalEl.textContent=fmtCOP(sum===1&&sorted.length===0?0:sum);
   document.getElementById('pie-legend').innerHTML=sorted.slice(0,8).map(([cat,val])=>{
     const pct=Math.round(val/sum*100);
     return `<div class="legend-row"><div class="legend-dot" style="background:${col(cat)}"></div><span class="legend-name">${scat(cat)}</span><span class="legend-val">${pct}% · ${fmtCOP(val)}</span></div>`;

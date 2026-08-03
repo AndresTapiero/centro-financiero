@@ -260,6 +260,28 @@ function suggestCategoryPend(){
 
 let vehiculos=['Moto']; // lista dinámica de vehículos — empieza con Moto, crece cuando agregues otro
 
+function setTipoMovimiento(tipo){
+  document.getElementById('inp-type').value=tipo;
+  actualizarTabsTipo();
+  onAccountChange();
+}
+
+function actualizarTabsTipo(){
+  const tipo=document.getElementById('inp-type').value;
+  const tabGasto=document.getElementById('tab-tipo-gasto');
+  const tabIngreso=document.getElementById('tab-tipo-ingreso');
+  if(tabGasto)tabGasto.classList.toggle('active',tipo==='gasto');
+  if(tabIngreso)tabIngreso.classList.toggle('active',tipo==='ingreso');
+}
+
+function irATransferencia(){
+  const btnCuentas=document.querySelector('.tab[onclick*="cuentas"]');
+  switchTab('cuentas',btnCuentas);
+  setTimeout(()=>{
+    document.getElementById('transfer-card')?.scrollIntoView({behavior:'smooth',block:'start'});
+  },50);
+}
+
 function onCategoryChange(){
   const cat=document.getElementById('inp-cat').value;
   const row=document.getElementById('vehiculo-tag-row');
@@ -267,6 +289,7 @@ function onCategoryChange(){
   const tipoSel=document.getElementById('inp-type');
   if(cat.startsWith('Ingreso ·')){ tipoSel.value='ingreso'; }
   else if(tipoSel.value==='ingreso'){ tipoSel.value='gasto'; }
+  actualizarTabsTipo();
   onAccountChange();
 }
 

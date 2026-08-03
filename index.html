@@ -213,14 +213,14 @@
       <div class="card-title">💳 Tarjetas de crédito (deuda)</div>
       <div class="accounts-grid" style="grid-template-columns:repeat(2,1fr)">
         <div class="acc-card debt"><div class="acc-label"><span>Davivienda TC</span><span>🔴</span></div><input class="acc-value debt" id="acc-davtc" onblur="handleAccountFieldBlur('davtc')"><div id="due-davtc" style="font-size:9px;color:var(--text3);margin-top:4px"></div></div>
-        <div class="acc-card" style="border-left-color:#FF8C42"><div class="acc-label"><span>Rappi Card</span><span>🟠</span></div><input class="acc-value" style="color:#FF8C42" id="acc-rappitc" onblur="handleAccountFieldBlur('rappitc')"><div id="due-rappitc" style="font-size:9px;color:var(--text3);margin-top:4px"></div></div>
+        <div class="acc-card" style="border-left-color:#FF8C42;background:linear-gradient(135deg,rgba(255,140,66,.10),var(--surface2) 60%)"><div class="acc-label"><span>Rappi Card</span><span>🟠</span></div><input class="acc-value" style="color:#FF8C42" id="acc-rappitc" onblur="handleAccountFieldBlur('rappitc')"><div id="due-rappitc" style="font-size:9px;color:var(--text3);margin-top:4px"></div></div>
       </div>
       <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
         <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Deuda total en tarjetas</span>
         <span id="deuda-total-tarjetas" style="font-family:var(--mono);font-weight:700;font-size:15px;color:#FF6B6B"></span>
       </div>
     </div>
-    <div class="card">
+    <div class="card" id="transfer-card">
       <div class="card-title">🔄 Transferir entre cuentas</div>
       <button class="btn-add" style="margin-bottom:10px;background:var(--surface3);color:var(--text)" onclick="abrirNuevaCuentaModal()">➕ Crear cuenta nueva (bolsillo de ahorro, etc.)</button>
       <div class="input-grid2" style="margin-bottom:8px">
@@ -266,6 +266,11 @@
   <div id="tab-movimientos" class="tab-content">
     <div class="input-section">
       <div class="input-label">➕ Nuevo movimiento</div>
+      <div style="display:flex;gap:6px;margin-bottom:12px">
+        <button type="button" id="tab-tipo-gasto" class="tipo-tab tipo-tab-gasto active" onclick="setTipoMovimiento('gasto')">➖ Gasto</button>
+        <button type="button" id="tab-tipo-ingreso" class="tipo-tab tipo-tab-ingreso" onclick="setTipoMovimiento('ingreso')">➕ Ingreso</button>
+        <button type="button" id="tab-tipo-transferencia" class="tipo-tab tipo-tab-transferencia" onclick="irATransferencia()">🔄 Transferencia</button>
+      </div>
       <div class="input-grid">
         <input class="inp inp-desc" id="inp-name" type="text" placeholder="Descripción" oninput="suggestCategory()" autocomplete="off"/>
         <input class="inp inp-num" id="inp-amount" type="number" placeholder="Monto" step="0.01"/>
@@ -334,7 +339,7 @@
             <option value="Transporte">Transporte</option>
           </optgroup>
         </select>
-        <select class="inp" id="inp-type">
+        <select class="inp" id="inp-type" style="display:none">
           <option value="gasto">➖ Gasto</option>
           <option value="ingreso">➕ Ingreso</option>
         </select>
@@ -348,7 +353,10 @@
         <input class="inp" id="inp-vehiculo-nuevo" type="text" placeholder="Nombre del vehículo (ej: Carro)" style="display:none">
         <span></span>
       </div>
-      <button class="btn-add" onclick="addEntry()">Registrar movimiento</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn-add" style="flex:1" onclick="addEntry()">Registrar movimiento</button>
+        <button class="btn-add" style="flex:1;background:var(--surface3);color:var(--text2);border:1px solid var(--border2)" onclick="addEntry(true)">+ Registrar y agregar otro</button>
+      </div>
     </div>
     <div class="input-section">
       <div class="input-label">🔍 Buscar en todo tu historial</div>
@@ -498,7 +506,7 @@
     <div class="card">
       <div class="card-title">🥧 Distribución del gasto por categoría</div>
       <div class="pie-wrap">
-        <div class="pie" id="pie-chart"></div>
+        <div class="pie" id="pie-chart"><div class="pie-center"><div class="pie-center-total" id="pie-center-total">$0</div><div class="pie-center-label">este mes</div></div></div>
         <div class="pie-legend" id="pie-legend"></div>
       </div>
     </div>

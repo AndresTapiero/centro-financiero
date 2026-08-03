@@ -86,6 +86,7 @@ function renderDynamicAccountCard(key){
   const card=document.createElement('div');
   card.className='acc-card';
   card.style.borderLeftColor='#5B8DEF';
+  card.style.background='linear-gradient(135deg,rgba(91,141,239,.10),var(--surface2) 60%)';
   card.id='card-'+key;
   card.innerHTML=`<div class="acc-label"><span>${meta.label}</span><span>💰</span></div><input class="acc-value" id="acc-${key}" onblur="handleAccountFieldBlur('${key}')">`;
   grid.appendChild(card);
