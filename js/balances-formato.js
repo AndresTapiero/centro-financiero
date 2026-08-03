@@ -98,8 +98,11 @@ function cancelAdjustment(){
  */
 function calcularSaldoHistorico(mesSeleccionado){
   const hoy=todayStr().slice(0,7);
-  if(mesSeleccionado>=hoy){
-    return {nequi:accounts.nequi,debito:accounts.debito,arq:accounts.arq,ontop:accounts.ontop,esHistorico:false};
+  if(mesSeleccionado>=hoy||cargaConFallos){
+    // Si el mes es el actual (o futuro), O si la carga de datos falló y "entries" podría ser
+    // el seed de ejemplo (no tus movimientos reales), mostramos el saldo de hoy sin reconstruir —
+    // reconstruir con datos que no son de fiar produciría un número sin sentido.
+    return {nequi:accounts.nequi,debito:accounts.debito,arq:accounts.arq,ontop:accounts.ontop,esHistorico:false,fallo:cargaConFallos&&mesSeleccionado<hoy};
   }
   const cuentas=['nequi','debito','arq','ontop'];
   const saldos={};
@@ -110,7 +113,7 @@ function calcularSaldoHistorico(mesSeleccionado){
     const sign=e.txType==='gasto'?1:-1;
     saldos[e.acc]+=sign*e.amount; // reversa exacta de la operación que hizo addEntry/deleteEntry en su momento
   });
-  return {...saldos,esHistorico:true};
+  return {...saldos,esHistorico:true,fallo:false};
 }
 
 function updateNetWorth(){
@@ -140,7 +143,9 @@ function updateNetWorth(){
   document.getElementById('ats-value').style.color=libre>500000?'var(--accent)':libre>0?'var(--warn)':'var(--danger)';
   const subEl=document.getElementById('ats-sub');
   if(subEl){
-    subEl.innerHTML=saldoHist.esHistorico
+    subEl.innerHTML=saldoHist.fallo
+      ?`⚠️ No se pudo reconstruir el saldo de ese mes — la carga de tus movimientos falló. Este es el saldo de <strong>hoy</strong>, no el de ese mes. Ve a 🔧 Diagnóstico → "Reintentar carga" y vuelve a intentarlo.`
+      :saldoHist.esHistorico
       ?`📅 Saldo reconstruido al cierre de ese mes (no se restan pendientes, ya resueltos). ARQ/Ontop con TRM de hoy, y las transferencias recibidas ese mes pueden no reflejarse del todo.`
       :'Liquidez en pesos y dólares, menos compromisos pendientes del mes';
   }
