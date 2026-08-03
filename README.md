@@ -4,16 +4,42 @@ Tracker financiero personal — cuentas, movimientos, pendientes, presupuesto y 
 
 🔗 **App en vivo:** https://andrestapiero.github.io/centro-financiero/
 
+## Estructura del proyecto
+
+```
+centro-financiero/
+├── index.html          # Marcado HTML — sin lógica de negocio
+├── styles.css           # Todos los estilos (modo claro)
+└── js/
+    ├── constantes.js               # Categorías, colores, cuentas, datos semilla
+    ├── filtros-busqueda.js         # Filtros de Movimientos + buscador de historial
+    ├── modales.js                  # Modales de confirmación reutilizables
+    ├── guardado-core.js            # Diagnóstico, reintentos de guardado
+    ├── metas.js                    # Metas de ahorro, cuentas dinámicas
+    ├── cuentas-carga.js            # Carga inicial de datos (loadData), siembra de recurrentes
+    ├── balances-formato.js         # Ajustes de saldo, formato de moneda, saldo histórico
+    ├── movimientos.js              # Registrar/editar/eliminar movimientos
+    ├── movimiento-list-renderer.js # Clase MovimientoListRenderer (POO) — lista agrupada por fecha
+    ├── pendiente-list-renderer.js  # Clase PendienteListRenderer (POO) — hermana de la anterior
+    ├── pendientes-transferencias.js# CRUD de pendientes + transferencias entre cuentas
+    ├── render-metricas.js          # render() principal, gráficos de Métricas
+    ├── respaldo.js                 # Exportar respaldo, guardar y verificar
+    ├── verificacion-sync.js        # Sincronización manual/automática
+    └── auth-arranque.js            # Cliente de Supabase, login, arranque de la app
+```
+
+El proyecto se modularizó a partir de un solo archivo HTML monolítico — cada archivo tiene una responsabilidad clara. Se usan `<script>` normales (no ES modules) a propósito, para que los `onclick="..."` del HTML sigan funcionando sin fricción de scope.
+
 ## Stack
 
-- **Frontend:** HTML + CSS + JavaScript vanilla (sin framework, sin build step)
+- **Frontend:** HTML + CSS + JavaScript vanilla, sin framework ni build step
 - **Backend:** [Supabase](https://supabase.com) — Postgres con Row Level Security, Auth por correo/contraseña
 - **Hosting:** GitHub Pages (estático, gratis)
 - **Cliente:** [`@supabase/supabase-js`](https://github.com/supabase/supabase-js) v2, vía CDN
 
 ## Estructura de datos (Supabase)
 
-Todas las tablas usan el prefijo `fin_` (para convivir con otros proyectos futuros en el mismo proyecto de Supabase) y tienen RLS activo — cada usuario solo ve sus propias filas:
+Todas las tablas usan el prefijo `fin_` (para convivir con otros proyectos futuros en el mismo proyecto de Supabase, ej. un dashboard de inversiones) y tienen RLS activo — cada usuario solo ve sus propias filas:
 
 | Tabla | Contenido |
 |---|---|
@@ -22,11 +48,13 @@ Todas las tablas usan el prefijo `fin_` (para convivir con otros proyectos futur
 | `fin_pendientes` | Pagos/cobros pendientes, incluidos los recurrentes mensuales |
 | `fin_metas` | Metas de ahorro, por cuenta o acumuladas por categoría |
 | `fin_presupuesto_topes` | Topes de presupuesto mensual por categoría |
-| `fin_configuracion` | TRM (tasa de cambio) y lista de vehículos |
+| `fin_configuracion` | TRM (tasa de cambio), lista de vehículos, y `seeded_months` (checkpoint de recurrentes) |
+
+`window.storage` (la API de almacenamiento de artifacts de Claude) **no se usa en ningún lugar del código** — toda la persistencia vive en Supabase.
 
 ## Desarrollo local
 
-No requiere instalación — es un solo archivo HTML. Para probarlo localmente:
+No requiere instalación — abre `index.html` directamente en un navegador:
 
 ```bash
 open index.html
@@ -37,12 +65,16 @@ open index.html
 ## Desplegar cambios
 
 ```bash
-git add index.html
+git add .
 git commit -m "Descripción del cambio"
 git push
 ```
 
-GitHub Pages redespliega automáticamente en 1-2 minutos.
+`git add .` (no solo `index.html`) es importante ahora que el proyecto está modularizado en varios archivos — sube todo lo que cambió, en `js/`, `styles.css` o la raíz. GitHub Pages redespliega automáticamente en 1-2 minutos.
+
+## Migración histórica de datos
+
+`migrar.js` y `migrar-historico.js` (fuera de control de versiones, se corren localmente) importan datos desde una fuente externa a Supabase usando la `service_role key`. No se usan en producción — son scripts de un solo uso para la migración inicial y para importar historial de una app anterior.
 
 ## Seguridad
 
@@ -51,4 +83,5 @@ GitHub Pages redespliega automáticamente en 1-2 minutos.
 
 ## Historial
 
-Migrado en agosto de 2026 desde un artifact de Claude (almacenamiento vía `window.storage`) a Supabase, para tener acceso confiable multi-dispositivo sin las limitaciones de la API de almacenamiento de artifacts.
+- **Agosto 2026:** migrado desde un artifact de Claude (almacenamiento vía `window.storage`) a Supabase, para tener acceso confiable multi-dispositivo sin las limitaciones de la API de almacenamiento de artifacts.
+- **Agosto 2026:** modularizado de un solo archivo HTML a la estructura actual de `js/` + `styles.css`, y rediseñado de modo oscuro a modo claro.
