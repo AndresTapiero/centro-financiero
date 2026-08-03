@@ -1,3 +1,13 @@
+function abrirModalNuevoMovimiento(){
+  document.getElementById('nuevo-movimiento-modal').style.display='flex';
+  document.getElementById('inp-date').value=todayStr();
+  document.getElementById('inp-name').focus();
+}
+
+function cerrarModalNuevoMovimiento(){
+  document.getElementById('nuevo-movimiento-modal').style.display='none';
+}
+
 async function addEntry(seguirAgregando){
   const name=document.getElementById('inp-name').value.trim();
   const amount=redondear3(parseFloat(document.getElementById('inp-amount').value));
@@ -95,6 +105,8 @@ async function addEntry(seguirAgregando){
     statusEl.textContent='✓ Guardado — listo para el siguiente';
     statusEl.className='sync-status ok';
     setTimeout(()=>{statusEl.style.opacity='0.35'},1200);
+  }else{
+    cerrarModalNuevoMovimiento();
   }
 }
 

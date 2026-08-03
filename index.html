@@ -276,97 +276,106 @@
   </div>
 
   <div id="tab-movimientos" class="tab-content">
-    <div class="input-section">
-      <div class="input-label">➕ Nuevo movimiento</div>
-      <div style="display:flex;gap:6px;margin-bottom:12px">
-        <button type="button" id="tab-tipo-gasto" class="tipo-tab tipo-tab-gasto active" onclick="setTipoMovimiento('gasto')">➖ Gasto</button>
-        <button type="button" id="tab-tipo-ingreso" class="tipo-tab tipo-tab-ingreso" onclick="setTipoMovimiento('ingreso')">➕ Ingreso</button>
-      </div>
-      <div class="input-grid">
-        <input class="inp inp-desc" id="inp-name" type="text" placeholder="Descripción" oninput="suggestCategory()" autocomplete="off"/>
-        <input class="inp inp-num" id="inp-amount" type="number" placeholder="Monto" step="0.01"/>
-        <input class="inp inp-date" id="inp-date" type="date"/>
-      </div>
-      <div id="suggest-badge" style="display:none;font-size:11px;color:var(--accent);margin-bottom:8px;padding:6px 10px;background:rgba(168,224,99,.08);border-radius:6px;border:1px solid rgba(168,224,99,.25)">✨ Categoría sugerida — puedes cambiarla si no aplica</div>
-      <div class="input-grid2" id="currency-override-row" style="display:none">
-        <span class="acc-hint" style="align-self:center">Esta cuenta es USD por defecto — ¿en qué moneda fue realmente este gasto?</span>
-        <select class="inp" id="inp-currency">
-          <option value="USD">Dólares (USD)</option>
-          <option value="COP">Pesos (COP)</option>
-        </select>
-        <span></span>
-      </div>
-      <div class="input-grid2">
-        <select class="inp" id="inp-account" onchange="onAccountChange()">
-          <optgroup label="🏦 Cuentas líquidas (COP)">
-            <option value="debito">🏦 Davivienda</option>
-            <option value="nequi">💳 Nequi</option>
-            <option value="nu">🛡️ Nu cajitas</option>
-          </optgroup>
-          <optgroup label="💳 Tarjetas de crédito">
-            <option value="davtc">🔴 Davivienda TC</option>
-            <option value="rappitc">🔴 Rappi Card</option>
-          </optgroup>
-          <optgroup label="🌎 Dólares (USD)">
-            <option value="arq">🌎 ARQ</option>
-            <option value="ontop">🌎 Ontop</option>
-          </optgroup>
-        </select>
-        <select class="inp" id="inp-cat" onchange="onCategoryChange()">
-          <optgroup label="💰 Ingresos">
-            <option value="Ingreso · Salario">Salario</option>
-            <option value="Ingreso · Freelance/Media">Freelance / Media</option>
-            <option value="Ingreso · Donación">Donación</option>
-            <option value="Ingreso · Otro">Otro ingreso</option>
-          </optgroup>
-          <optgroup label="🥦 Alimentación">
-            <option value="Alimentación · Comidas afuera · Fin de semana">Comidas (finde)</option>
-            <option value="Alimentación · Comidas afuera · Entre semana">Comidas (semana)</option>
-            <option value="Alimentación · Mercado">Mercado</option>
-          </optgroup>
-          <optgroup label="🏍️ Vehículo">
-            <option value="Vehículo · Gasolina">Gasolina</option>
-            <option value="Vehículo · Lavada">Lavada</option>
-            <option value="Vehículo · Parqueadero">Parqueadero</option>
-            <option value="Vehículo · Seguros">Seguros</option>
-            <option value="Vehículo · Taller">Taller</option>
-          </optgroup>
-          <optgroup label="🚴 Deportes">
-            <option value="Deportes · Ciclismo">Ciclismo</option>
-          </optgroup>
-          <optgroup label="Otras">
-            <option value="Cuidado personal">Cuidado personal</option>
-            <option value="Entretenimiento">Entretenimiento</option>
-            <option value="Hogar">Hogar</option>
-            <option value="Otro">Otro</option>
-            <option value="Pago Deuda">Pago Deuda</option>
-            <option value="Regalos">Regalos</option>
-            <option value="Arriendo">Arriendo</option>
-            <option value="Ropa">Ropa</option>
-            <option value="Salud">Salud</option>
-            <option value="Servicios">Servicios</option>
-            <option value="Suscripciones">Suscripciones</option>
-            <option value="Tecnología">Tecnología</option>
-            <option value="Transporte">Transporte</option>
-          </optgroup>
-        </select>
-        <select class="inp" id="inp-type" style="display:none">
-          <option value="gasto">➖ Gasto</option>
-          <option value="ingreso">➕ Ingreso</option>
-        </select>
-      </div>
-      <div class="acc-hint" id="acc-hint">La cuenta Nequi se reducirá por este monto.</div>
-      <div class="input-grid2" id="vehiculo-tag-row" style="display:none">
-        <select class="inp" id="inp-vehiculo">
-          <option value="Moto">🏍️ Moto</option>
-          <option value="__nuevo__">➕ Agregar otro vehículo…</option>
-        </select>
-        <input class="inp" id="inp-vehiculo-nuevo" type="text" placeholder="Nombre del vehículo (ej: Carro)" style="display:none">
-        <span></span>
-      </div>
-      <div class="btn-row">
-        <button class="btn-add" style="flex:1" onclick="addEntry()">Registrar movimiento</button>
-        <button class="btn-add" style="flex:1;background:var(--surface3);color:var(--text2);border:1px solid var(--border2)" onclick="addEntry(true)">+ Registrar y agregar otro</button>
+    <button id="fab-nuevo-movimiento" onclick="abrirModalNuevoMovimiento()" title="Nuevo movimiento" aria-label="Nuevo movimiento">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/></svg>
+    </button>
+    <div id="nuevo-movimiento-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center;padding:16px">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(23,23,31,.25);max-height:88vh;overflow-y:auto">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <span class="input-label" style="margin:0">➕ Nuevo movimiento</span>
+          <button onclick="cerrarModalNuevoMovimiento()" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;line-height:1;padding:4px" aria-label="Cerrar">×</button>
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:12px">
+          <button type="button" id="tab-tipo-gasto" class="tipo-tab tipo-tab-gasto active" onclick="setTipoMovimiento('gasto')">➖ Gasto</button>
+          <button type="button" id="tab-tipo-ingreso" class="tipo-tab tipo-tab-ingreso" onclick="setTipoMovimiento('ingreso')">➕ Ingreso</button>
+        </div>
+        <div class="input-grid">
+          <input class="inp inp-desc" id="inp-name" type="text" placeholder="Descripción" oninput="suggestCategory()" autocomplete="off"/>
+          <input class="inp inp-num" id="inp-amount" type="number" placeholder="Monto" step="0.01"/>
+          <input class="inp inp-date" id="inp-date" type="date"/>
+        </div>
+        <div id="suggest-badge" style="display:none;font-size:11px;color:var(--accent);margin-bottom:8px;padding:6px 10px;background:rgba(168,224,99,.08);border-radius:6px;border:1px solid rgba(168,224,99,.25)">✨ Categoría sugerida — puedes cambiarla si no aplica</div>
+        <div class="input-grid2" id="currency-override-row" style="display:none">
+          <span class="acc-hint" style="align-self:center">Esta cuenta es USD por defecto — ¿en qué moneda fue realmente este gasto?</span>
+          <select class="inp" id="inp-currency">
+            <option value="USD">Dólares (USD)</option>
+            <option value="COP">Pesos (COP)</option>
+          </select>
+          <span></span>
+        </div>
+        <div class="input-grid2">
+          <select class="inp" id="inp-account" onchange="onAccountChange()">
+            <optgroup label="🏦 Cuentas líquidas (COP)">
+              <option value="debito">🏦 Davivienda</option>
+              <option value="nequi">💳 Nequi</option>
+              <option value="nu">🛡️ Nu cajitas</option>
+            </optgroup>
+            <optgroup label="💳 Tarjetas de crédito">
+              <option value="davtc">🔴 Davivienda TC</option>
+              <option value="rappitc">🔴 Rappi Card</option>
+            </optgroup>
+            <optgroup label="🌎 Dólares (USD)">
+              <option value="arq">🌎 ARQ</option>
+              <option value="ontop">🌎 Ontop</option>
+            </optgroup>
+          </select>
+          <select class="inp" id="inp-cat" onchange="onCategoryChange()">
+            <optgroup label="💰 Ingresos">
+              <option value="Ingreso · Salario">Salario</option>
+              <option value="Ingreso · Freelance/Media">Freelance / Media</option>
+              <option value="Ingreso · Donación">Donación</option>
+              <option value="Ingreso · Otro">Otro ingreso</option>
+            </optgroup>
+            <optgroup label="🥦 Alimentación">
+              <option value="Alimentación · Comidas afuera · Fin de semana">Comidas (finde)</option>
+              <option value="Alimentación · Comidas afuera · Entre semana">Comidas (semana)</option>
+              <option value="Alimentación · Mercado">Mercado</option>
+            </optgroup>
+            <optgroup label="🏍️ Vehículo">
+              <option value="Vehículo · Gasolina">Gasolina</option>
+              <option value="Vehículo · Lavada">Lavada</option>
+              <option value="Vehículo · Parqueadero">Parqueadero</option>
+              <option value="Vehículo · Seguros">Seguros</option>
+              <option value="Vehículo · Taller">Taller</option>
+            </optgroup>
+            <optgroup label="🚴 Deportes">
+              <option value="Deportes · Ciclismo">Ciclismo</option>
+            </optgroup>
+            <optgroup label="Otras">
+              <option value="Cuidado personal">Cuidado personal</option>
+              <option value="Entretenimiento">Entretenimiento</option>
+              <option value="Hogar">Hogar</option>
+              <option value="Otro">Otro</option>
+              <option value="Pago Deuda">Pago Deuda</option>
+              <option value="Regalos">Regalos</option>
+              <option value="Arriendo">Arriendo</option>
+              <option value="Inversiones">Inversiones</option>
+              <option value="Ropa">Ropa</option>
+              <option value="Salud">Salud</option>
+              <option value="Servicios">Servicios</option>
+              <option value="Suscripciones">Suscripciones</option>
+              <option value="Tecnología">Tecnología</option>
+              <option value="Transporte">Transporte</option>
+            </optgroup>
+          </select>
+          <select class="inp" id="inp-type" style="display:none">
+            <option value="gasto">➖ Gasto</option>
+            <option value="ingreso">➕ Ingreso</option>
+          </select>
+        </div>
+        <div class="acc-hint" id="acc-hint">La cuenta Nequi se reducirá por este monto.</div>
+        <div class="input-grid2" id="vehiculo-tag-row" style="display:none">
+          <select class="inp" id="inp-vehiculo">
+            <option value="Moto">🏍️ Moto</option>
+            <option value="__nuevo__">➕ Agregar otro vehículo…</option>
+          </select>
+          <input class="inp" id="inp-vehiculo-nuevo" type="text" placeholder="Nombre del vehículo (ej: Carro)" style="display:none">
+          <span></span>
+        </div>
+        <div class="btn-row">
+          <button class="btn-add" style="flex:1" onclick="addEntry()">Registrar movimiento</button>
+          <button class="btn-add" style="flex:1;background:var(--surface3);color:var(--text2);border:1px solid var(--border2)" onclick="addEntry(true)">+ Registrar y agregar otro</button>
+        </div>
       </div>
     </div>
     <div class="input-section">

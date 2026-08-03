@@ -136,6 +136,9 @@ option{color:var(--text);padding:6px}
 .debt-nums{display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:4px;font-family:var(--mono)}
 .hint{font-size:10px;color:var(--text3);text-align:center;margin-top:1rem;line-height:1.7}
 .btn-row{display:flex;gap:8px}
+#fab-nuevo-movimiento{position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:50%;background:var(--blue);color:#fff;border:none;box-shadow:0 4px 16px rgba(37,99,235,.4);cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:400;transition:transform .15s}
+#fab-nuevo-movimiento:hover{transform:scale(1.06)}
+#fab-nuevo-movimiento:active{transform:scale(.96)}
 @media(max-width:640px){
   .accounts-grid{grid-template-columns:repeat(2,1fr)}
   .input-grid,.input-grid2{grid-template-columns:1fr 1fr}
