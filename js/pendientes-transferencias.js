@@ -117,6 +117,19 @@ async function payPendiente(id){
   const sign=p.isIncome?-1:1; // misma convención que addEntry: gasto=+resta, ingreso=+suma
   if(meta.type==='credito'){ accounts[accFinal]=redondear3(accounts[accFinal]+(sign*montoVigente)); }
   else{ accounts[accFinal]=redondear3(accounts[accFinal]-(sign*montoVigente)); }
+
+  // "Pago Deuda" paga UNA tarjeta usando el dinero de OTRA cuenta (normalmente Davivienda) — son dos
+  // cuentas distintas. Lo de arriba ya descontó de dónde sale el dinero; esto además baja la deuda
+  // de la tarjeta específica, detectada por el nombre del pendiente (sin agregar un campo nuevo).
+  if(p.cat==='Pago Deuda'&&!p.isIncome){
+    let tarjeta=null;
+    if(p.name.includes('Davivienda'))tarjeta='davtc';
+    else if(p.name.includes('Rappi'))tarjeta='rappitc';
+    if(tarjeta&&tarjeta!==accFinal){
+      accounts[tarjeta]=redondear3(accounts[tarjeta]-montoVigente);
+    }
+  }
+
   try{
     const {data:fila,error}=await sb.from('fin_movimientos').insert({
       user_id:currentUserId,
