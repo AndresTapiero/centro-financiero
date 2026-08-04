@@ -280,8 +280,8 @@
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/></svg>
       Agregar movimiento
     </button>
-    <div id="nuevo-movimiento-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;height:100dvh;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center;padding:16px;overflow-y:auto">
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(23,23,31,.25);max-height:88vh;overflow-y:auto">
+    <div id="nuevo-movimiento-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;height:100dvh;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center;padding:16px;overflow-y:auto" class="nuevo-movimiento-modal">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(23,23,31,.25);max-height:88vh;overflow-y:auto;min-width:0">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
           <span class="input-label" style="margin:0">➕ Nuevo movimiento</span>
           <button onclick="cerrarModalNuevoMovimiento()" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;line-height:1;padding:4px" aria-label="Cerrar">×</button>
