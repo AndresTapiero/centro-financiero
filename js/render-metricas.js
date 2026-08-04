@@ -9,6 +9,7 @@ function render(){
   if(filterType!=='todos')monthEntriesFiltradas=monthEntriesFiltradas.filter(e=>e.txType===filterType);
   if(filterCategory!=='todas')monthEntriesFiltradas=monthEntriesFiltradas.filter(e=>e.cat===filterCategory);
   poblarFiltroCategoria(monthEntries);
+  updateEntriesSummary();
   let sorted;
   if(sortMode==='cuenta'){
     sorted=[...monthEntriesFiltradas].sort((a,b)=>{

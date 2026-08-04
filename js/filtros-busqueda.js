@@ -185,6 +185,32 @@ function updateFilterBalanceBanner(){
   valEl.textContent=saldoStr;
   valEl.style.color=esDeuda?'var(--danger)':'var(--accent)';
 }
+
+function updateEntriesSummary(){
+  const summaryEl=document.getElementById('entries-summary');
+  if(!summaryEl)return;
+
+  const monthEntries=entries.filter(e=>e.date.slice(0,7)===currentMonth);
+  let filtroCuentas=filterAccount==='todas'?monthEntries:monthEntries.filter(e=>e.acc===filterAccount);
+  let filtrado=filterType==='todos'?filtroCuentas:filtroCuentas.filter(e=>e.txType===filterType);
+  if(filterCategory!=='todas')filtrado=filtrado.filter(e=>e.cat===filterCategory);
+
+  const totalMovimientos=filtrado.length;
+  const ingresos=filtrado.filter(e=>e.txType==='ingreso').reduce((s,e)=>s+entryCOP(e),0);
+  const gastos=filtrado.filter(e=>e.txType!=='ingreso'&&e.cat!=='Transferencia').reduce((s,e)=>s+entryCOP(e),0);
+  const balance=ingresos-gastos;
+
+  // Solo mostrar si hay movimientos
+  summaryEl.style.display=totalMovimientos>0?'block':'none';
+
+  document.getElementById('summary-count').textContent=totalMovimientos.toLocaleString('es-CO');
+  document.getElementById('summary-ingresos').textContent=fmtCOP(ingresos);
+  document.getElementById('summary-gastos').textContent=fmtCOP(gastos);
+
+  const balanceEl=document.getElementById('summary-balance');
+  balanceEl.textContent=fmtCOP(balance);
+  balanceEl.style.color=balance>=0?'var(--accent)':'var(--danger)';
+}
 const RECURRENTES=[
   {name:'Salario (ingreso)',amount:2675,acc:'ontop',cat:'Otro',day:26,isIncome:true},
   {name:'Arriendo',amount:1630000,acc:'debito',cat:'Otro',day:3},
