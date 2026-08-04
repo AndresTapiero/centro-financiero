@@ -400,35 +400,37 @@
       </div>
     </div>
     <div class="input-section">
-      <div class="input-label">🔍 Buscar en todo tu historial</div>
-      <label class="filtro-label">Texto</label>
-      <input class="inp" id="search-text" type="text" placeholder='Ej: "taller", "moto"...' oninput="buscarEnHistorial()" style="width:100%;margin-bottom:12px">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 8px">
-        <div>
-          <label class="filtro-label">Desde</label>
-          <input class="inp" id="search-desde" type="date" style="width:100%;height:36px;font-size:11px" onchange="buscarEnHistorial()">
+      <div class="input-label">🔍 Filtrar movimientos</div>
+      <input class="inp" id="quick-search" type="text" placeholder='Buscar por nombre: "taller", "spotify"...' oninput="actualizarBuscador()" style="width:100%;margin-bottom:12px">
+      <button id="search-historico-btn" style="display:none;background:none;border:none;color:var(--text3);font-size:11px;cursor:pointer;text-decoration:underline;margin-bottom:10px" onclick="toggleBuscadorHistorico()">📅 Buscar en todo tu historial</button>
+      <div id="search-historico" style="display:none;padding-top:10px;border-top:1px solid var(--border)">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 8px">
+          <div>
+            <label class="filtro-label">Desde</label>
+            <input class="inp" id="search-desde" type="date" style="width:100%;height:36px;font-size:11px" onchange="buscarEnHistorial()">
+          </div>
+          <div>
+            <label class="filtro-label">Hasta</label>
+            <input class="inp" id="search-hasta" type="date" style="width:100%;height:36px;font-size:11px" onchange="buscarEnHistorial()">
+          </div>
+          <div>
+            <label class="filtro-label">Tipo</label>
+            <select class="inp" id="search-tipo" style="width:100%;height:36px;font-size:11px" onchange="buscarEnHistorial()">
+              <option value="todos">Todo tipo</option>
+              <option value="gasto">➖ Gastos</option>
+              <option value="ingreso">➕ Ingresos</option>
+            </select>
+          </div>
+          <div>
+            <label class="filtro-label">Cuenta</label>
+            <select class="inp" id="search-cuenta" style="width:100%;height:36px;font-size:11px" onchange="buscarEnHistorial()">
+              <option value="todas">Toda cuenta</option>
+            </select>
+          </div>
         </div>
-        <div>
-          <label class="filtro-label">Hasta</label>
-          <input class="inp" id="search-hasta" type="date" style="width:100%;height:36px;font-size:11px" onchange="buscarEnHistorial()">
-        </div>
-        <div>
-          <label class="filtro-label">Tipo de movimiento</label>
-          <select class="inp" id="search-tipo" style="width:100%;height:36px;font-size:11px" onchange="buscarEnHistorial()">
-            <option value="todos">Todo tipo</option>
-            <option value="gasto">➖ Gastos</option>
-            <option value="ingreso">➕ Ingresos</option>
-          </select>
-        </div>
-        <div>
-          <label class="filtro-label">Cuenta</label>
-          <select class="inp" id="search-cuenta" style="width:100%;height:36px;font-size:11px" onchange="buscarEnHistorial()">
-            <option value="todas">Toda cuenta</option>
-          </select>
-        </div>
+        <button id="search-limpiar-btn" style="display:none;background:none;border:none;color:var(--text3);font-size:10px;cursor:pointer;text-decoration:underline;margin-top:10px" onclick="limpiarBusqueda()">Limpiar búsqueda</button>
+        <div id="search-results" style="margin-top:10px"></div>
       </div>
-      <button id="search-limpiar-btn" style="display:none;background:none;border:none;color:var(--text3);font-size:10px;cursor:pointer;text-decoration:underline;margin-top:10px" onclick="limpiarBusqueda()">Limpiar búsqueda</button>
-      <div id="search-results" style="margin-top:10px"></div>
     </div>
     <div id="filter-balance-banner" style="display:none;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:10px 14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
       <span style="font-size:11px;color:var(--text2)" id="filter-balance-label"></span>

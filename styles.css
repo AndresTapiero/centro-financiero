@@ -91,18 +91,19 @@ option{color:var(--text);padding:6px}
 .entries-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
 .entry-row{padding:10px 16px;border-bottom:1px solid var(--border);transition:background .1s}
 .entry-row:last-child{border-bottom:none}.entry-row:hover{background:var(--surface2)}
-.entry-row-top{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.entry-row-top{display:flex;align-items:flex-start;gap:8px;margin-bottom:4px}
 .entry-date{font-family:var(--mono);font-size:11px;color:var(--text3);flex-shrink:0}
 .entry-name{flex:1;font-size:13px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.entry-amount-group{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
 .entry-row-bottom{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding-left:16px;margin-bottom:6px}
 .entry-acc{font-size:9px;color:var(--text3);font-family:var(--mono);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1}
 .entry-cat{font-size:10px;font-family:var(--mono);padding:2px 8px;border-radius:99px;white-space:nowrap;flex-shrink:0;max-width:100%;overflow:hidden;text-overflow:ellipsis}
-.entry-amount{font-family:var(--mono);font-size:13px;font-weight:700;flex-shrink:0;margin-left:auto;padding-left:8px}
+.entry-amount{font-family:var(--mono);font-size:13px;font-weight:700;flex-shrink:0}
 .entry-actions{display:flex;gap:6px;align-items:center;padding-left:16px}
 .entry-icon-btn{width:32px;height:32px;border-radius:8px;border:1px solid var(--border2);background:var(--surface);color:var(--text2);font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;padding:0}
 .entry-icon-btn:hover{background:var(--surface3)}
 .entry-primary-btn{height:32px;padding:0 16px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-weight:700;font-size:12px;cursor:pointer;flex-shrink:0}
-.entry-del-btn{width:32px;height:32px;border-radius:8px;border:1px solid var(--border2);background:var(--surface);color:var(--text2);font-size:15px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;margin-left:auto}
+.entry-del-btn{width:24px;height:24px;border-radius:6px;border:1px solid var(--border2);background:var(--surface);color:var(--text2);font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;padding:0;transition:all .15s}
 .entry-del-btn:hover{background:rgba(220,38,38,.08);color:var(--danger);border-color:rgba(220,38,38,.3)}
 .btn-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:0 2px;transition:color .15s}
 .btn-del:hover{color:var(--danger)}

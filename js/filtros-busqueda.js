@@ -26,13 +26,70 @@ function poblarFiltroCuentaBusqueda(){
   if([...sel.options].some(o=>o.value===valorActual))sel.value=valorActual;
 }
 
+let buscadorHistoricoAbierto=false;
+
+function toggleBuscadorHistorico(){
+  buscadorHistoricoAbierto=!buscadorHistoricoAbierto;
+  document.getElementById('search-historico').style.display=buscadorHistoricoAbierto?'block':'none';
+}
+
+function actualizarBuscador(){
+  const q=document.getElementById('quick-search').value.trim().toLowerCase();
+  const btn=document.getElementById('search-historico-btn');
+
+  // Si escriben algo, mostrar el botón de búsqueda histórica
+  btn.style.display=q.length>=2?'block':'none';
+
+  // Si está buscando solo en el mes actual (sin filtros históricos activados)
+  if(!buscadorHistoricoAbierto){
+    buscarEnMes(q);
+  }
+}
+
+function buscarEnMes(q){
+  const monthEntries=entries.filter(e=>e.date.slice(0,7)===currentMonth);
+  let matches=monthEntries;
+  if(q.length>=2)matches=matches.filter(e=>e.name.toLowerCase().includes(q));
+
+  // Aplicar filtros existentes
+  if(filterAccount!=='todas')matches=matches.filter(e=>e.acc===filterAccount);
+  if(filterType!=='todos')matches=matches.filter(e=>e.txType===filterType);
+  if(filterCategory!=='todas')matches=matches.filter(e=>e.cat===filterCategory);
+
+  renderQuickSearchResults(matches,q);
+}
+
+function renderQuickSearchResults(matches,q){
+  // Si el buscador está vacío, render normal (render())
+  if(q.length<2){
+    render();
+    return;
+  }
+
+  // Sino, mostrar solo los matches
+  const list=document.getElementById('entries-list');
+  if(matches.length===0){
+    list.innerHTML=`<div class="empty">Sin resultados para "${q}" en ${MovimientoListRenderer.fechaLarga(currentMonth.split('-').map((x,i)=>i===2?'01':x).join('-')).replace(' 01','').split(' ').slice(1).join(' ')}</div>`;
+    document.getElementById('entries-summary').style.display='none';
+  }else{
+    const ACCOUNT_ORDER={nequi:1,debito:2,nu:3,arq:4,ontop:5,davtc:6,rappitc:7};
+    const sorted=[...matches].sort((a,b)=>b.date.localeCompare(a.date));
+    list.innerHTML=new MovimientoListRenderer(sorted).render();
+    updateEntriesSummary();
+  }
+}
+
 function limpiarBusqueda(){
   document.getElementById('search-text').value='';
+  document.getElementById('quick-search').value='';
   document.getElementById('search-desde').value='';
   document.getElementById('search-hasta').value='';
   document.getElementById('search-tipo').value='todos';
   document.getElementById('search-cuenta').value='todas';
+  buscadorHistoricoAbierto=false;
+  document.getElementById('search-historico').style.display='none';
   buscarEnHistorial();
+  render();
 }
 
 function buscarEnHistorial(){

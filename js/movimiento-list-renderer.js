@@ -66,16 +66,16 @@ class MovimientoListRenderer {
       <div class="entry-row-top">
         <span class="avatar-square" style="background:${c};width:28px;height:28px;font-size:11px;border-radius:8px">${e.name.charAt(0).toUpperCase()}</span>
         <div class="entry-name">${esAnomalia ? '⚠️ ' : ''}${e.name}</div>
-        <span class="entry-amount" style="color:${esAnomalia ? 'var(--danger)' : isIncome ? 'var(--accent)' : 'var(--text)'}">${isIncome ? '+' : '−'}${amtStr}</span>
+        <div class="entry-amount-group">
+          <span class="entry-amount" style="color:${esAnomalia ? 'var(--danger)' : isIncome ? 'var(--accent)' : 'var(--text)'}">${isIncome ? '+' : '−'}${amtStr}</span>
+          <button class="entry-del-btn" onclick="event.stopPropagation();deleteEntry('${e.id}')" title="Eliminar">×</button>
+        </div>
       </div>
       <div class="entry-row-bottom">
         <span class="entry-cat" style="background:${c}22;color:${c}">${scat(e.cat)}</span>
         <span class="entry-acc">${meta.label} · ${saldoActual}${e.vehiculo ? ' · 🚗 ' + e.vehiculo : ''}${esAnomalia ? ' · <span style="color:var(--danger)">monto alto</span>' : ''}</span>
       </div>
-      <div class="entry-actions">
-        ${esAnomalia ? `<button class="entry-icon-btn" style="width:auto;padding:0 8px" onclick="event.stopPropagation();fixCurrency('${e.id}')">💱 Era COP</button>` : ''}
-        <button class="entry-del-btn" onclick="event.stopPropagation();deleteEntry('${e.id}')" title="Eliminar">×</button>
-      </div>
+      ${esAnomalia ? `<div class="entry-actions"><button class="entry-icon-btn" style="width:auto;padding:0 8px" onclick="event.stopPropagation();fixCurrency('${e.id}')">💱 Era COP</button></div>` : ''}
     </div>`;
   }
 
