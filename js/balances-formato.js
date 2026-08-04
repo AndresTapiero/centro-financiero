@@ -52,7 +52,7 @@ async function confirmAdjustment(){
       fecha:todayStr(),
       nombre,
       monto:delta,
-      categoria:'Otro',
+      categoria:'[Ajuste de saldo]',
       account_id:accountIdBySlug[key],
       tx_type:tipoMovimiento,
     }).select().single();
@@ -67,7 +67,7 @@ async function confirmAdjustment(){
     return;
   }
 
-  entries.unshift({id:nuevoId,date:todayStr(),name:nombre,amount:delta,cat:'Otro',acc:key,txType:tipoMovimiento});
+  entries.unshift({id:nuevoId,date:todayStr(),name:nombre,amount:delta,cat:'[Ajuste de saldo]',acc:key,txType:tipoMovimiento});
   accounts[key]=newVal;
 
   document.getElementById('adjust-banner').style.display='none';
@@ -128,8 +128,8 @@ function updateNetWorth(){
 
   // Desglose del mes: saldo inicial + ingresos - gastos = saldo final
   const monthEntries=entries.filter(e=>e.date.slice(0,7)===currentMonth);
-  const ingresosMes=monthEntries.filter(e=>e.txType==='ingreso').reduce((s,e)=>s+entryCOP(e),0);
-  const gastosMes=monthEntries.filter(e=>e.txType!=='ingreso'&&e.cat!=='Transferencia').reduce((s,e)=>s+entryCOP(e),0);
+  const ingresosMes=monthEntries.filter(e=>e.txType==='ingreso'&&e.cat!=='[Ajuste de saldo]').reduce((s,e)=>s+entryCOP(e),0);
+  const gastosMes=monthEntries.filter(e=>e.txType!=='ingreso'&&e.cat!=='Transferencia'&&e.cat!=='[Ajuste de saldo]').reduce((s,e)=>s+entryCOP(e),0);
 
   // Calcular saldo inicial: saldo final - (ingresos - gastos)
   const saldoFinal=accounts.nequi+accounts.debito+(accounts.arq*accounts.trm)+(accounts.ontop*accounts.trm);
@@ -199,8 +199,8 @@ function renderEstadoMes(){
   if(!currentMonth){ body.innerHTML='<div style="color:var(--text3);font-size:12px">Cargando…</div>'; if(semaforoEl)semaforoEl.textContent=''; return; }
 
   const monthEntries=entries.filter(e=>e.date.slice(0,7)===currentMonth);
-  const ingresos=monthEntries.filter(e=>e.txType==='ingreso').reduce((s,e)=>s+entryCOP(e),0);
-  const gastos=monthEntries.filter(e=>e.txType!=='ingreso'&&e.cat!=='Transferencia').reduce((s,e)=>s+entryCOP(e),0);
+  const ingresos=monthEntries.filter(e=>e.txType==='ingreso'&&e.cat!=='[Ajuste de saldo]').reduce((s,e)=>s+entryCOP(e),0);
+  const gastos=monthEntries.filter(e=>e.txType!=='ingreso'&&e.cat!=='Transferencia'&&e.cat!=='[Ajuste de saldo]').reduce((s,e)=>s+entryCOP(e),0);
   const balanceNeto=ingresos-gastos;
   const pctComprometido=ingresos>0?Math.round(gastos/ingresos*100):0;
 

@@ -247,7 +247,7 @@ function updateEntriesSummary(){
   const summaryEl=document.getElementById('entries-summary');
   if(!summaryEl)return;
 
-  const monthEntries=entries.filter(e=>e.date.slice(0,7)===currentMonth);
+  const monthEntries=entries.filter(e=>e.date.slice(0,7)===currentMonth&&e.cat!=='[Ajuste de saldo]');
   let filtroCuentas=filterAccount==='todas'?monthEntries:monthEntries.filter(e=>e.acc===filterAccount);
   let filtrado=filterType==='todos'?filtroCuentas:filtroCuentas.filter(e=>e.txType===filterType);
   if(filterCategory!=='todas')filtrado=filtrado.filter(e=>e.cat===filterCategory);
