@@ -160,44 +160,58 @@
   </div>
 
   <div class="ats-card">
-    <div style="display:flex;justify-content:center;margin-bottom:14px">
+    <div style="display:flex;justify-content:center;margin-bottom:20px">
       <select class="inp" id="month-select" style="width:auto;height:34px;font-size:12px" onchange="onMonthChange()"></select>
     </div>
     <div id="ats-breakdown" style="display:none">
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.15)">
-        <span style="color:var(--hero-text2);font-size:12px">Saldo inicial del mes</span>
-        <span style="font-family:var(--mono);font-weight:700;font-size:14px" id="ats-saldo-inicial">$0</span>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;align-items:center">
+        <div style="text-align:center">
+          <div class="ats-label" style="font-size:10px;margin-bottom:8px">Saldo inicial</div>
+          <div class="ats-flow-value" id="ats-saldo-inicial" style="color:var(--hero-text2)">$0</div>
+        </div>
+        <div style="text-align:center;color:var(--accent);font-size:20px;font-weight:700">+</div>
+        <div style="text-align:center">
+          <div class="ats-label" style="font-size:10px;margin-bottom:8px">Ingresos</div>
+          <div class="ats-flow-value" id="ats-ingresos" style="color:var(--accent)">$0</div>
+        </div>
+        <div style="text-align:center">
+          <div class="ats-label" style="font-size:10px;margin-bottom:8px">= Disponible</div>
+          <div class="ats-flow-value" id="ats-disponible-mes" style="color:var(--hero-text)">$0</div>
+        </div>
       </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.15)">
-        <span style="color:var(--hero-text2);font-size:12px">+ Ingresos del mes</span>
-        <span style="font-family:var(--mono);font-weight:700;font-size:14px;color:var(--accent)" id="ats-ingresos">$0</span>
+      <div style="display:flex;align-items:center;justify-content:center;margin:16px 0">
+        <div style="height:1px;flex:1;background:rgba(255,255,255,.15)"></div>
+        <span style="margin:0 12px;color:var(--hero-text2);font-size:11px;font-weight:600">Gastos del mes</span>
+        <div style="height:1px;flex:1;background:rgba(255,255,255,.15)"></div>
       </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:2px solid rgba(255,255,255,.25)">
-        <span style="color:var(--hero-text2);font-size:12px">− Gastos del mes</span>
-        <span style="font-family:var(--mono);font-weight:700;font-size:14px;color:#FF9999" id="ats-gastos">$0</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0">
-        <span style="color:var(--hero-text);font-size:13px;font-weight:700">= Saldo final (hoy si es mes actual)</span>
-        <span style="font-family:var(--mono);font-weight:700;font-size:16px" id="ats-saldo-final">$0</span>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:center">
+        <div style="text-align:center">
+          <div class="ats-label" style="font-size:10px;margin-bottom:8px">Gastos</div>
+          <div class="ats-flow-value" id="ats-gastos" style="color:#FF9999">$0</div>
+        </div>
+        <div style="text-align:center">
+          <div class="ats-label" style="font-size:10px;margin-bottom:8px">= Saldo final</div>
+          <div class="ats-flow-value" id="ats-saldo-final" style="font-size:28px">$0</div>
+        </div>
       </div>
     </div>
     <div id="ats-simple" style="display:none">
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
-        <div style="min-width:0">
-          <div class="ats-label" style="font-size:9px">Disponible bruto</div>
-          <div class="ats-value" id="ats-bruto" style="font-size:clamp(13px,4.2vw,22px);color:var(--hero-text2);overflow-wrap:anywhere">$0</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+        <div style="text-align:center">
+          <div class="ats-label" style="font-size:10px;margin-bottom:8px">Liquidez bruta</div>
+          <div class="ats-value" id="ats-bruto" style="font-size:clamp(18px,5vw,26px);color:var(--hero-text2);overflow-wrap:anywhere">$0</div>
         </div>
-        <div style="min-width:0">
-          <div class="ats-label" style="font-size:9px">− Pendientes</div>
-          <div class="ats-value" id="ats-pendientes" style="font-size:clamp(13px,4.2vw,22px);color:var(--warn);overflow-wrap:anywhere">$0</div>
+        <div style="text-align:center">
+          <div class="ats-label" style="font-size:10px;margin-bottom:8px">− Pendientes</div>
+          <div class="ats-value" id="ats-pendientes" style="font-size:clamp(18px,5vw,26px);color:var(--warn);overflow-wrap:anywhere">$0</div>
         </div>
-        <div style="min-width:0">
-          <div class="ats-label" style="font-size:9px">= Libre real</div>
-          <div class="ats-value" id="ats-value" style="font-size:clamp(13px,4.2vw,22px);overflow-wrap:anywhere">$0</div>
+        <div style="text-align:center">
+          <div class="ats-label" style="font-size:10px;margin-bottom:8px">= Libre real</div>
+          <div class="ats-value" id="ats-value" style="font-size:clamp(18px,5vw,26px);overflow-wrap:anywhere">$0</div>
         </div>
       </div>
     </div>
-    <div class="ats-sub" id="ats-sub" style="margin-top:12px">Liquidez en pesos y dólares, menos compromisos pendientes del mes</div>
+    <div class="ats-sub" id="ats-sub" style="margin-top:16px;font-size:11px">Liquidez en pesos y dólares, menos compromisos pendientes del mes</div>
   </div>
 
   <nav class="main-nav">

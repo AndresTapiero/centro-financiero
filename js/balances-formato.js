@@ -145,8 +145,10 @@ function updateNetWorth(){
   if(esMesActual){
     breakdownEl.style.display='block';
     simpleEl.style.display='none';
+    const disponibleMes=saldoInicial+ingresosMes;
     document.getElementById('ats-saldo-inicial').textContent=fmtCOP(saldoInicial);
     document.getElementById('ats-ingresos').textContent=fmtCOP(ingresosMes);
+    document.getElementById('ats-disponible-mes').textContent=fmtCOP(disponibleMes);
     document.getElementById('ats-gastos').textContent=fmtCOP(gastosMes);
     const finalEl=document.getElementById('ats-saldo-final');
     finalEl.textContent=fmtCOP(saldoFinal);
