@@ -126,28 +126,56 @@ function updateNetWorth(){
   nwEl.textContent=fmtCOP(net);
   nwEl.style.color=net>=0?'var(--accent)':'var(--danger)';
 
-  // Libre Real: Nequi + Débito + (ARQ y Ontop convertidos a COP con la TRM actual) — Nu queda FUERA (no es gasto)
-  // Si el mes seleccionado ya pasó, reconstruimos el saldo real de ESE mes en vez de usar el de hoy.
+  // Desglose del mes: saldo inicial + ingresos - gastos = saldo final
+  const monthEntries=entries.filter(e=>e.date.slice(0,7)===currentMonth);
+  const ingresosMes=monthEntries.filter(e=>e.txType==='ingreso').reduce((s,e)=>s+entryCOP(e),0);
+  const gastosMes=monthEntries.filter(e=>e.txType!=='ingreso'&&e.cat!=='Transferencia').reduce((s,e)=>s+entryCOP(e),0);
+
+  // Calcular saldo inicial: saldo final - (ingresos - gastos)
+  const saldoFinal=accounts.nequi+accounts.debito+(accounts.arq*accounts.trm)+(accounts.ontop*accounts.trm);
+  const saldoInicial=saldoFinal-(ingresosMes-gastosMes);
+
+  const breakdownEl=document.getElementById('ats-breakdown');
+  const simpleEl=document.getElementById('ats-simple');
+
+  const esMesActual=currentMonth===todayStr().slice(0,7);
   const saldoHist=calcularSaldoHistorico(currentMonth);
-  const bruto=saldoHist.nequi+saldoHist.debito+(saldoHist.arq*accounts.trm)+(saldoHist.ontop*accounts.trm);
-  const pendCOP=saldoHist.esHistorico?0:pendientes.filter(p=>!p.isIncome&&['nequi','debito','arq','ontop'].includes(p.acc))
-    .reduce((s,p)=>{
-      const meta=ACCOUNTS_META[p.acc];
-      const monto=meta.currency==='USD'?p.amount*accounts.trm:p.amount;
-      return s+monto;
-    },0);
-  const libre=bruto-pendCOP;
-  document.getElementById('ats-bruto').textContent=fmtCOP(bruto);
-  document.getElementById('ats-pendientes').textContent=fmtCOP(pendCOP);
-  document.getElementById('ats-value').textContent=fmtCOP(libre);
-  document.getElementById('ats-value').style.color=libre>500000?'var(--accent)':libre>0?'var(--warn)':'var(--danger)';
-  const subEl=document.getElementById('ats-sub');
-  if(subEl){
-    subEl.innerHTML=saldoHist.fallo
-      ?`⚠️ No se pudo reconstruir el saldo de ese mes — la carga de tus movimientos falló. Este es el saldo de <strong>hoy</strong>, no el de ese mes. Ve a 🔧 Diagnóstico → "Reintentar carga" y vuelve a intentarlo.`
-      :saldoHist.esHistorico
-      ?`📅 Saldo reconstruido al cierre de ese mes (no se restan pendientes, ya resueltos). ARQ/Ontop con TRM de hoy, y las transferencias recibidas ese mes pueden no reflejarse del todo.`
-      :'Liquidez en pesos y dólares, menos compromisos pendientes del mes';
+
+  // Si es mes actual: mostrar desglose. Si es mes pasado: mostrar saldo reconstruido simple.
+  if(esMesActual){
+    breakdownEl.style.display='block';
+    simpleEl.style.display='none';
+    document.getElementById('ats-saldo-inicial').textContent=fmtCOP(saldoInicial);
+    document.getElementById('ats-ingresos').textContent=fmtCOP(ingresosMes);
+    document.getElementById('ats-gastos').textContent=fmtCOP(gastosMes);
+    const finalEl=document.getElementById('ats-saldo-final');
+    finalEl.textContent=fmtCOP(saldoFinal);
+    finalEl.style.color=saldoFinal>=0?'var(--accent)':'var(--danger)';
+    const subEl=document.getElementById('ats-sub');
+    if(subEl)subEl.innerHTML='Desglose completo del mes actual (hasta hoy)';
+  }else{
+    breakdownEl.style.display='none';
+    simpleEl.style.display='block';
+    const bruto=saldoHist.nequi+saldoHist.debito+(saldoHist.arq*accounts.trm)+(saldoHist.ontop*accounts.trm);
+    const pendCOP=saldoHist.esHistorico?0:pendientes.filter(p=>!p.isIncome&&['nequi','debito','arq','ontop'].includes(p.acc))
+      .reduce((s,p)=>{
+        const meta=ACCOUNTS_META[p.acc];
+        const monto=meta.currency==='USD'?p.amount*accounts.trm:p.amount;
+        return s+monto;
+      },0);
+    const libre=bruto-pendCOP;
+    document.getElementById('ats-bruto').textContent=fmtCOP(bruto);
+    document.getElementById('ats-pendientes').textContent=fmtCOP(pendCOP);
+    document.getElementById('ats-value').textContent=fmtCOP(libre);
+    document.getElementById('ats-value').style.color=libre>500000?'var(--accent)':libre>0?'var(--warn)':'var(--danger)';
+    const subEl=document.getElementById('ats-sub');
+    if(subEl){
+      subEl.innerHTML=saldoHist.fallo
+        ?`⚠️ No se pudo reconstruir el saldo de ese mes — la carga de tus movimientos falló. Este es el saldo de <strong>hoy</strong>, no el de ese mes. Ve a 🔧 Diagnóstico → "Reintentar carga" y vuelve a intentarlo.`
+        :saldoHist.esHistorico
+        ?`📅 Saldo reconstruido al cierre de ese mes (no se restan pendientes, ya resueltos). ARQ/Ontop con TRM de hoy, y las transferencias recibidas ese mes pueden no reflejarse del todo.`
+        :'Liquidez en pesos y dólares, menos compromisos pendientes del mes';
+    }
   }
 
   // Fondo de emergencia — mini progreso en pestaña Cuentas
