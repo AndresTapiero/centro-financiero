@@ -51,6 +51,7 @@ async function addEntry(seguirAgregando){
   // Guardamos primero el movimiento en Supabase; solo si funciona tocamos el saldo local —
   // así nunca queda un saldo cambiado sin su movimiento correspondiente (o viceversa).
   let nuevoId;
+  let isOffline=false;
   try{
     const {data:fila,error}=await sb.from('fin_movimientos').insert({
       user_id:currentUserId,
@@ -66,12 +67,42 @@ async function addEntry(seguirAgregando){
     if(error)throw error;
     nuevoId=fila.id;
   }catch(e){
-    registrarErrorDiagnostico('fin_movimientos (crear)',e);
-    const statusEl=document.getElementById('sync-status');
-    statusEl.style.display='block'; statusEl.style.opacity='1';
-    statusEl.textContent='🛑 No se pudo guardar el movimiento — revisa 🔧 Diagnóstico';
-    statusEl.className='sync-status error';
-    return;
+    // Si no hay conexión, intentar guardar offline
+    if(!navigator.onLine && db){
+      console.log('📴 Sin conexión - guardando offline...');
+      isOffline=true;
+      try{
+        const localId=await saveMovimientoOffline({
+          fecha:date,
+          nombre:name,
+          monto:amount,
+          moneda_override:entryCurrency||null,
+          categoria:cat,
+          account_id:accountIdBySlug[acc],
+          tx_type:type,
+          vehiculo:vehiculoTag||null,
+        });
+        nuevoId=`offline-${localId}`;
+        const statusEl=document.getElementById('sync-status');
+        statusEl.style.display='block'; statusEl.style.opacity='1';
+        statusEl.textContent='💾 Guardado offline - se sincronizará cuando haya conexión';
+        statusEl.className='sync-status warn';
+      }catch(offlineError){
+        registrarErrorDiagnostico('offline storage',offlineError);
+        const statusEl=document.getElementById('sync-status');
+        statusEl.style.display='block'; statusEl.style.opacity='1';
+        statusEl.textContent='🛑 No se pudo guardar - revisa 🔧 Diagnóstico';
+        statusEl.className='sync-status error';
+        return;
+      }
+    }else{
+      registrarErrorDiagnostico('fin_movimientos (crear)',e);
+      const statusEl=document.getElementById('sync-status');
+      statusEl.style.display='block'; statusEl.style.opacity='1';
+      statusEl.textContent='🛑 No se pudo guardar el movimiento — revisa 🔧 Diagnóstico';
+      statusEl.className='sync-status error';
+      return;
+    }
   }
 
   if(meta.type==='credito'){
