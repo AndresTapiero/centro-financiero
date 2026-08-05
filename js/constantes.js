@@ -105,6 +105,9 @@ const SEED_ENTRIES=[
 const SEED_ACCOUNTS={nequi:3000,debito:605254,nu:3039260,lulo:0,arq:231.28,ontop:73.75,trm:3596,davtc:1187348,rappitc:2184199};
 const DEBT_ORIGINAL={davtc:5150000,rappitc:5150000};
 const CREDIT_LIMITS={davtc:18019994,rappitc:10379999}; // cupo aprobado de cada tarjeta, para calcular % de utilización
+// Categorías que cuentan como "necesidad básica" para la regla del 50% (definidas junto al usuario,
+// no es una clasificación universal — ajusta esta lista si tu criterio cambia).
+const NECESIDADES_BASICAS=['Arriendo','Servicios','Alimentación · Mercado','Salud','Vehículo · Gasolina','Transporte'];
 let pendientes=[];
 let currentMonth=null;
 

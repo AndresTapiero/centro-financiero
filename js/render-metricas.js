@@ -193,6 +193,91 @@ function renderMetrics(){
   renderGastoTarjetasCategoria();
   renderCreditoVsLiquidoPorCategoria();
   renderUtilizacionCupo();
+  renderRegla503020();
+}
+
+/** Regla del 50%: % de tus ingresos que se va en NECESIDADES_BASICAS (constantes.js),
+ *  con el período agrupado en ventanas de `periodo` meses (1=mensual, 3=trimestral, etc.),
+ *  terminando siempre en el mes actual. La meta declarada por el usuario es no superar el 50%. */
+function renderRegla503020(){
+  const selEl=document.getElementById('regla-periodo');
+  const pctEl=document.getElementById('regla-pct-actual');
+  const msgEl=document.getElementById('regla-mensaje');
+  const chart=document.getElementById('regla-chart');
+  const legend=document.getElementById('regla-legend');
+  const desgloseEl=document.getElementById('regla-desglose');
+  if(!selEl||!chart)return;
+
+  const periodo=parseInt(selEl.value)||1;
+  const monthNames=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+  // Hasta 6 ventanas de `periodo` meses cada una, terminando en el mes actual
+  const totalMeses=Math.min(periodo*6,24);
+  const meses=ultimosMeses(totalMeses);
+  const ventanas=[];
+  for(let i=0;i<meses.length;i+=periodo){
+    ventanas.push(meses.slice(i,i+periodo));
+  }
+
+  function calcularVentana(mesesVentana){
+    const ventEntries=entries.filter(e=>mesesVentana.includes(e.date.slice(0,7)));
+    const ingresos=ventEntries.filter(e=>e.txType==='ingreso'&&e.cat!=='[Ajuste de saldo]').reduce((s,e)=>s+entryCOP(e),0);
+    const basicasEntries=ventEntries.filter(e=>e.txType!=='ingreso'&&NECESIDADES_BASICAS.includes(e.cat));
+    const basicas=basicasEntries.reduce((s,e)=>s+entryCOP(e),0);
+    const pct=ingresos>0?Math.round(basicas/ingresos*100):null;
+    return {ingresos,basicas,basicasEntries,pct};
+  }
+
+  const datos=ventanas.map(mesesVentana=>({mesesVentana,...calcularVentana(mesesVentana)}));
+  const ultimaConDatos=[...datos].reverse().find(d=>d.pct!==null)||datos[datos.length-1];
+
+  const colorRegla=pct=>pct===null?'var(--text3)':pct>60?'var(--danger)':pct>50?'var(--warn)':'var(--safe)';
+
+  if(pctEl){
+    pctEl.textContent=ultimaConDatos.pct===null?'—':ultimaConDatos.pct+'%';
+    pctEl.style.color=colorRegla(ultimaConDatos.pct);
+  }
+  if(msgEl){
+    msgEl.textContent=ultimaConDatos.pct===null
+      ?'Sin ingresos registrados en este período para calcular el %.'
+      :ultimaConDatos.pct<=50
+      ?`✓ Dentro de la meta — te quedan ${fmtCOP((ultimaConDatos.ingresos*0.5)-ultimaConDatos.basicas)} de margen antes del 50%.`
+      :`⚠ Superaste la meta por ${fmtCOP(ultimaConDatos.basicas-(ultimaConDatos.ingresos*0.5))} en este período.`;
+    msgEl.style.color=colorRegla(ultimaConDatos.pct);
+  }
+
+  if(chart){
+    chart.innerHTML=datos.map(d=>{
+      const h=d.pct===null?4:Math.max(4,Math.min(100,d.pct));
+      const color=colorRegla(d.pct);
+      return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;height:100%">
+        <div style="font-size:8px;font-family:var(--mono);color:var(--text2)">${d.pct===null?'—':d.pct+'%'}</div>
+        <div style="width:100%;max-width:36px;height:${h}px;background:${color};border-radius:4px 4px 0 0;transition:height .5s"></div>
+      </div>`;
+    }).join('');
+  }
+  if(legend){
+    legend.innerHTML=datos.map(d=>{
+      const primero=d.mesesVentana[0],ultimo=d.mesesVentana[d.mesesVentana.length-1];
+      const [,moIni]=primero.split('-');
+      const [,moFin]=ultimo.split('-');
+      const etiqueta=periodo===1?monthNames[parseInt(moIni)-1]:`${monthNames[parseInt(moIni)-1]}-${monthNames[parseInt(moFin)-1]}`;
+      return `<span>${etiqueta}</span>`;
+    }).join('');
+  }
+
+  if(desgloseEl){
+    if(ultimaConDatos.basicasEntries.length===0){
+      desgloseEl.innerHTML='<div style="color:var(--text3);font-size:12px">Sin gastos en categorías básicas en este período.</div>';
+    }else{
+      const porCat={};
+      ultimaConDatos.basicasEntries.forEach(e=>{ porCat[e.cat]=(porCat[e.cat]||0)+entryCOP(e); });
+      desgloseEl.innerHTML=Object.entries(porCat).sort((a,b)=>b[1]-a[1]).map(([cat,val])=>{
+        const c=col(cat);
+        return `<div style="display:flex;justify-content:space-between;font-size:11px;padding:4px 0"><span style="color:${c}">${scat(cat)}</span><span style="font-family:var(--mono)">${fmtCOP(val)}</span></div>`;
+      }).join('');
+    }
+  }
 }
 
 /** % del cupo aprobado usado en cada tarjeta, con semáforo: <30% sano, 30-70% vigilar,
