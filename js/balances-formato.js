@@ -153,17 +153,23 @@ function updateNetWorth(){
       },0);
     const libreReal=saldoFinal-pendCOP;
 
-    document.getElementById('ats-ingresos').textContent=fmtCOP(ingresosMes);
-    document.getElementById('ats-gastos').textContent=fmtCOP(gastosMes);
-
-    const finalEl=document.getElementById('ats-saldo-final');
-    finalEl.textContent=fmtCOP(saldoFinal);
-    finalEl.style.color=saldoFinal>=0?'var(--accent)':'var(--danger)';
-
-    document.getElementById('ats-pendientes-actual').textContent=fmtCOP(pendCOP);
+    const ingresosEl=document.getElementById('ats-ingresos');
+    const gastosEl=document.getElementById('ats-gastos');
+    const pendientesEl=document.getElementById('ats-pendientes-actual');
     const libreEl=document.getElementById('ats-libre-real');
-    libreEl.textContent=fmtCOP(libreReal);
-    libreEl.style.color=libreReal>500000?'var(--accent)':libreReal>0?'var(--warn)':'var(--danger)';
+    const finalEl=document.getElementById('ats-saldo-final');
+
+    if(ingresosEl)ingresosEl.textContent=fmtCOP(ingresosMes);
+    if(gastosEl)gastosEl.textContent=fmtCOP(gastosMes);
+    if(finalEl){
+      finalEl.textContent=fmtCOP(saldoFinal);
+      finalEl.style.color=saldoFinal>=0?'var(--accent)':'var(--danger)';
+    }
+    if(pendientesEl)pendientesEl.textContent=fmtCOP(pendCOP);
+    if(libreEl){
+      libreEl.textContent=fmtCOP(libreReal);
+      libreEl.style.color=libreReal>500000?'var(--accent)':libreReal>0?'var(--warn)':'var(--danger)';
+    }
 
     const subEl=document.getElementById('ats-sub');
     if(subEl)subEl.innerHTML='Ingresos − Gastos = Saldo actual · Menos pendientes = Libre real para gastar';
