@@ -192,6 +192,42 @@ function renderMetrics(){
   renderDebtProjection();
   renderGastoTarjetasCategoria();
   renderCreditoVsLiquidoPorCategoria();
+  renderUtilizacionCupo();
+}
+
+/** % del cupo aprobado usado en cada tarjeta, con semáforo: <30% sano, 30-70% vigilar,
+ *  >70% afecta el historial crediticio (regla estándar de utilización de crédito). */
+function renderUtilizacionCupo(){
+  const tarjetas=[
+    {acc:'davtc',pctId:'util-dav-pct',fillId:'util-dav-fill',currentId:'util-dav-current',limiteId:'util-dav-limite'},
+    {acc:'rappitc',pctId:'util-rappi-pct',fillId:'util-rappi-fill',currentId:'util-rappi-current',limiteId:'util-rappi-limite'},
+  ];
+  if(!document.getElementById(tarjetas[0].pctId))return;
+
+  const colorUtilizacion=pct=>pct>70?'var(--danger)':pct>30?'var(--warn)':'var(--safe)';
+  let deudaTotal=0,cupoTotal=0;
+
+  tarjetas.forEach(({acc,pctId,fillId,currentId,limiteId})=>{
+    const deuda=accounts[acc]||0;
+    const cupo=CREDIT_LIMITS[acc]||0;
+    const pct=cupo>0?Math.min(100,Math.round(deuda/cupo*100)):0;
+    const color=colorUtilizacion(pct);
+    document.getElementById(pctId).textContent=pct+'%';
+    document.getElementById(pctId).style.color=color;
+    document.getElementById(fillId).style.width=pct+'%';
+    document.getElementById(fillId).style.background=color;
+    document.getElementById(currentId).textContent=fmtCOP(deuda);
+    document.getElementById(limiteId).textContent='Cupo: '+fmtCOP(cupo);
+    deudaTotal+=deuda;
+    cupoTotal+=cupo;
+  });
+
+  const pctTotal=cupoTotal>0?Math.min(100,Math.round(deudaTotal/cupoTotal*100)):0;
+  const totalEl=document.getElementById('util-total-pct');
+  if(totalEl){
+    totalEl.textContent=pctTotal+'%';
+    totalEl.style.color=colorUtilizacion(pctTotal);
+  }
 }
 
 /** Cargos nuevos (txType='gasto') a tarjetas de crédito este mes, agrupados por categoría.

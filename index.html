@@ -626,6 +626,25 @@
     </div>
 
     <div class="card">
+      <div class="card-title">📊 Utilización de cupo</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:14px">Qué tanto de tu cupo aprobado está usado. Bajo 30% es sano, entre 30-70% hay que vigilarlo, sobre 70% afecta tu historial crediticio.</div>
+      <div class="debt-progress">
+        <div class="debt-top"><span class="debt-name">Davivienda TC</span><span id="util-dav-pct">0%</span></div>
+        <div class="debt-track"><div class="debt-fill" id="util-dav-fill" style="width:0%"></div></div>
+        <div class="debt-nums"><span id="util-dav-current">$0</span><span id="util-dav-limite">Cupo: $0</span></div>
+      </div>
+      <div class="debt-progress">
+        <div class="debt-top"><span class="debt-name">Rappi Card</span><span id="util-rappi-pct">0%</span></div>
+        <div class="debt-track"><div class="debt-fill" id="util-rappi-fill" style="width:0%"></div></div>
+        <div class="debt-nums"><span id="util-rappi-current">$0</span><span id="util-rappi-limite">Cupo: $0</span></div>
+      </div>
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Utilización combinada</span>
+        <span id="util-total-pct" style="font-family:var(--mono);font-weight:700;font-size:15px">0%</span>
+      </div>
+    </div>
+
+    <div class="card">
       <div class="card-title">💳 En qué se va el crédito <span id="credit-cat-month-label" style="font-weight:400;font-size:9px"></span></div>
       <div style="font-size:11px;color:var(--text3);margin-bottom:12px">Solo cargos a Davivienda TC y Rappi Card este mes, por categoría.</div>
       <div id="credit-cat-list"></div>

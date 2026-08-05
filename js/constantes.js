@@ -104,6 +104,7 @@ const SEED_ENTRIES=[
 ];
 const SEED_ACCOUNTS={nequi:3000,debito:605254,nu:3039260,lulo:0,arq:231.28,ontop:73.75,trm:3596,davtc:1187348,rappitc:2184199};
 const DEBT_ORIGINAL={davtc:5150000,rappitc:5150000};
+const CREDIT_LIMITS={davtc:18019994,rappitc:10379999}; // cupo aprobado de cada tarjeta, para calcular % de utilización
 let pendientes=[];
 let currentMonth=null;
 
