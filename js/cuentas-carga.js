@@ -238,16 +238,37 @@ function updateDueDates(){
   const hoy=new Date();
   const diaHoy=hoy.getDate();
   const diaVencimiento=10; // Davivienda TC y Rappi Card vencen el día 10 de cada mes
+
+  // Detectar si ya se pagó este mes
+  const mesActual=todayStr().slice(0,7);
+  const pagosDavtcEste={davtc:0,rappitc:0};
+  entries.filter(e=>e.date.slice(0,7)===mesActual&&e.cat==='Pago Deuda').forEach(e=>{
+    if(e.acc==='davtc'||e.acc==='rappitc') pagosDavtcEste[e.acc]+=entryCOP(e);
+  });
+
   let diasFaltantes=diaVencimiento-diaHoy;
   if(diasFaltantes<0){
     const diasEnMes=new Date(hoy.getFullYear(),hoy.getMonth()+1,0).getDate();
     diasFaltantes=diasEnMes-diaHoy+diaVencimiento;
   }
-  const texto=diasFaltantes===0?'⚠ Vence HOY (día 10)':diasFaltantes<=3?`⚠ Vence en ${diasFaltantes} día(s) — día 10`:`Vence día 10 · faltan ${diasFaltantes} días`;
-  const color=diasFaltantes<=3?'var(--danger)':'var(--text3)';
-  ['due-davtc','due-rappitc'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(el){ el.textContent=texto; el.style.color=color; }
+
+  const tarjetas={davtc:{id:'due-davtc',nombre:'Davivienda TC'},rappitc:{id:'due-rappitc',nombre:'Rappi Card'}};
+  Object.entries(tarjetas).forEach(([acc,info])=>{
+    const el=document.getElementById(info.id);
+    if(!el)return;
+
+    const pagado=pagosDavtcEste[acc]>0;
+    if(pagado){
+      // Ya se pagó este mes, esperar al siguiente
+      el.textContent='✓ Pago registrado — próximo vencimiento mes que viene';
+      el.style.color='var(--accent)';
+    }else{
+      // Aún no se ha pagado
+      const texto=diasFaltantes===0?'⚠ Vence HOY (día 10)':diasFaltantes<=3?`⚠ Vence en ${diasFaltantes} día(s) — día 10`:`Vence día 10 · faltan ${diasFaltantes} días`;
+      const color=diasFaltantes<=3?'var(--danger)':'var(--text3)';
+      el.textContent=texto;
+      el.style.color=color;
+    }
   });
 }
 
