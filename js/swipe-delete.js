@@ -74,6 +74,10 @@
   // cada vez que cambie de tab o se re-renderice (el listener es idempotente por elemento).
   document.addEventListener('DOMContentLoaded', function(){
     attach(document.getElementById('entries-list'));
+    attach(document.getElementById('pendientes-list'));
   });
-  window.reattachSwipeDelete = function(){ attach(document.getElementById('entries-list')); };
+  window.reattachSwipeDelete = function(){
+    attach(document.getElementById('entries-list'));
+    attach(document.getElementById('pendientes-list'));
+  };
 })();

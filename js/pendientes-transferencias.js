@@ -38,13 +38,21 @@ async function addPendiente(){
 }
 
 async function deletePendiente(id){
-  pendientes=pendientes.filter(p=>p.id!==id);
+  const p=pendientes.find(x=>x.id===id);
+  if(!p)return false;
+  const meta=ACCOUNTS_META[p.acc];
+  const montoStr=meta.currency==='USD'?fmtUSD(p.amount):fmtCOP(p.amount);
+  const confirmado=await customConfirm(`¿Eliminar este pendiente?\n\n"${p.name}"\n${montoStr} — ${meta.label}\n${p.date?fmtDate(p.date):'Sin fecha'}`);
+  if(!confirmado)return false;
+
+  pendientes=pendientes.filter(x=>x.id!==id);
   renderPendientes();
   updateNetWorth();
   try{
     const {error}=await sb.from('fin_pendientes').delete().eq('id',id);
     if(error)throw error;
   }catch(e){ registrarErrorDiagnostico('fin_pendientes (borrar)',e); }
+  return true;
 }
 
 function onPendAccountChange(){

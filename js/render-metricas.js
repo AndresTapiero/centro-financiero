@@ -142,6 +142,7 @@ function render(){
   }
   renderPendientes();
   updateNetWorth();
+  if(window.reattachSwipeDelete)window.reattachSwipeDelete();
 }
 
 function renderMetrics(){
