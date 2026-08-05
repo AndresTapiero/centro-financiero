@@ -88,7 +88,7 @@ function render(){
     const over=spent>cap;const near=p>=75&&!over;
     const bc=over?'#FF6B6B':near?'#FFB347':col(cat);
     const sc=over?'over':near?'warn':'ok';
-    const st=over?'⚠ +'+fmtCOP(spent-cap)+' sobre tope':spent===0?'Sin gastos':fmtCOP(cap-spent)+' disponible';
+    const st=over?'⚠ +'+fmtCOP(spent-cap)+' sobre tope':spent===0?'Sin consumo este mes':fmtCOP(cap-spent)+' disponible';
     const comprasCat=gastos.filter(e=>e.cat===cat).sort((a,b)=>b.date.localeCompare(a.date));
     const detailId=`budget-detail-${idx}`;
     const comprasHTML=comprasCat.length?comprasCat.map(e=>{
@@ -111,8 +111,18 @@ function render(){
     </div>`;
   }
 
+  // Grupos/categorías sin ningún consumo este mes se sacan de la lista principal
+  // y se listan aparte, colapsadas, para no ensuciar la vista con topes en 0%.
+  const gruposActivos=[];
+  const gruposSinConsumo=[];
+  ordenGrupos.forEach(llave=>{
+    const cats=grupos[llave];
+    const spentTotal=cats.reduce((s,c)=>s+(bycat[c]||0),0);
+    (spentTotal>0?gruposActivos:gruposSinConsumo).push(llave);
+  });
+
   let idxGlobal=0;
-  document.getElementById('budget-list').innerHTML=resumenHTML+ordenGrupos.map(llave=>{
+  const listaActivaHTML=gruposActivos.map(llave=>{
     const cats=grupos[llave];
     if(cats.length===1&&!cats[0].includes(' · ')){
       // Categoría suelta, sin familia — se muestra igual que antes
@@ -132,6 +142,30 @@ function render(){
     const hijosHTML=`<div id="${groupId}" style="display:none">${cats.map(c=>renderFilaCategoria(c,idxGlobal++,true)).join('')}</div>`;
     return encabezado+hijosHTML;
   }).join('');
+
+  let sinConsumoHTML='';
+  if(gruposSinConsumo.length){
+    const nombresSinConsumo=gruposSinConsumo.map(llave=>{
+      const cats=grupos[llave];
+      return cats.length===1&&!cats[0].includes(' · ')?cats[0]:llave;
+    });
+    const detalleHTML=gruposSinConsumo.map(llave=>{
+      const cats=grupos[llave];
+      const capTotal=cats.reduce((s,c)=>s+CAPS[c],0);
+      const nombre=cats.length===1&&!cats[0].includes(' · ')?cats[0]:llave;
+      return `<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:11px;color:var(--text3)">
+        <span>${nombre}</span><span style="font-family:var(--mono)">tope ${fmtCOP(capTotal)}</span>
+      </div>`;
+    }).join('');
+    sinConsumoHTML=`<div class="budget-row" style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)">
+      <div class="budget-top" style="cursor:pointer" onclick="toggleBudgetDetail('budget-sin-consumo')">
+        <span class="budget-name" style="color:var(--text3);font-size:11px">😴 Sin consumo este mes: ${nombresSinConsumo.join(', ')} <span id="budget-sin-consumo-arrow" style="font-size:9px">▾</span></span>
+      </div>
+      <div id="budget-sin-consumo" style="display:none;margin-top:6px">${detalleHTML}</div>
+    </div>`;
+  }
+
+  document.getElementById('budget-list').innerHTML=resumenHTML+listaActivaHTML+sinConsumoHTML;
 
 
   window._bycat=bycat; window._total=total; window._today=today; window._pct=pct;
