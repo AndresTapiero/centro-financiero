@@ -1,0 +1,25 @@
+/* layout.css — armazón de la página: contenedor, barra superior, tabs y textos de estado
+   que no pertenecen a un componente específico. */
+.app{max-width:1400px;margin:0 auto;padding:1.5rem 2rem 4rem}
+@media(max-width:640px){.app{padding:1.5rem 1rem 4rem}}
+
+.nav{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-bottom:.5rem}
+.nav-brand{font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text2)}
+.nav-month{font-family:var(--mono);font-size:12px;color:var(--accent);background:rgba(14,159,110,.1);padding:4px 12px;border-radius:99px;border:1px solid rgba(14,159,110,.25)}
+.user-menu-item{display:block;width:100%;text-align:left;background:none;border:none;color:var(--text);font-size:12px;padding:8px 10px;border-radius:6px;cursor:pointer}
+.user-menu-item:hover{background:var(--surface3)}
+.sync-status{font-size:10px;color:var(--text3);text-align:center;margin-bottom:1rem;font-family:var(--mono);transition:opacity .5s}
+.sync-status.ok{color:var(--accent)}
+.sync-status.error{color:var(--danger)}
+
+.main-nav{display:flex;gap:2px;overflow-x:auto;margin-bottom:1.25rem;background:var(--surface);border-radius:12px;padding:4px;box-shadow:0 1px 3px rgba(23,23,31,.06);-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.main-nav::-webkit-scrollbar{display:none}
+.nav-item{display:flex;align-items:center;gap:6px;flex-shrink:0;padding:9px 14px;background:none;border:none;border-radius:8px;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}
+.nav-icon{display:flex;align-items:center;justify-content:center}
+.nav-item:hover{background:var(--surface3)}
+.nav-item.active{background:var(--hero-bg);color:var(--hero-text)}
+
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+.hint{font-size:10px;color:var(--text3);text-align:center;margin-top:1rem;line-height:1.7}

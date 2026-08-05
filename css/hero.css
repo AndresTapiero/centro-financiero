@@ -1,0 +1,23 @@
+/* hero.css — la tarjeta de resumen de liquidez (arriba del todo), el elemento
+   más importante de la pantalla de Cuentas. */
+.ats-card{background:var(--hero-bg);color:var(--hero-text);border-radius:var(--r);padding:1.75rem;margin-bottom:1rem;text-align:center;box-shadow:0 8px 24px rgba(20,20,31,.18);border:1px solid transparent}
+:root.dark .ats-card{border-color:rgba(31,111,235,.35);box-shadow:0 0 0 1px rgba(31,111,235,.08),0 10px 34px rgba(31,111,235,.16),0 10px 26px rgba(0,0,0,.5)}
+.ats-label{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--hero-text2);margin-bottom:6px;font-weight:600}
+.ats-value{font-family:var(--mono);font-size:38px;font-weight:700;color:var(--accent);line-height:1;white-space:nowrap}
+.ats-flow-value{font-family:var(--mono);font-size:20px;font-weight:700;line-height:1;white-space:nowrap}
+.ats-flow-value-lg{font-family:var(--mono);font-weight:700;line-height:1;white-space:nowrap;font-size:24px}
+.ats-flow-value-xl{font-family:var(--mono);font-weight:700;line-height:1;white-space:nowrap;font-size:28px}
+.ats-sub{font-size:11px;color:var(--hero-text2);margin-top:8px;line-height:1.5}
+
+@media(max-width:640px){
+  .ats-card{padding:1.25rem}
+  .ats-value{font-size:26px}
+  .ats-flow-value{font-size:15px}
+  .ats-flow-value-lg{font-size:17px}
+  .ats-flow-value-xl{font-size:19px}
+}
+@media(max-width:400px){
+  .ats-flow-value{font-size:13px}
+  .ats-flow-value-lg{font-size:15px}
+  .ats-flow-value-xl{font-size:17px}
+}

@@ -1,3 +1,5 @@
 .claude/
 outputs/
 .DS_Store
+.styles.css.bak
+js/.index.html.bak

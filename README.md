@@ -8,8 +8,8 @@ Tracker financiero personal — cuentas, movimientos, pendientes, presupuesto y 
 
 ```
 centro-financiero/
-├── index.html          # Marcado HTML — sin lógica de negocio
-├── styles.css           # Todos los estilos (modo claro)
+├── index.html                      # Marcado HTML — sin lógica de negocio
+├── css/                            # Estilos, un archivo por responsabilidad (ver abajo)
 └── js/
     ├── constantes.js               # Categorías, colores, cuentas, datos semilla
     ├── filtros-busqueda.js         # Filtros de Movimientos + buscador de historial
@@ -25,10 +25,30 @@ centro-financiero/
     ├── render-metricas.js          # render() principal, gráficos de Métricas
     ├── respaldo.js                 # Exportar respaldo, guardar y verificar
     ├── verificacion-sync.js        # Sincronización manual/automática
-    └── auth-arranque.js            # Cliente de Supabase, login, arranque de la app
+    ├── auth-arranque.js            # Cliente de Supabase, login, arranque de la app
+    ├── offline-sync.js             # Cola de reintentos cuando no hay red
+    └── swipe-delete.js             # Gesto de deslizar para eliminar en la lista de movimientos
 ```
 
-El proyecto se modularizó a partir de un solo archivo HTML monolítico — cada archivo tiene una responsabilidad clara. Se usan `<script>` normales (no ES modules) a propósito, para que los `onclick="..."` del HTML sigan funcionando sin fricción de scope.
+El proyecto se modularizó a partir de un solo archivo HTML monolítico — cada archivo tiene una responsabilidad clara (principio de responsabilidad única, SRP). Se usan `<script>` normales (no ES modules) a propósito, para que los `onclick="..."` del HTML sigan funcionando sin fricción de scope.
+
+### CSS modularizado (`css/`)
+
+Igual que el JS, los estilos están separados por componente en vez de vivir en un solo archivo. Cada archivo se importa con su propio `<link>` en `index.html` (sin bundler, sin build step) y trae sus propios media queries junto a la regla base, no en un archivo de "responsive" aparte — así un cambio en un componente queda contenido en un solo archivo:
+
+| Archivo | Contenido |
+|---|---|
+| `tokens.css` | Variables de diseño (`:root`, `:root.dark`) y reset base |
+| `layout.css` | Contenedor de la app, barra superior, navegación de tabs |
+| `hero.css` | Tarjeta de saldo/liquidez (lo primero que se ve) |
+| `cards.css` | Tarjeta genérica `.card` y tarjetas de cuentas |
+| `forms.css` | Inputs, selects y grillas de formularios |
+| `buttons.css` | `.btn-add` y sus variantes de color (`.is-ghost`, `.is-danger-outline`, etc.), botones de fila |
+| `entries-list.css` | Lista agrupada por fecha (compartida por Movimientos y Pendientes) |
+| `presupuesto.css` | Filas de topes mensuales |
+| `metricas.css` | Tarjetas de métricas, gráfico de torta, barras de deuda |
+
+Para agregar una variante de botón o un nuevo tono no hace falta tocar las reglas existentes (abierto a extensión, cerrado a modificación) — se agrega una clase `.is-*` nueva en `buttons.css`.
 
 ## Stack
 
@@ -85,3 +105,4 @@ git push
 
 - **Agosto 2026:** migrado desde un artifact de Claude (almacenamiento vía `window.storage`) a Supabase, para tener acceso confiable multi-dispositivo sin las limitaciones de la API de almacenamiento de artifacts.
 - **Agosto 2026:** modularizado de un solo archivo HTML a la estructura actual de `js/` + `styles.css`, y rediseñado de modo oscuro a modo claro.
+- **Agosto 2026:** `styles.css` (un solo archivo) dividido en `css/` por componente, siguiendo el mismo criterio de responsabilidad única que ya se usaba en `js/`.

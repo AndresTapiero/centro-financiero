@@ -1,0 +1,42 @@
+/* buttons.css — el botón primario (.btn-add) y sus variantes de color (.is-*),
+   más los botones pequeños de las filas de movimientos/pendientes. */
+.btn-add{height:42px;padding:0 18px;border-radius:var(--rsm);border:none;background:var(--blue);color:#fff;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .15s,transform .1s;margin-top:8px;width:100%}
+.btn-add:hover{background:#1d4ed8}.btn-add:active{transform:scale(.98)}
+
+/* Variantes reutilizables — evitan repetir background/color inline en cada botón.
+   Agregar una variante nueva no debería requerir tocar las reglas de arriba (open/closed). */
+.btn-add.is-ghost{background:var(--surface3);color:var(--text)}
+.btn-add.is-ghost:hover{background:var(--border2)}
+.btn-add.is-text{background:none;color:var(--text2)}
+.btn-add.is-text:hover{background:var(--surface3)}
+.btn-add.is-danger-outline{background:rgba(255,107,107,.1);color:var(--danger);border:1px solid rgba(255,107,107,.3)}
+.btn-add.is-danger-outline:hover{background:rgba(255,107,107,.18)}
+.btn-add.is-danger-bordered{background:var(--surface3);color:var(--danger);border:1px solid var(--danger)}
+.btn-add.is-accent-outline{background:var(--surface3);color:var(--accent);border:1px solid var(--accent)}
+.btn-add.is-blue-outline{background:var(--surface3);color:var(--blue);border:1px solid var(--blue)}
+.btn-add.is-accent{background:var(--accent)}
+.btn-add.is-accent:hover{background:var(--accent2)}
+
+.btn-row{display:flex;gap:8px;width:100%}
+.btn-row .btn-add{flex:1;min-width:0}
+
+.btn-analyze{font-size:12px;font-weight:600;color:#5B8DEF;background:rgba(91,141,239,.12);border:1px solid rgba(91,141,239,.35);border-radius:10px;padding:6px 12px;cursor:pointer}
+
+.entry-icon-btn{width:40px;height:40px;border-radius:8px;border:1px solid var(--border2);background:var(--surface);color:var(--text2);font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;padding:0}
+.entry-icon-btn:hover{background:var(--surface3)}
+.entry-primary-btn{height:40px;min-width:44px;padding:0 16px;border-radius:8px;border:none;background:#0E9F6E;color:#fff;font-weight:700;font-size:12px;cursor:pointer;flex-shrink:0}
+.entry-primary-btn:hover{background:#0B8259}
+.entry-del-btn{width:40px;height:40px;border-radius:6px;border:1px solid var(--border2);background:var(--surface);color:var(--text2);font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;padding:0;transition:all .15s}
+.entry-del-btn:hover{background:rgba(220,38,38,.08);color:var(--danger);border-color:rgba(220,38,38,.3)}
+.btn-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:0 2px;transition:color .15s}
+.btn-del:hover{color:var(--danger)}
+
+@media(max-width:640px){
+  .btn-row{flex-direction:column}
+  .btn-row .btn-add{margin-top:0;width:100%}
+  .btn-row .btn-add+.btn-add{margin-top:8px}
+  .btn-add{height:46px;font-size:14px}
+}
+@media(max-width:400px){
+  .btn-row .btn-add{font-size:13px;padding:0 12px}
+}

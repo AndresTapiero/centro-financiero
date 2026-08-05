@@ -1,0 +1,35 @@
+/* metricas.css — tarjetas de métricas, gráfico de torta por categoría y barras
+   de progreso de deuda, pestaña Métricas. */
+.metrics-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:1rem}
+@media(min-width:1024px){.metrics-grid{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:640px){.metrics-grid{grid-template-columns:1fr}}
+
+.metric-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;text-align:center}
+.metric-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:8px}
+.metric-value{font-family:var(--mono);font-size:22px;font-weight:700}
+.metric-value.green{color:var(--accent)}.metric-value.red{color:var(--danger)}.metric-value.blue{color:var(--blue)}
+.metric-sub{font-size:10px;color:var(--text3);margin-top:4px}
+
+.pie-wrap{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.pie{width:150px;height:150px;border-radius:50%;flex-shrink:0;position:relative;display:flex;align-items:center;justify-content:center}
+.pie::before{content:'';position:absolute;width:58%;height:58%;border-radius:50%;background:var(--surface);box-shadow:0 1px 3px rgba(23,23,31,.06)}
+.pie-center{position:relative;text-align:center;pointer-events:none;z-index:1}
+.pie-center-total{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--text)}
+.pie-center-label{font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.pie-legend{flex:1;min-width:180px}
+.legend-row{display:flex;align-items:center;gap:8px;font-size:11px;padding:4px 0}
+.legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.legend-name{flex:1;color:var(--text2)}
+.legend-val{font-family:var(--mono);color:var(--text)}
+@media(max-width:640px){
+  .pie-wrap{justify-content:center}
+  .legend-row{flex-wrap:wrap}
+}
+
+.debt-progress{margin-bottom:16px}
+.debt-progress:last-child{margin-bottom:0}
+.debt-top{display:flex;justify-content:space-between;margin-bottom:6px;font-size:12px}
+.debt-name{font-weight:600}
+.debt-track{height:10px;background:var(--surface2);border-radius:99px;overflow:hidden;position:relative}
+.debt-fill{height:10px;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .8s cubic-bezier(.4,0,.2,1)}
+.debt-nums{display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:4px;font-family:var(--mono)}

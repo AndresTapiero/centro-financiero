@@ -1,0 +1,16 @@
+/* presupuesto.css — filas de topes mensuales por categoría, pestaña Presupuesto. */
+.budget-row{padding:10px 0;border-bottom:1px solid var(--border)}
+.budget-row:last-child{border-bottom:none}
+.budget-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.budget-name{font-size:12px;font-weight:500}
+.budget-nums{font-family:var(--mono);font-size:11px;color:var(--text2)}
+.budget-track{height:6px;background:var(--surface2);border-radius:99px;overflow:hidden}
+.budget-fill{height:6px;border-radius:99px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+.budget-status{font-size:10px;margin-top:3px;text-align:right}
+.budget-status.ok{color:var(--text3)}.budget-status.warn{color:var(--warn)}.budget-status.over{color:var(--danger);font-weight:600}
+
+@media(max-width:640px){
+  .budget-top{flex-wrap:wrap}
+  .budget-name{flex-basis:100%}
+  .budget-nums{margin-left:auto}
+}
