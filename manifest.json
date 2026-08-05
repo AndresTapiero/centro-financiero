@@ -1,0 +1,34 @@
+{
+  "name": "Centro Financiero",
+  "short_name": "Finanzas",
+  "description": "Tracker financiero personal - cuentas, movimientos, pendientes, presupuesto y metas",
+  "start_url": "/centro-financiero/",
+  "display": "standalone",
+  "background_color": "#F5F3EE",
+  "theme_color": "#14141F",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%2314141F' width='192' height='192'/><text x='96' y='120' font-size='80' font-weight='700' fill='%230E9F6E' text-anchor='middle' font-family='Inter'>💰</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%2314141F' width='512' height='512'/><text x='256' y='380' font-size='250' font-weight='700' fill='%230E9F6E' text-anchor='middle' font-family='Inter'>💰</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'><rect fill='%23F5F3EE' width='540' height='720'/><rect fill='%2314141F' y='0' width='540' height='200'/><text x='270' y='120' font-size='48' font-weight='700' fill='%230E9F6E' text-anchor='middle'>Centro Financiero</text></svg>",
+      "sizes": "540x720",
+      "type": "image/svg+xml",
+      "form_factor": "narrow"
+    }
+  ],
+  "categories": ["finance"],
+  "screenshots": []
+}
