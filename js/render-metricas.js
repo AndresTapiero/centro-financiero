@@ -472,14 +472,29 @@ function renderPatrimonioHistorico(){
 
 /** Agrupa gastos por nombre normalizado; si el mismo nombre aparece en ≥2 meses distintos,
  *  se considera recurrente y se proyecta su costo anual (promedio mensual × 12). */
+// Categorías que, aunque se repitan mes a mes, no son "gasto hormiga" — son compromisos
+// grandes e intencionales (pago de deuda, salud, aportes/donaciones), no fugas silenciosas.
+const CATS_EXCLUIDAS_HORMIGA=['Pago Deuda','Salud'];
+// Nombres que tampoco cuentan como hormiga aunque su categoría sea genérica (ej. "Otro").
+const NOMBRES_EXCLUIDOS_HORMIGA=/donaci|aporte/i;
+// Sinónimos que deben agruparse como el mismo gasto (ej. Rent = Arriendo).
+const SINONIMOS_HORMIGA={rent:'arriendo'};
+
 function renderGastoHormiga(){
   const el=document.getElementById('gasto-hormiga-list');
   if(!el)return;
-  const gastos=entries.filter(e=>e.txType!=='ingreso'&&e.cat!=='Transferencia'&&e.cat!=='[Ajuste de saldo]');
+  const gastos=entries.filter(e=>
+    e.txType!=='ingreso'
+    &&e.cat!=='Transferencia'
+    &&e.cat!=='[Ajuste de saldo]'
+    &&!CATS_EXCLUIDAS_HORMIGA.includes(e.cat)
+    &&!NOMBRES_EXCLUIDOS_HORMIGA.test(e.name)
+  );
   const grupos={};
   gastos.forEach(e=>{
-    const clave=e.name.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' ');
+    let clave=e.name.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' ');
     if(!clave)return;
+    if(SINONIMOS_HORMIGA[clave])clave=SINONIMOS_HORMIGA[clave];
     if(!grupos[clave])grupos[clave]={nombre:e.name,meses:new Set(),total:0,cat:e.cat,ultimaFecha:e.date};
     grupos[clave].meses.add(e.date.slice(0,7));
     grupos[clave].total+=entryCOP(e);
