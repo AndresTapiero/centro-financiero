@@ -16,7 +16,7 @@
 .entry-row-swipe-bg-pendiente::before{content:'';position:absolute;left:0;top:0;bottom:0;width:50%;background:#0EA5E9;z-index:0}
 .entry-row-swipe-bg-pendiente::after{content:'';position:absolute;right:0;top:0;bottom:0;width:50%;background:var(--danger);z-index:0}
 .entry-row-swipe-bg-pendiente .swipe-right-text,
-.entry-row-swipe-bg-pendiente .swipe-left-text{position:relative;z-index:1}
+.entry-row-swipe-bg-pendiente .swipe-left-text{position:relative;z-index:1;opacity:0;transition:opacity .2s ease}
 .entry-row-content{position:relative;background:var(--surface);padding:10px 16px;transition:background .1s}
 .entry-row:hover .entry-row-content{background:var(--surface2)}
 .entry-row-top{display:flex;align-items:flex-start;gap:8px;margin-bottom:4px}

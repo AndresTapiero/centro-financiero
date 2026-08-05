@@ -24,6 +24,8 @@
     if(!row) return;
     const delta = e.clientX - startX;
     const isPendiente = row.closest('#pendientes-list') !== null;
+    const swipeBg = row.querySelector('.entry-row-swipe-bg-pendiente');
+
     // Movimientos: solo izquierda (eliminar)
     // Pendientes: izquierda (eliminar) o derecha (pagar/recibir)
     if(!isPendiente && delta > 0) { dx = 0; content.style.transform = 'translateX(0)'; return; }
@@ -32,6 +34,14 @@
     dx = isPendiente ? Math.max(delta, -MAX_DRAG) : Math.max(delta, -MAX_DRAG);
     dx = Math.min(dx, isPendiente ? MAX_DRAG : 0);
     content.style.transform = `translateX(${dx}px)`;
+
+    // Mostrar textos de acciones cuando se hace swipe
+    if(isPendiente && swipeBg && Math.abs(dx) > 20){
+      const rightText = swipeBg.querySelector('.swipe-right-text');
+      const leftText = swipeBg.querySelector('.swipe-left-text');
+      if(dx > 0 && rightText) rightText.style.opacity = '1';
+      if(dx < 0 && leftText) leftText.style.opacity = '1';
+    }
   }
 
   async function onPointerUp(){
@@ -44,6 +54,7 @@
     activeContent.style.transition = 'transform .2s ease';
 
     const isPendiente = activeRow.closest('#pendientes-list') !== null;
+    const swipeBg = activeRow.querySelector('.entry-row-swipe-bg-pendiente');
 
     if(wasDragged && Math.abs(finalDx) >= THRESHOLD){
       activeRow.dataset.swiped = '1'; // evita que el click posterior abra el modal de edición
@@ -54,14 +65,17 @@
         const eliminado = await (isPendiente ? deletePendiente(id) : deleteEntry(id));
         if(!eliminado){
           activeContent.style.transform = 'translateX(0)';
+          if(swipeBg) swipeBg.querySelectorAll('.swipe-left-text, .swipe-right-text').forEach(el => el.style.opacity = '0');
         }
       } else if(isPendiente && finalDx > THRESHOLD){ // Swipe derecha (solo en pendientes): pagar/recibir
         activeContent.style.transform = `translateX(${MAX_DRAG}px)`;
         await payPendiente(id);
         activeContent.style.transform = 'translateX(0)';
+        if(swipeBg) swipeBg.querySelectorAll('.swipe-left-text, .swipe-right-text').forEach(el => el.style.opacity = '0');
       }
     } else {
       activeContent.style.transform = 'translateX(0)';
+      if(swipeBg) swipeBg.querySelectorAll('.swipe-left-text, .swipe-right-text').forEach(el => el.style.opacity = '0');
       if(wasDragged) activeRow.dataset.swiped = '1'; // fue un intento de swipe corto: tampoco abrir el modal
     }
   }
