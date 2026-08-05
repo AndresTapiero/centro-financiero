@@ -1,6 +1,6 @@
 function render(){
   const monthEntries=entries.filter(e=>e.date.slice(0,7)===currentMonth);
-  const gastos=monthEntries.filter(e=>e.txType!=='ingreso'&&e.cat!=='Transferencia');
+  const gastos=monthEntries.filter(e=>e.txType!=='ingreso'&&e.cat!=='Transferencia'&&e.cat!=='[Ajuste de saldo]');
   const total=gastos.reduce((s,e)=>s+entryCOP(e),0);
   const today=gastos.filter(e=>e.date===todayStr()).reduce((s,e)=>s+entryCOP(e),0);
 

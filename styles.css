@@ -10,6 +10,16 @@
   /* La tarjeta de resumen (arriba del todo) se queda oscura a propósito, como acento — todo lo demás es claro */
   --hero-bg:#14141F; --hero-text:#FFFFFF; --hero-text2:#9B9FA8;
 }
+
+:root.dark {
+  color-scheme: dark;
+  --bg:#0F1117; --surface:#1C1F26; --surface2:#14171F; --surface3:#2D333B;
+  --border:#30363D; --border2:#444C56;
+  --text:#E6EDF3; --text2:#8B949E; --text3:#6E7681;
+  --accent:#1F6FEB; --accent2:#0969DA;
+  --danger:#DC2626; --warn:#D97706; --blue:#0969DA; --purple:#7C3AED;
+  --hero-bg:#0F1117; --hero-text:#E6EDF3; --hero-text2:#6E7681;
+}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh}
 .app{max-width:1400px;margin:0 auto;padding:1.5rem 2rem 4rem}

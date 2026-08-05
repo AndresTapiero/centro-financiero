@@ -1,4 +1,29 @@
 let pendingAdjustment=null;
+let darkModeEnabled=localStorage.getItem('darkMode')==='true';
+
+function initDarkMode(){
+  if(darkModeEnabled){
+    document.documentElement.classList.add('dark');
+  }
+}
+
+function toggleDarkMode(){
+  darkModeEnabled=!darkModeEnabled;
+  localStorage.setItem('darkMode',darkModeEnabled);
+  document.documentElement.classList.toggle('dark');
+  updateUserMenuButton();
+}
+
+function updateUserMenuButton(){
+  const btn=document.getElementById('user-menu-btn');
+  if(!btn)return;
+  btn.textContent=darkModeEnabled?'🌙':'👤';
+  btn.title=darkModeEnabled?'Desactivar modo oscuro':'Cambiar a modo oscuro';
+}
+
+// Inicializar dark mode al cargar
+initDarkMode();
+updateUserMenuButton();
 
 async function handleAccountFieldBlur(key){
   const el=document.getElementById(FIELD_TO_ID[key]||('acc-'+key));
