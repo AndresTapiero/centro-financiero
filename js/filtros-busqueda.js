@@ -270,7 +270,7 @@ function updateEntriesSummary(){
   // balanceEl.style.color=balance>=0?'var(--accent)':'var(--danger)';
 }
 const RECURRENTES=[
-  {name:'Salario (ingreso)',amount:2675,acc:'ontop',cat:'Otro',day:26,isIncome:true},
+  {name:'Salario',amount:2675,acc:'ontop',cat:'Ingreso · Salario',day:26,isIncome:true},
   {name:'Arriendo',amount:1630000,acc:'debito',cat:'Otro',day:3},
   {name:'Salud Andrés (EPS)',amount:615500,acc:'debito',cat:'Salud',day:3},
   {name:'Pago mínimo Davivienda TC',amount:785246,acc:'debito',cat:'Pago Deuda',day:10},
