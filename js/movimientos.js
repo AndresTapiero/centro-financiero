@@ -262,11 +262,11 @@ async function eliminarDesdeModalEdicion(){
 
 async function deleteEntry(id){
   const e=entries.find(x=>x.id===id);
-  if(!e)return;
+  if(!e)return false;
   const meta=ACCOUNTS_META[e.acc];
   const montoStr=(e.currency||meta.currency)==='USD'?fmtUSD(e.amount):fmtCOP(e.amount);
   const confirmado=await customConfirm(`¿Eliminar este movimiento?\n\n"${e.name}"\n${montoStr} — ${meta.label}\n${fmtDate(e.date)}\n\nEsto también revertirá el saldo de la cuenta afectada.`);
-  if(!confirmado)return;
+  if(!confirmado)return false;
 
   {
     const sign=e.txType==='gasto'?1:-1;
@@ -288,6 +288,7 @@ async function deleteEntry(id){
     if(error)throw error;
     await saveAccountsData();
   }catch(e){ registrarErrorDiagnostico('fin_movimientos (borrar)',e); }
+  return true;
 }
 
 function switchTab(tab,btn){

@@ -251,7 +251,7 @@ async function doTransfer(){
     setTimeout(()=>{statusEl.style.opacity='0.35'},1500);
   }else{
     const faltante=[!okEntries&&'el movimiento',!okAccounts&&'el saldo'].filter(Boolean).join(' y ');
-    statusEl.textContent=`🛑 La transferencia quedó a medias: no se pudo guardar ${faltante}. Revisa 🔧 Diagnóstico`;
+    statusEl.textContent=`🛑 Los números en pantalla ya cambiaron, pero no se pudo guardar ${faltante} en la nube. Ve a 🔧 Diagnóstico y reintenta antes de cerrar la app.`;
     statusEl.className='sync-status error';
   }
 }

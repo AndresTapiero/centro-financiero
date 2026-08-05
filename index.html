@@ -16,35 +16,35 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div id="login-gate" style="position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px">
+<div id="login-gate" role="dialog" aria-modal="true" aria-labelledby="login-title" style="position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px">
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px;max-width:340px;width:100%">
-    <div style="font-size:16px;font-weight:700;margin-bottom:4px">🔐 Centro Financiero</div>
+    <div id="login-title" style="font-size:16px;font-weight:700;margin-bottom:4px">🔐 Centro Financiero</div>
     <div style="font-size:12px;color:var(--text2);margin-bottom:20px">Inicia sesión para ver tus datos</div>
-    <label style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Correo</label>
+    <label for="login-email" style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Correo</label>
     <input class="inp" id="login-email" type="email" placeholder="tu@correo.com" autocomplete="email" style="width:100%;margin-bottom:14px">
-    <label style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Contraseña</label>
+    <label for="login-password" style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Contraseña</label>
     <input class="inp" id="login-password" type="password" placeholder="••••••••" autocomplete="current-password" style="width:100%;margin-bottom:16px">
     <button class="btn-add" id="login-btn" style="width:100%;margin:0" onclick="intentarLogin()">Entrar</button>
-    <div id="login-error" style="display:none;margin-top:12px;font-size:11px;color:var(--danger);background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.35);border-radius:8px;padding:10px"></div>
+    <div id="login-error" role="alert" style="display:none;margin-top:12px;font-size:11px;color:var(--danger);background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.35);border-radius:8px;padding:10px"></div>
   </div>
 </div>
-<div id="loading-gate" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:9998;align-items:center;justify-content:center;padding:20px">
+<div id="loading-gate" role="status" aria-live="polite" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:9998;align-items:center;justify-content:center;padding:20px">
   <div style="text-align:center">
     <div style="width:36px;height:36px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;margin:0 auto 16px;animation:spin .8s linear infinite"></div>
     <div style="font-size:13px;color:var(--text2)">Cargando tus datos…</div>
   </div>
 </div>
 <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
-<div id="confirm-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
+<div id="confirm-modal" role="alertdialog" aria-modal="true" aria-describedby="confirm-modal-text" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
   <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:340px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.5)">
     <div id="confirm-modal-text" style="font-size:13px;line-height:1.6;margin-bottom:16px;white-space:pre-line"></div>
     <div style="display:flex;gap:8px">
       <button class="btn-add" id="confirm-btn-yes" style="margin:0;background:var(--danger)" onclick="resolverConfirm(true)">Sí, eliminar</button>
-      <button class="btn-add" id="confirm-btn-no" style="margin:0;background:var(--surface3);color:var(--text)" onclick="resolverConfirm(false)">Cancelar</button>
+      <button class="btn-add is-ghost" id="confirm-btn-no" style="margin:0" onclick="resolverConfirm(false)">Cancelar</button>
     </div>
   </div>
 </div>
-<div id="pay-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
+<div id="pay-modal" role="dialog" aria-modal="true" aria-describedby="pay-modal-text" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
   <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:340px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.5)">
     <div id="pay-modal-text" style="font-size:13px;line-height:1.6;margin-bottom:12px"></div>
     <div style="margin-bottom:16px">
@@ -53,13 +53,13 @@
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn-add" style="margin:0" onclick="resolverPayModal(true)">Confirmar</button>
-      <button class="btn-add" style="margin:0;background:var(--surface3);color:var(--text)" onclick="resolverPayModal(false)">Cancelar</button>
+      <button class="btn-add is-ghost" style="margin:0" onclick="resolverPayModal(false)">Cancelar</button>
     </div>
   </div>
 </div>
-<div id="nueva-cuenta-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
+<div id="nueva-cuenta-modal" role="dialog" aria-modal="true" aria-labelledby="nueva-cuenta-title" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
   <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:340px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.5)">
-    <div style="font-size:13px;line-height:1.6;margin-bottom:14px">➕ <strong>Crear cuenta nueva</strong></div>
+    <div id="nueva-cuenta-title" style="font-size:13px;line-height:1.6;margin-bottom:14px">➕ <strong>Crear cuenta nueva</strong></div>
     <div style="margin-bottom:12px">
       <label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Nombre</label>
       <input class="inp" id="nueva-cuenta-nombre" type="text" placeholder="Ej: Bolsillo Ahorro" style="width:100%">
@@ -73,14 +73,14 @@
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn-add" style="margin:0" onclick="resolverNuevaCuentaModal(true)">Crear cuenta</button>
-      <button class="btn-add" style="margin:0;background:var(--surface3);color:var(--text)" onclick="resolverNuevaCuentaModal(false)">Cancelar</button>
+      <button class="btn-add is-ghost" style="margin:0" onclick="resolverNuevaCuentaModal(false)">Cancelar</button>
     </div>
   </div>
 </div>
-<div id="edit-entry-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
+<div id="edit-entry-modal" role="dialog" aria-modal="true" aria-labelledby="edit-entry-title" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
   <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:360px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.5);max-height:85vh;overflow-y:auto">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-      <span style="font-size:14px;font-weight:700">✏️ Editar movimiento</span>
+      <span id="edit-entry-title" style="font-size:14px;font-weight:700">✏️ Editar movimiento</span>
       <span id="edit-entry-tipo-badge" class="tipo-tab" style="flex:none;padding:5px 12px;cursor:default"></span>
     </div>
     <div id="edit-entry-modal-text" style="font-size:11px;color:var(--text3);margin-bottom:14px"></div>
@@ -104,37 +104,37 @@
       <select class="inp" id="edit-entry-category" style="width:100%"></select>
     </div>
     <button class="btn-add" style="margin:0 0 8px" onclick="resolverEditEntryModal(true)">Guardar cambios</button>
-    <button class="btn-add" style="margin:0 0 8px;background:rgba(255,107,107,.1);color:var(--danger);border:1px solid rgba(255,107,107,.3)" onclick="eliminarDesdeModalEdicion()">Eliminar movimiento</button>
-    <button class="btn-add" style="margin:0;background:none;color:var(--text2)" onclick="resolverEditEntryModal(false)">Cancelar</button>
+    <button class="btn-add is-danger-outline" style="margin:0 0 8px" onclick="eliminarDesdeModalEdicion()">Eliminar movimiento</button>
+    <button class="btn-add is-text" style="margin:0" onclick="resolverEditEntryModal(false)">Cancelar</button>
   </div>
 </div>
 
-<div id="export-fallback-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
+<div id="export-fallback-modal" role="dialog" aria-modal="true" aria-labelledby="export-fallback-title" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
   <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:420px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.5)">
-    <div style="font-size:13px;line-height:1.6;margin-bottom:10px">📋 <strong>Respaldo generado.</strong> Si la descarga automática no se guardó en tu celular, copia este texto y pégalo en una nota o correo para guardarlo tú mismo:</div>
+    <div id="export-fallback-title" style="font-size:13px;line-height:1.6;margin-bottom:10px">📋 <strong>Respaldo generado.</strong> Si la descarga automática no se guardó en tu celular, copia este texto y pégalo en una nota o correo para guardarlo tú mismo:</div>
     <textarea id="export-fallback-text" readonly style="width:100%;height:140px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;color:var(--text2);font-family:var(--mono);font-size:10px;padding:8px;margin-bottom:12px" onclick="this.select()"></textarea>
     <button class="btn-add" style="margin:0" onclick="cerrarExportFallback()">Cerrar</button>
   </div>
 </div>
-<div id="edit-pendiente-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
+<div id="edit-pendiente-modal" role="dialog" aria-modal="true" aria-labelledby="edit-pendiente-title" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
   <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:340px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.5)">
-    <div style="font-size:13px;line-height:1.6;margin-bottom:10px">✏️ <strong>Editar monto</strong></div>
+    <div id="edit-pendiente-title" style="font-size:13px;line-height:1.6;margin-bottom:10px">✏️ <strong>Editar monto</strong></div>
     <div id="edit-pendiente-hint" style="font-size:11px;color:var(--text3);margin-bottom:10px"></div>
     <input class="inp inp-num" id="edit-pendiente-amount" type="number" step="0.01" style="width:100%;margin-bottom:10px">
     <button class="btn-add" id="edit-pendiente-usar-saldo" style="display:none;margin:0 0 14px;background:var(--surface3);color:var(--text2);font-size:11px;height:32px" onclick="usarSaldoActualEnEdicion()">🔄 Usar saldo actual de la tarjeta</button>
     <div style="display:flex;gap:8px">
       <button class="btn-add" style="margin:0" onclick="resolverEditPendienteModal(true)">Guardar</button>
-      <button class="btn-add" style="margin:0;background:var(--surface3);color:var(--text)" onclick="resolverEditPendienteModal(false)">Cancelar</button>
+      <button class="btn-add is-ghost" style="margin:0" onclick="resolverEditPendienteModal(false)">Cancelar</button>
     </div>
   </div>
 </div>
-<div id="opciones-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
+<div id="opciones-modal" role="dialog" aria-modal="true" aria-labelledby="opciones-title" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
   <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:340px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.5)">
-    <div style="font-size:13px;font-weight:700;margin-bottom:14px">⚙️ Opciones</div>
-    <button class="btn-add" style="margin:0 0 8px;background:var(--surface3);color:var(--text)" onclick="document.getElementById('opciones-modal').style.display='none';syncNow()">🔄 Sincronizar</button>
-    <button class="btn-add" style="margin:0 0 8px;background:var(--surface3);color:var(--accent);border:1px solid var(--accent)" onclick="document.getElementById('opciones-modal').style.display='none';guardarConVerificacion()">💾 Guardar y verificar</button>
-    <button class="btn-add" style="margin:0 0 14px;background:var(--surface3);color:var(--blue);border:1px solid var(--blue)" onclick="document.getElementById('opciones-modal').style.display='none';exportarRespaldo()">⬇️ Exportar respaldo</button>
-    <button class="btn-add" style="margin:0;background:none;color:var(--text2)" onclick="document.getElementById('opciones-modal').style.display='none'">Cerrar</button>
+    <div id="opciones-title" style="font-size:13px;font-weight:700;margin-bottom:14px">⚙️ Opciones</div>
+    <button class="btn-add is-ghost" style="margin:0 0 8px" onclick="document.getElementById('opciones-modal').style.display='none';syncNow()">🔄 Sincronizar</button>
+    <button class="btn-add is-accent-outline" style="margin:0 0 8px" onclick="document.getElementById('opciones-modal').style.display='none';guardarConVerificacion()">💾 Guardar y verificar</button>
+    <button class="btn-add is-blue-outline" style="margin:0 0 14px" onclick="document.getElementById('opciones-modal').style.display='none';exportarRespaldo()">⬇️ Exportar respaldo</button>
+    <button class="btn-add is-text" style="margin:0" onclick="document.getElementById('opciones-modal').style.display='none'">Cerrar</button>
   </div>
 </div>
 <div id="save-toast" style="display:none;position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:1100;padding:8px 16px;border-radius:99px;font-size:12px;font-family:var(--mono);font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,.4);transition:opacity .3s"></div>
@@ -144,8 +144,8 @@
     <div style="display:flex;align-items:center;gap:10px">
       <span class="nav-month" id="nav-month"></span>
       <div style="position:relative">
-        <button id="user-menu-btn" onclick="toggleUserMenu()" style="width:30px;height:30px;border-radius:50%;background:var(--accent);color:#0F1117;border:none;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center" title="Cuenta"></button>
-        <div id="user-menu" style="display:none;position:absolute;top:38px;right:0;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:6px;min-width:190px;box-shadow:0 8px 30px rgba(0,0,0,.4);z-index:500">
+        <button id="user-menu-btn" onclick="toggleUserMenu()" aria-haspopup="true" aria-expanded="false" aria-label="Menú de cuenta" style="width:36px;height:36px;border-radius:50%;background:var(--accent);color:#0F1117;border:none;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center" title="Cuenta"></button>
+        <div id="user-menu" role="menu" aria-label="Menú de cuenta" style="display:none;position:absolute;top:38px;right:0;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:6px;min-width:190px;box-shadow:0 8px 30px rgba(0,0,0,.4);z-index:500">
           <div id="user-menu-email" style="font-size:11px;color:var(--text2);padding:8px 10px;border-bottom:1px solid var(--border);margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
           <button class="user-menu-item" onclick="toggleUserMenu();toggleDarkMode()">🌙 Modo oscuro</button>
           <button class="user-menu-item" onclick="toggleUserMenu();document.getElementById('opciones-modal').style.display='flex'">⚙️ Opciones</button>
@@ -162,8 +162,8 @@
   <div id="adjust-banner" style="display:none;position:fixed;bottom:16px;left:50%;transform:translateX(-50%);max-width:92%;width:480px;background:var(--surface2);border:1px solid var(--accent);border-radius:12px;padding:16px;z-index:1000;box-shadow:0 10px 40px rgba(0,0,0,.5)">
     <div id="adjust-banner-text" style="font-size:13px;margin-bottom:12px;line-height:1.5"></div>
     <div style="display:flex;gap:8px">
-      <button class="btn-add" style="margin:0;background:var(--accent)" onclick="confirmAdjustment()">✓ Confirmar y registrar</button>
-      <button class="btn-add" style="margin:0;background:var(--surface3);color:var(--text)" onclick="cancelAdjustment()">Cancelar</button>
+      <button class="btn-add is-accent" style="margin:0" onclick="confirmAdjustment()">✓ Confirmar y registrar</button>
+      <button class="btn-add is-ghost" style="margin:0" onclick="cancelAdjustment()">Cancelar</button>
     </div>
   </div>
 
@@ -183,7 +183,7 @@
         </div>
         <div>
           <div class="ats-label" style="font-size:10px;margin-bottom:8px">= Saldo actual</div>
-          <div class="ats-flow-value" id="ats-saldo-final" style="font-size:24px">$0</div>
+          <div class="ats-flow-value-lg" id="ats-saldo-final">$0</div>
         </div>
       </div>
       <div style="display:flex;align-items:center;justify-content:center;margin:16px 0">
@@ -196,7 +196,7 @@
         </div>
         <div>
           <div class="ats-label" style="font-size:10px;margin-bottom:8px">= Libre real</div>
-          <div class="ats-flow-value" id="ats-libre-real" style="font-size:28px;color:var(--accent)">$0</div>
+          <div class="ats-flow-value-xl" id="ats-libre-real" style="color:var(--accent)">$0</div>
         </div>
       </div>
     </div>
@@ -204,15 +204,15 @@
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
         <div style="text-align:center">
           <div class="ats-label" style="font-size:10px;margin-bottom:8px">Liquidez bruta</div>
-          <div class="ats-value" id="ats-bruto" style="font-size:clamp(18px,5vw,26px);color:var(--hero-text2);overflow-wrap:anywhere">$0</div>
+          <div class="ats-value" id="ats-bruto" style="font-size:clamp(14px,4.2vw,26px);color:var(--hero-text2)">$0</div>
         </div>
         <div style="text-align:center">
           <div class="ats-label" style="font-size:10px;margin-bottom:8px">− Pendientes</div>
-          <div class="ats-value" id="ats-pendientes" style="font-size:clamp(18px,5vw,26px);color:var(--warn);overflow-wrap:anywhere">$0</div>
+          <div class="ats-value" id="ats-pendientes" style="font-size:clamp(14px,4.2vw,26px);color:var(--warn)">$0</div>
         </div>
         <div style="text-align:center">
           <div class="ats-label" style="font-size:10px;margin-bottom:8px">= Libre real</div>
-          <div class="ats-value" id="ats-value" style="font-size:clamp(18px,5vw,26px);overflow-wrap:anywhere">$0</div>
+          <div class="ats-value" id="ats-value" style="font-size:clamp(14px,4.2vw,26px)">$0</div>
         </div>
       </div>
     </div>
@@ -273,7 +273,7 @@
     </div>
     <div class="card" id="transfer-card">
       <div class="card-title">🔄 Transferir entre cuentas</div>
-      <button class="btn-add" style="margin-bottom:10px;background:var(--surface3);color:var(--text)" onclick="abrirNuevaCuentaModal()">➕ Crear cuenta nueva (bolsillo de ahorro, etc.)</button>
+      <button class="btn-add is-ghost" style="margin-bottom:10px" onclick="abrirNuevaCuentaModal()">➕ Crear cuenta nueva (bolsillo de ahorro, etc.)</button>
       <div class="input-grid2" style="margin-bottom:8px">
         <select class="inp" id="tr-origen" onchange="onTransferAccChange()">
           <optgroup label="🏦 Cuentas líquidas (COP)">
@@ -319,11 +319,11 @@
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/></svg>
       Agregar movimiento
     </button>
-    <div id="nuevo-movimiento-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;height:100dvh;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center;padding:16px;overflow-y:auto" class="nuevo-movimiento-modal">
+    <div id="nuevo-movimiento-modal" role="dialog" aria-modal="true" aria-labelledby="nuevo-movimiento-title" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;height:100dvh;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center;padding:16px;overflow-y:auto" class="nuevo-movimiento-modal">
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(23,23,31,.25);max-height:88vh;overflow-y:auto;min-width:0">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-          <span class="input-label" style="margin:0">➕ Nuevo movimiento</span>
-          <button onclick="cerrarModalNuevoMovimiento()" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;line-height:1;padding:4px" aria-label="Cerrar">×</button>
+          <span id="nuevo-movimiento-title" class="input-label" style="margin:0">➕ Nuevo movimiento</span>
+          <button onclick="cerrarModalNuevoMovimiento()" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;line-height:1;width:44px;height:44px;display:flex;align-items:center;justify-content:center" aria-label="Cerrar">×</button>
         </div>
         <div style="display:flex;gap:6px;margin-bottom:12px">
           <button type="button" id="tab-tipo-gasto" class="tipo-tab tipo-tab-gasto active" onclick="setTipoMovimiento('gasto')">➖ Gasto</button>
@@ -414,7 +414,7 @@
         </div>
         <div class="btn-row">
           <button class="btn-add" style="flex:1" onclick="addEntry()">Registrar movimiento</button>
-          <button class="btn-add" style="flex:1;background:var(--surface3);color:var(--text2);border:1px solid var(--border2)" onclick="addEntry(true)">+ Registrar y agregar otro</button>
+          <button class="btn-add is-ghost" style="flex:1" onclick="addEntry(true)">+ Registrar y agregar otro</button>
         </div>
       </div>
     </div>
@@ -679,13 +679,13 @@
     <div class="card">
       <div class="card-title">👤 Sesión</div>
       <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Conectado como <strong id="diagnostico-email" style="color:var(--text)"></strong></div>
-      <button class="btn-add" style="background:var(--surface3);color:var(--danger);border:1px solid var(--danger)" onclick="cerrarSesion()">🚪 Cerrar sesión</button>
+      <button class="btn-add is-danger-bordered" onclick="cerrarSesion()">🚪 Cerrar sesión</button>
     </div>
     <div class="card">
       <div class="card-title">📊 Datos en Supabase</div>
       <div style="font-size:11px;color:var(--text3);margin-bottom:12px">Cantidad de filas por tabla — compáralo con lo que ves en pantalla si algo no cuadra.</div>
       <div id="diagnostico-conteos" style="font-size:12px;font-family:var(--mono)"></div>
-      <button class="btn-add" style="margin-top:14px;background:var(--surface3);color:var(--text)" onclick="renderDiagnostico()">🔄 Recalcular ahora</button>
+      <button class="btn-add is-ghost" style="margin-top:14px" onclick="renderDiagnostico()">🔄 Recalcular ahora</button>
     </div>
     <div class="card">
       <div class="card-title">📋 Último error real registrado</div>
@@ -698,7 +698,7 @@
     </div>
   </div>
 
-  <div class="hint">💾 Todo se guarda automáticamente en tu base de datos y persiste en cualquier dispositivo donde inicies sesión.<br>Selecciona la cuenta correcta en cada movimiento — el saldo se actualiza solo.</div>
+  <div class="hint">💾 Todo se guarda automáticamente en tu base de datos y persiste en cualquier dispositivo donde inicies sesión.<br>Selecciona la cuenta correcta en cada movimiento — el saldo se actualiza solo.<br>👈 Desliza un movimiento hacia la izquierda para eliminarlo, o tócalo para editarlo.</div>
 </div>
 <script src="js/constantes.js"></script>
 <script src="js/filtros-busqueda.js"></script>
@@ -712,6 +712,7 @@
 <script src="js/pendientes-transferencias.js"></script>
 <script src="js/movimiento-list-renderer.js"></script>
 <script src="js/pendiente-list-renderer.js"></script>
+<script src="js/swipe-delete.js"></script>
 <script src="js/respaldo.js"></script>
 <script src="js/verificacion-sync.js"></script>
 <script src="js/auth-arranque.js"></script>

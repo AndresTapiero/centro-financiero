@@ -11,7 +11,9 @@ function poblarMenuUsuario(email){
 
 function toggleUserMenu(){
   const menu=document.getElementById('user-menu');
-  menu.style.display=menu.style.display==='block'?'none':'block';
+  const abierto=menu.style.display==='block';
+  menu.style.display=abierto?'none':'block';
+  document.getElementById('user-menu-btn')?.setAttribute('aria-expanded',(!abierto).toString());
 }
 document.addEventListener('click',e=>{
   const menu=document.getElementById('user-menu');
@@ -21,6 +23,17 @@ document.addEventListener('click',e=>{
   }
 });
 
+// Traduce los mensajes de error crudos de Supabase Auth a español entendible.
+// Si no reconocemos el error, mostramos un mensaje genérico en vez del texto técnico.
+function traducirErrorLogin(error){
+  const msg=(error?.message||'').toLowerCase();
+  if(msg.includes('invalid login credentials')) return 'Correo o contraseña incorrectos.';
+  if(msg.includes('email not confirmed')) return 'Confirma tu correo antes de iniciar sesión — revisa tu bandeja de entrada.';
+  if(msg.includes('network')||msg.includes('fetch')) return 'No hay conexión a internet. Verifica tu red e intenta de nuevo.';
+  if(msg.includes('rate limit')) return 'Demasiados intentos seguidos. Espera un minuto y vuelve a intentar.';
+  return 'No se pudo iniciar sesión. Intenta de nuevo en unos segundos.';
+}
+
 async function intentarLogin(){
   const btn=document.getElementById('login-btn');
   const errEl=document.getElementById('login-error');
@@ -28,7 +41,7 @@ async function intentarLogin(){
   const password=document.getElementById('login-password').value;
   errEl.style.display='none';
   if(!email||!password){
-    errEl.textContent='Escribe correo y contraseña.';
+    errEl.textContent='Ingresa tu correo y contraseña para continuar.';
     errEl.style.display='block';
     return;
   }
@@ -38,7 +51,7 @@ async function intentarLogin(){
   btn.disabled=false;
   btn.textContent='Entrar';
   if(error){
-    errEl.textContent='✗ '+error.message;
+    errEl.textContent=traducirErrorLogin(error);
     errEl.style.display='block';
     return;
   }

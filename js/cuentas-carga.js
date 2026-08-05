@@ -88,7 +88,7 @@ async function loadData(){
     }catch(e){ registrarErrorDiagnostico('fin_metas (lectura)',e); }
 
     if(cargaConFallos){
-      statusEl.textContent='⚠ Tus datos NO cargaron (estás viendo el ejemplo) — guardado bloqueado. Reintenta en 🔧 Diagnóstico';
+      statusEl.innerHTML='⚠ No pudimos cargar tus datos reales — estás viendo un ejemplo. <a href="#" onclick="event.preventDefault();reintentarCarga()" style="color:inherit;text-decoration:underline">Toca para reintentar</a>';
       statusEl.className='sync-status error';
     }else{
       statusEl.textContent='✓ Sincronizado';
@@ -102,7 +102,7 @@ async function loadData(){
     entries=SEED_ENTRIES.slice();
     accounts=Object.assign({},SEED_ACCOUNTS);
     pendientes=[];
-    statusEl.textContent='⚠ No se pudieron cargar tus datos — guardado bloqueado por seguridad. Reintenta en 🔧 Diagnóstico';
+    statusEl.innerHTML='⚠ No se pudieron cargar tus datos. Para tu seguridad, no se guardará nada hasta que la carga funcione. <a href="#" onclick="event.preventDefault();reintentarCarga()" style="color:inherit;text-decoration:underline">Toca para reintentar</a>';
     statusEl.className='sync-status error';
   }
   fillAccountInputs();
@@ -122,7 +122,7 @@ async function autoSeedRecurrentes(){
     const statusEl=document.getElementById('sync-status');
     if(statusEl){
       statusEl.style.display='block';
-      statusEl.textContent='⚠ Lectura incompleta — se omitió la siembra automática de pendientes por seguridad';
+      statusEl.textContent='⚠ La carga quedó incompleta, así que no se agregaron pendientes automáticos este mes.';
       statusEl.className='sync-status error';
       setTimeout(()=>{statusEl.style.opacity='0.35'},4000);
     }

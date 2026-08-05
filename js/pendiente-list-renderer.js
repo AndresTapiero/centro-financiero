@@ -80,7 +80,7 @@ class PendienteListRenderer {
       </div>
       <div class="entry-actions">
         <button class="entry-primary-btn" onclick="event.stopPropagation();payPendiente('${p.id}')">${p.isIncome ? 'Recibir' : 'Pagar'}</button>
-        <button class="entry-del-btn" onclick="event.stopPropagation();deletePendiente('${p.id}')" title="Eliminar">×</button>
+        <button class="entry-del-btn" onclick="event.stopPropagation();deletePendiente('${p.id}')" title="Eliminar" aria-label="Eliminar ${p.name}">×</button>
       </div>
     </div>`;
   }
