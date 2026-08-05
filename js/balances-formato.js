@@ -141,20 +141,35 @@ function updateNetWorth(){
   const esMesActual=currentMonth===todayStr().slice(0,7);
   const saldoHist=calcularSaldoHistorico(currentMonth);
 
-  // Si es mes actual: mostrar desglose. Si es mes pasado: mostrar saldo reconstruido simple.
+  // Si es mes actual: mostrar desglose completo con pendientes. Si es mes pasado: mostrar saldo reconstruido simple.
   if(esMesActual){
     breakdownEl.style.display='block';
     simpleEl.style.display='none';
     const disponibleMes=saldoInicial+ingresosMes;
+    const pendCOP=pendientes.filter(p=>!p.isIncome&&['nequi','debito','arq','ontop'].includes(p.acc))
+      .reduce((s,p)=>{
+        const meta=ACCOUNTS_META[p.acc];
+        const monto=meta.currency==='USD'?p.amount*accounts.trm:p.amount;
+        return s+monto;
+      },0);
+    const libreReal=saldoFinal-pendCOP;
+
     document.getElementById('ats-saldo-inicial').textContent=fmtCOP(saldoInicial);
     document.getElementById('ats-ingresos').textContent=fmtCOP(ingresosMes);
     document.getElementById('ats-disponible-mes').textContent=fmtCOP(disponibleMes);
     document.getElementById('ats-gastos').textContent=fmtCOP(gastosMes);
+
     const finalEl=document.getElementById('ats-saldo-final');
     finalEl.textContent=fmtCOP(saldoFinal);
     finalEl.style.color=saldoFinal>=0?'var(--accent)':'var(--danger)';
+
+    document.getElementById('ats-pendientes-actual').textContent=fmtCOP(pendCOP);
+    const libreEl=document.getElementById('ats-libre-real');
+    libreEl.textContent=fmtCOP(libreReal);
+    libreEl.style.color=libreReal>500000?'var(--accent)':libreReal>0?'var(--warn)':'var(--danger)';
+
     const subEl=document.getElementById('ats-sub');
-    if(subEl)subEl.innerHTML='Desglose completo del mes actual (hasta hoy)';
+    if(subEl)subEl.innerHTML='Desglose completo del mes actual (hasta hoy) · Los pendientes bajan a medida que pagas';
   }else{
     breakdownEl.style.display='none';
     simpleEl.style.display='block';
