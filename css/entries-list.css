@@ -13,7 +13,7 @@
 .entry-row:last-child{border-bottom:none}
 .entry-row-swipe-bg{position:absolute;inset:0;background:var(--danger);color:#fff;display:flex;align-items:center;justify-content:flex-end;gap:6px;padding-right:22px;font-size:12px;font-weight:700}
 .entry-row-swipe-bg-pendiente{justify-content:space-between !important;padding:0 !important;overflow:hidden}
-.entry-row-swipe-bg-pendiente::before{content:'';position:absolute;left:0;top:0;bottom:0;width:50%;background:var(--accent);z-index:-1}
+.entry-row-swipe-bg-pendiente::before{content:'';position:absolute;left:0;top:0;bottom:0;width:50%;background:#0EA5E9;z-index:-1}
 .entry-row-swipe-bg-pendiente::after{content:'';position:absolute;right:0;top:0;bottom:0;width:50%;background:var(--danger);z-index:-1}
 .entry-row-content{position:relative;background:var(--surface);padding:10px 16px;transition:background .1s}
 .entry-row:hover .entry-row-content{background:var(--surface2)}
