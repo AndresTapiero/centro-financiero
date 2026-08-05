@@ -141,6 +141,39 @@ function calcularSaldoHistorico(mesSeleccionado){
   return {...saldos,esHistorico:true,fallo:false};
 }
 
+/**
+ * Versión generalizada de calcularSaldoHistorico(): reconstruye el patrimonio neto
+ * (líquido − deuda) al CIERRE del mes dado, deshaciendo en memoria los movimientos
+ * posteriores. A diferencia de calcularSaldoHistorico (solo nequi/debito/arq/ontop,
+ * pensada para el hero de Cuentas), esta también reconstruye nu, lulo y las tarjetas
+ * de crédito, para poder graficar la serie completa de patrimonio en Métricas.
+ * Limitaciones: no incluye cuentas dinámicas creadas por el usuario (metas de ahorro
+ * personalizadas), y ARQ/Ontop se convierten con la TRM de HOY, no la histórica.
+ */
+function calcularPatrimonioMes(mesISO){
+  const hoy=todayStr().slice(0,7);
+  if(mesISO>=hoy||cargaConFallos)return null; // mes actual/futuro, o datos no confiables: no reconstruir
+  const liquidAccs=['nequi','debito','nu','lulo'];
+  const usdAccs=['arq','ontop'];
+  const debtAccs=['davtc','rappitc'];
+  const saldos={};
+  [...liquidAccs,...usdAccs,...debtAccs].forEach(a=>{ saldos[a]=accounts[a]||0; });
+  entries.forEach(e=>{
+    if(e.date.slice(0,7)<=mesISO)return; // solo deshacemos lo que pasó DESPUÉS del mes
+    if(!(e.acc in saldos))return;
+    if(debtAccs.includes(e.acc)){
+      const sign=e.txType==='gasto'?-1:1; // gasto sube deuda, ingreso la baja — reversa es lo opuesto
+      saldos[e.acc]+=sign*e.amount;
+    }else{
+      const sign=e.txType==='gasto'?1:-1;
+      saldos[e.acc]+=sign*e.amount;
+    }
+  });
+  const liquido=liquidAccs.reduce((s,a)=>s+saldos[a],0)+usdAccs.reduce((s,a)=>s+saldos[a]*accounts.trm,0);
+  const deuda=debtAccs.reduce((s,a)=>s+saldos[a],0);
+  return {liquido,deuda,neto:liquido-deuda};
+}
+
 function updateNetWorth(){
   const liquidCOP=accounts.nequi+accounts.debito+accounts.nu+accounts.lulo+(accounts.arq*accounts.trm)+(accounts.ontop*accounts.trm);
   const debtCOP=accounts.davtc+accounts.rappitc;

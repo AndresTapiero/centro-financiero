@@ -269,6 +269,30 @@ function refreshGoalCategoryOptions(){
   });
 }
 
+/** Ritmo real de ahorro hacia una meta: promedio de los últimos 3 meses calendario
+ *  con movimientos relevantes (no 3 meses fijos si hay huecos, sino los 3 más recientes con datos).
+ *  - Metas por categoría: mismo criterio que actualiza "accumulated" (gasto suma, ingreso resta).
+ *  - Metas por cuenta: mismo criterio que el saldo de la cuenta (ingreso suma, gasto resta). */
+function calcularRitmoMeta(goal){
+  const relevantes=goal.type==='categoria'
+    ?entries.filter(e=>e.cat===goal.cat)
+    :entries.filter(e=>e.acc===goal.acc);
+  if(relevantes.length===0)return null;
+  const porMes={};
+  relevantes.forEach(e=>{
+    const m=e.date.slice(0,7);
+    const monto=entryCOP(e);
+    const delta=goal.type==='categoria'
+      ?(e.txType==='gasto'?monto:-monto)
+      :(e.txType==='ingreso'?monto:-monto);
+    porMes[m]=(porMes[m]||0)+delta;
+  });
+  const meses=Object.keys(porMes).sort().slice(-3);
+  if(meses.length===0)return null;
+  const promedioMensual=meses.reduce((s,m)=>s+porMes[m],0)/meses.length;
+  return {promedioMensual,mesesConsiderados:meses.length};
+}
+
 function renderGoals(){
   const list=document.getElementById('goals-list');
   if(!list)return;
@@ -290,6 +314,27 @@ function renderGoals(){
     const pct=targetCOP>0?Math.min(100,Math.round(actualCOP/targetCOP*100)):null;
     const actualStr=moneda==='USD'?'$'+actual.toFixed(2)+' USD':fmtCOP(actual);
     const {color:colorMeta,mensaje:mensajeMeta}=pct!==null?colorYMensajeProgreso(pct):{color:null,mensaje:null};
+
+    let proyeccionHTML='';
+    if(g.target){
+      const faltanteCOP=targetCOP-actualCOP;
+      if(faltanteCOP<=0){
+        proyeccionHTML=`<div style="font-size:10px;color:var(--safe);margin-top:8px;font-weight:600">🎉 Meta alcanzada.</div>`;
+      }else{
+        const ritmo=calcularRitmoMeta(g);
+        if(!ritmo||ritmo.promedioMensual<=0){
+          proyeccionHTML=`<div style="font-size:10px;color:var(--text3);margin-top:8px">Sin ritmo de ahorro positivo en tus últimos movimientos — todavía no se puede proyectar cuándo la alcanzas.</div>`;
+        }else{
+          const mesesRestantes=Math.ceil(faltanteCOP/ritmo.promedioMensual);
+          const fechaProyectada=new Date();
+          fechaProyectada.setMonth(fechaProyectada.getMonth()+mesesRestantes);
+          const monthNamesLower=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+          const fechaTexto=`${monthNamesLower[fechaProyectada.getMonth()]} ${fechaProyectada.getFullYear()}`;
+          proyeccionHTML=`<div style="font-size:10px;color:var(--text2);margin-top:8px">📅 A tu ritmo de los últimos ${ritmo.mesesConsiderados} mes(es) (~${fmtCOP(ritmo.promedioMensual)}/mes), llegarías en <strong style="color:var(--text)">~${mesesRestantes} mes(es) (${fechaTexto})</strong>.</div>`;
+        }
+      }
+    }
+
     return `<div class="card">
       <div class="card-title">${g.type==='cuenta'?'💧':'🏷️'} ${g.name} <button class="btn-del" onclick="deleteGoal('${g.id}')" style="float:right">×</button></div>
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
@@ -298,6 +343,7 @@ function renderGoals(){
       </div>
       ${pct!==null?`<div class="debt-track"><div class="debt-fill" style="width:${pct}%;background:${colorMeta}"></div></div><div style="font-size:10px;margin-top:4px;display:flex;justify-content:space-between"><span style="color:${colorMeta};font-weight:600">${mensajeMeta}</span><span style="color:var(--text3)">${pct}%</span></div>`:''}
       <div style="font-size:10px;color:var(--text3);margin-top:8px">${g.type==='cuenta'?'Vinculada a: '+ACCOUNTS_META[g.acc].label:'Acumula movimientos categorizados como "'+g.name+'"'}</div>
+      ${proyeccionHTML}
     </div>`;
   }).join('');
 }

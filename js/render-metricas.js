@@ -185,9 +185,118 @@ function renderMetrics(){
   document.getElementById('dp-rappi-original').textContent='Pico: '+fmtCOP(DEBT_ORIGINAL.rappitc);
 
   renderMonthComparison();
+  renderPatrimonioHistorico();
+  renderGastoHormiga();
   renderCategoryTrend();
   renderEmergencyGrowth();
   renderDebtProjection();
+}
+
+/** Últimos n meses en formato YYYY-MM, terminando en el mes actual (calendario, no depende de si hay datos) */
+function ultimosMeses(n){
+  const meses=[];
+  const hoy=new Date();
+  for(let i=n-1;i>=0;i--){
+    const d=new Date(hoy.getFullYear(),hoy.getMonth()-i,1);
+    meses.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);
+  }
+  return meses;
+}
+
+function renderPatrimonioHistorico(){
+  const chart=document.getElementById('networth-history-chart');
+  const legend=document.getElementById('networth-history-legend');
+  const savingsList=document.getElementById('savings-rate-list');
+  if(!chart||!legend||!savingsList)return;
+
+  const monthNames=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const hoy=todayStr().slice(0,7);
+  const liquidCOPActual=accounts.nequi+accounts.debito+accounts.nu+accounts.lulo+(accounts.arq*accounts.trm)+(accounts.ontop*accounts.trm);
+  const debtCOPActual=accounts.davtc+accounts.rappitc;
+
+  const datos=ultimosMeses(12).map(m=>{
+    if(m===hoy)return {mes:m,neto:liquidCOPActual-debtCOPActual};
+    const p=calcularPatrimonioMes(m);
+    return p?{mes:m,neto:p.neto}:null;
+  }).filter(Boolean);
+
+  if(datos.length<2){
+    chart.innerHTML='<div style="color:var(--text3);font-size:12px;margin:auto">Necesitas al menos 2 meses de historial para ver la tendencia</div>';
+    legend.innerHTML='';
+    savingsList.innerHTML='';
+    return;
+  }
+
+  const maxAbs=Math.max(...datos.map(d=>Math.abs(d.neto)),1);
+  chart.innerHTML=datos.map(d=>{
+    const h=Math.max(4,Math.round(Math.abs(d.neto)/maxAbs*100));
+    const color=d.neto>=0?'var(--safe)':'var(--danger)';
+    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;height:100%">
+      <div style="font-size:8px;font-family:var(--mono);color:var(--text2);white-space:nowrap">${(d.neto/1000000).toFixed(1)}M</div>
+      <div style="width:100%;max-width:32px;height:${h}px;background:${color};border-radius:4px 4px 0 0;transition:height .5s"></div>
+    </div>`;
+  }).join('');
+  legend.innerHTML=datos.map(d=>{
+    const [,mo]=d.mes.split('-');
+    return `<span>${monthNames[parseInt(mo)-1]}</span>`;
+  }).join('');
+
+  // Tasa de ahorro: (ingresos − gastos) / ingresos, mismos filtros que usa el desglose del mes
+  savingsList.innerHTML=datos.slice(-6).map(d=>{
+    const [y,mo]=d.mes.split('-');
+    const monthEntries=entries.filter(e=>e.date.slice(0,7)===d.mes);
+    const ingresos=monthEntries.filter(e=>e.txType==='ingreso'&&e.cat!=='[Ajuste de saldo]').reduce((s,e)=>s+entryCOP(e),0);
+    const gastos=monthEntries.filter(e=>e.txType!=='ingreso'&&e.cat!=='Transferencia'&&e.cat!=='[Ajuste de saldo]').reduce((s,e)=>s+entryCOP(e),0);
+    const tasa=ingresos>0?Math.round((ingresos-gastos)/ingresos*100):null;
+    const color=tasa===null?'var(--text3)':tasa>=20?'var(--safe)':tasa>=0?'var(--warn)':'var(--danger)';
+    const texto=tasa===null?'sin ingresos registrados':`${tasa>=0?'+':''}${tasa}%`;
+    return `<div style="display:flex;justify-content:space-between"><span>${monthNames[parseInt(mo)-1]} ${y}</span><span style="color:${color};font-family:var(--mono);font-weight:600">${texto}</span></div>`;
+  }).join('');
+}
+
+/** Agrupa gastos por nombre normalizado; si el mismo nombre aparece en ≥2 meses distintos,
+ *  se considera recurrente y se proyecta su costo anual (promedio mensual × 12). */
+function renderGastoHormiga(){
+  const el=document.getElementById('gasto-hormiga-list');
+  if(!el)return;
+  const gastos=entries.filter(e=>e.txType!=='ingreso'&&e.cat!=='Transferencia'&&e.cat!=='[Ajuste de saldo]');
+  const grupos={};
+  gastos.forEach(e=>{
+    const clave=e.name.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' ');
+    if(!clave)return;
+    if(!grupos[clave])grupos[clave]={nombre:e.name,meses:new Set(),total:0,cat:e.cat,ultimaFecha:e.date};
+    grupos[clave].meses.add(e.date.slice(0,7));
+    grupos[clave].total+=entryCOP(e);
+    if(e.date>grupos[clave].ultimaFecha){ grupos[clave].ultimaFecha=e.date; grupos[clave].nombre=e.name; }
+  });
+  const recurrentes=Object.values(grupos)
+    .filter(g=>g.meses.size>=2)
+    .map(g=>{
+      const mesesCount=g.meses.size;
+      const promedioMensual=g.total/mesesCount;
+      return {...g,mesesCount,promedioMensual,anual:promedioMensual*12};
+    })
+    .sort((a,b)=>b.anual-a.anual)
+    .slice(0,10);
+
+  if(recurrentes.length===0){
+    el.innerHTML='<div style="color:var(--text3);font-size:12px;padding:8px 0">Todavía no hay suficiente historial para detectar patrones recurrentes — necesitas el mismo gasto registrado en al menos 2 meses distintos.</div>';
+    return;
+  }
+
+  el.innerHTML=recurrentes.map(g=>{
+    const c=col(g.cat);
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="min-width:0">
+        <div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${g.nombre}</div>
+        <div style="font-size:9px;color:var(--text3)"><span style="color:${c}">${scat(g.cat)}</span> · ${g.mesesCount} meses · ~${fmtCOP(g.promedioMensual)}/mes</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;padding-left:10px">
+        <div style="font-family:var(--mono);font-weight:700;font-size:13px">${fmtCOP(g.anual)}</div>
+        <div style="font-size:8px;color:var(--text3);text-transform:uppercase">al año</div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function renderDebtProjection(){
