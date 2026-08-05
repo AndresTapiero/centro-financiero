@@ -42,7 +42,8 @@
       activeRow.dataset.swiped = '1'; // evita que el click posterior abra el modal de edición
       activeContent.style.transform = `translateX(-${MAX_DRAG}px)`;
       const id = activeRow.dataset.id;
-      const eliminado = await deleteEntry(id);
+      const isPendiente = activeRow.closest('#pendientes-list') !== null;
+      const eliminado = await (isPendiente ? deletePendiente(id) : deleteEntry(id));
       if(!eliminado){
         activeContent.style.transform = 'translateX(0)';
       }
