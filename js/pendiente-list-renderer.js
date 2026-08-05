@@ -68,10 +68,10 @@ class PendienteListRenderer {
     const colorPunto = estado === 'vencido' ? 'var(--danger)' : estado === 'proximo' ? 'var(--warn)' : c;
     const colorMonto = p.isIncome ? 'var(--accent)' : estado === 'vencido' ? 'var(--danger)' : estado === 'proximo' ? 'var(--warn)' : 'var(--text)';
 
-    return `<div class="entry-row" data-id="${p.id}">
-      <div class="entry-row-swipe-bg" style="justify-content:space-between;padding:0 16px" aria-hidden="true">
-        <span style="flex:1;text-align:left">${p.isIncome ? '💰 Recibir' : '✓ Pagar'}</span>
-        <span style="flex:1;text-align:right">🗑 Eliminar</span>
+    return `<div class="entry-row" data-id="${p.id}" style="--swipe-left-bg:var(--danger);--swipe-right-bg:var(--accent)">
+      <div class="entry-row-swipe-bg entry-row-swipe-bg-pendiente" aria-hidden="true">
+        <span class="swipe-right-text" style="position:absolute;left:16px">${p.isIncome ? '💰 Recibir' : '✓ Pagar'}</span>
+        <span class="swipe-left-text" style="position:absolute;right:16px">🗑 Eliminar</span>
       </div>
       <div class="entry-row-content" style="${estiloFila};cursor:pointer" onclick="editPendiente('${p.id}')">
         <div class="entry-row-top">
