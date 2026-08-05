@@ -20,6 +20,19 @@ const COLORS={
   'Servicios':'#64748B','Suscripciones':'#94A3B8','Otro':'#475569',
   'Hogar':'#EAB308',
 };
+
+// Colores específicos para suscripciones por nombre
+const SUBSCRIPTION_COLORS={
+  'spotify':'#1DB954',
+  'anthropic':'#3B82F6',
+  'claude':'#3B82F6',
+  'google one':'#EA4335',
+  'capcut':'#000000',
+  'adobe':'#FF0000',
+  'netflix':'#E50914',
+  'disney':'#113CCF',
+  'hbo':'#542DBF',
+};
 const BUDGET_TOTAL=800000+200000+300000+400000+150000+450000;
 // Categorías irregulares: no ocurren cada mes (taller, seguros anuales) — se excluyen del "ritmo de gasto"
 // para no distorsionar el semáforo cuando aparecen de forma puntual, pero siguen teniendo su propio tope visible.

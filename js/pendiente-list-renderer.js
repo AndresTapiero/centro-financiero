@@ -53,7 +53,7 @@ class PendienteListRenderer {
 
   renderFila(p){
     const meta = ACCOUNTS_META[p.acc];
-    const c = p.isIncome ? '#22D3B0' : col(p.cat);
+    const c = p.isIncome ? '#22D3B0' : col(p.cat, p.name);
     const montoStr = meta.currency === 'USD' ? fmtUSD(p.amount) : fmtCOP(p.amount);
     const esTarjeta = meta.type === 'credito';
     // Para tarjetas mostramos el saldo actual como referencia, sin forzarlo — el pago del mes

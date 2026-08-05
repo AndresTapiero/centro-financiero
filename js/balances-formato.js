@@ -291,7 +291,15 @@ function fmtDate(s){const p=s.split('-');return p[2]+'/'+p[1]}
 function fmtCOP(n){return '$'+Math.round(n).toLocaleString('es-CO')}
 function redondear3(n){ return Math.round(n*100)/100; } // máximo 2 decimales en cualquier monto registrado (nombre de función sin cambiar para no romper referencias)
 function fmtUSD(n){ return '$'+n.toFixed(2)+' USD'; } // 2 decimales al MOSTRAR (estándar de moneda), incluso si el dato guardado tiene más
-function col(cat){return COLORS[cat]||'#607D8B'}
+function col(cat, name=''){
+  if(name && cat==='Suscripciones'){
+    const lowerName=name.toLowerCase();
+    for(const [key, color] of Object.entries(SUBSCRIPTION_COLORS||{})){
+      if(lowerName.includes(key))return color;
+    }
+  }
+  return COLORS[cat]||'#607D8B';
+}
 function scat(cat){return cat.includes('·')?cat.split('·').slice(1).join('·').trim():cat}
 
 const KEYWORD_MAP=[
