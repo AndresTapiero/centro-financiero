@@ -69,7 +69,10 @@ class PendienteListRenderer {
     const colorMonto = p.isIncome ? 'var(--accent)' : estado === 'vencido' ? 'var(--danger)' : estado === 'proximo' ? 'var(--warn)' : 'var(--text)';
 
     return `<div class="entry-row" data-id="${p.id}">
-      <div class="entry-row-swipe-bg" aria-hidden="true">🗑 Eliminar</div>
+      <div class="entry-row-swipe-bg" style="justify-content:space-between;padding:0 16px" aria-hidden="true">
+        <span style="flex:1;text-align:left">${p.isIncome ? '💰 Recibir' : '✓ Pagar'}</span>
+        <span style="flex:1;text-align:right">🗑 Eliminar</span>
+      </div>
       <div class="entry-row-content" style="${estiloFila};cursor:pointer" onclick="editPendiente('${p.id}')">
         <div class="entry-row-top">
           <span class="avatar-square" style="background:${colorPunto};width:28px;height:28px;font-size:11px;border-radius:8px">${p.name.charAt(0).toUpperCase()}</span>
@@ -79,9 +82,6 @@ class PendienteListRenderer {
         <div class="entry-row-bottom">
           <span class="entry-cat" style="background:${c}22;color:${c}">${scat(p.cat)}</span>
           <span class="entry-acc">${meta.label}${esTarjeta ? ` · saldo actual: ${saldoActualStr}` : ''}</span>
-        </div>
-        <div class="entry-actions">
-          <button class="entry-primary-btn" onclick="event.stopPropagation();payPendiente('${p.id}')">${p.isIncome ? 'Recibir' : 'Pagar'}</button>
         </div>
       </div>
     </div>`;

@@ -23,9 +23,14 @@
   function onPointerMove(e){
     if(!row) return;
     const delta = e.clientX - startX;
-    if(delta > 0) { dx = 0; content.style.transform = 'translateX(0)'; return; } // solo permite deslizar a la izquierda
+    const isPendiente = row.closest('#pendientes-list') !== null;
+    // Movimientos: solo izquierda (eliminar)
+    // Pendientes: izquierda (eliminar) o derecha (pagar/recibir)
+    if(!isPendiente && delta > 0) { dx = 0; content.style.transform = 'translateX(0)'; return; }
     if(!dragging && Math.abs(delta) > 6) dragging = true;
-    dx = Math.max(delta, -MAX_DRAG);
+    // Para pendientes: permitir +MAX_DRAG (derecha) o -MAX_DRAG (izquierda)
+    dx = isPendiente ? Math.max(delta, -MAX_DRAG) : Math.max(delta, -MAX_DRAG);
+    dx = Math.min(dx, isPendiente ? MAX_DRAG : 0);
     content.style.transform = `translateX(${dx}px)`;
   }
 
@@ -38,13 +43,21 @@
 
     activeContent.style.transition = 'transform .2s ease';
 
+    const isPendiente = activeRow.closest('#pendientes-list') !== null;
+
     if(wasDragged && Math.abs(finalDx) >= THRESHOLD){
       activeRow.dataset.swiped = '1'; // evita que el click posterior abra el modal de edición
-      activeContent.style.transform = `translateX(-${MAX_DRAG}px)`;
       const id = activeRow.dataset.id;
-      const isPendiente = activeRow.closest('#pendientes-list') !== null;
-      const eliminado = await (isPendiente ? deletePendiente(id) : deleteEntry(id));
-      if(!eliminado){
+
+      if(finalDx < -THRESHOLD){ // Swipe izquierda: eliminar
+        activeContent.style.transform = `translateX(-${MAX_DRAG}px)`;
+        const eliminado = await (isPendiente ? deletePendiente(id) : deleteEntry(id));
+        if(!eliminado){
+          activeContent.style.transform = 'translateX(0)';
+        }
+      } else if(isPendiente && finalDx > THRESHOLD){ // Swipe derecha (solo en pendientes): pagar/recibir
+        activeContent.style.transform = `translateX(${MAX_DRAG}px)`;
+        await payPendiente(id);
         activeContent.style.transform = 'translateX(0)';
       }
     } else {
