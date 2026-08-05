@@ -72,8 +72,10 @@ self.addEventListener('fetch', event => {
       .then(response => {
         // Cache successful responses for offline use
         if (response.status === 200 && response.type !== 'error') {
-          const cache = caches.open(CACHE_NAME);
-          cache.then(c => c.put(request, response.clone()));
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(request, responseToCache);
+          });
         }
         return response;
       })
