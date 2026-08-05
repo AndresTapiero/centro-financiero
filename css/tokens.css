@@ -7,6 +7,10 @@
   --text:#17171F; --text2:#6B6F7D; --text3:#767B87;
   --accent:#0E9F6E; --accent2:#0B8259;
   --danger:#DC2626; --warn:#D97706; --blue:#2563EB; --purple:#7C3AED;
+  /* Verde fijo para semáforos financieros (Libre real, Saldo actual, Patrimonio neto...).
+     No cambia con el tema — a diferencia de --accent (verde en claro, azul en oscuro),
+     esto necesita ser un verde real siempre, porque es una señal de "estás bien". */
+  --safe:#0E9F6E;
   --mono:'JetBrains Mono',monospace; --sans:'Inter',sans-serif;
   --r:14px; --rsm:9px;
   /* La tarjeta de resumen (arriba del todo) se queda oscura a propósito, como acento — todo lo demás es claro */

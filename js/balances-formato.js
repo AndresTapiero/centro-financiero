@@ -149,7 +149,7 @@ function updateNetWorth(){
   const net=liquidCOP-debtCOP;
   const nwEl=document.getElementById('nw-net');
   nwEl.textContent=fmtCOP(net);
-  nwEl.style.color=net>=0?'var(--accent)':'var(--danger)';
+  nwEl.style.color=net>=0?'var(--safe)':'var(--danger)';
 
   // Desglose del mes: saldo inicial + ingresos - gastos = saldo final
   const monthEntries=entries.filter(e=>e.date.slice(0,7)===currentMonth);
@@ -188,12 +188,12 @@ function updateNetWorth(){
     if(gastosEl)gastosEl.textContent=fmtCOP(gastosMes);
     if(finalEl){
       finalEl.textContent=fmtCOP(saldoFinal);
-      finalEl.style.color=saldoFinal>=0?'var(--accent)':'var(--danger)';
+      finalEl.style.color=saldoFinal>=0?'var(--safe)':'var(--danger)';
     }
     if(pendientesEl)pendientesEl.textContent=fmtCOP(pendCOP);
     if(libreEl){
       libreEl.textContent=fmtCOP(libreReal);
-      libreEl.style.color=libreReal>500000?'var(--accent)':libreReal>0?'var(--warn)':'var(--danger)';
+      libreEl.style.color=libreReal>500000?'var(--safe)':libreReal>0?'var(--warn)':'var(--danger)';
     }
 
     const subEl=document.getElementById('ats-sub');
@@ -212,7 +212,7 @@ function updateNetWorth(){
     document.getElementById('ats-bruto').textContent=fmtCOP(bruto);
     document.getElementById('ats-pendientes').textContent=fmtCOP(pendCOP);
     document.getElementById('ats-value').textContent=fmtCOP(libre);
-    document.getElementById('ats-value').style.color=libre>500000?'var(--accent)':libre>0?'var(--warn)':'var(--danger)';
+    document.getElementById('ats-value').style.color=libre>500000?'var(--safe)':libre>0?'var(--warn)':'var(--danger)';
     const subEl=document.getElementById('ats-sub');
     if(subEl){
       subEl.innerHTML=saldoHist.fallo
@@ -276,9 +276,9 @@ function renderEstadoMes(){
         <div class="metric-value red" style="font-size:18px">${fmtCOP(gastos)}</div>
       </div>
     </div>
-    <div class="networth-row"><span class="networth-label">Balance neto del mes</span><span class="networth-value" style="color:${balanceNeto>=0?'var(--accent)':'var(--danger)'}">${balanceNeto>=0?'+':''}${fmtCOP(balanceNeto)}</span></div>
+    <div class="networth-row"><span class="networth-label">Balance neto del mes</span><span class="networth-value" style="color:${balanceNeto>=0?'var(--safe)':'var(--danger)'}">${balanceNeto>=0?'+':''}${fmtCOP(balanceNeto)}</span></div>
     <div class="networth-row"><span class="networth-label">% del ingreso ya comprometido</span><span class="networth-value">${pctComprometido}%</span></div>
-    <div class="networth-row"><span class="networth-label">Ritmo de gasto variable</span><span class="networth-value" style="color:${ritmoPct>130?'var(--danger)':ritmoPct>105?'var(--warn)':'var(--accent)'}">${ritmoPct}% del ritmo esperado</span></div>
+    <div class="networth-row"><span class="networth-label">Ritmo de gasto variable</span><span class="networth-value" style="color:${ritmoPct>130?'var(--danger)':ritmoPct>105?'var(--warn)':'var(--safe)'}">${ritmoPct}% del ritmo esperado</span></div>
     <div style="font-size:10px;color:var(--text3);margin-top:6px">Día ${diaActual} de ${diasEnMes} del mes · ${fmtCOP(gastoVariable)} gastado en categorías variables</div>
   `;
 }
