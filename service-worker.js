@@ -1,24 +1,29 @@
-const CACHE_NAME = 'centro-financiero-v1';
-const urlsToCache = [
-  '/',
-  '/index.html',
-  '/styles.css',
-  '/js/constantes.js',
-  '/js/filtros-busqueda.js',
-  '/js/modales.js',
-  '/js/guardado-core.js',
-  '/js/metas.js',
-  '/js/cuentas-carga.js',
-  '/js/balances-formato.js',
-  '/js/movimientos.js',
-  '/js/render-metricas.js',
-  '/js/pendientes-transferencias.js',
-  '/js/movimiento-list-renderer.js',
-  '/js/pendiente-list-renderer.js',
-  '/js/respaldo.js',
-  '/js/verificacion-sync.js',
-  '/js/auth-arranque.js'
+// Cache strategy: Network-first with fallback
+// Esto asegura que siempre busques la última versión del servidor
+const CACHE_NAME = 'centro-financiero-cache';
+const CRITICAL_FILES = [
+  '/centro-financiero/index.html',
+  '/centro-financiero/styles.css',
+  '/centro-financiero/manifest.json'
 ];
+const JS_FILES = [
+  '/centro-financiero/js/constantes.js',
+  '/centro-financiero/js/filtros-busqueda.js',
+  '/centro-financiero/js/modales.js',
+  '/centro-financiero/js/guardado-core.js',
+  '/centro-financiero/js/metas.js',
+  '/centro-financiero/js/cuentas-carga.js',
+  '/centro-financiero/js/balances-formato.js',
+  '/centro-financiero/js/movimientos.js',
+  '/centro-financiero/js/render-metricas.js',
+  '/centro-financiero/js/pendientes-transferencias.js',
+  '/centro-financiero/js/movimiento-list-renderer.js',
+  '/centro-financiero/js/pendiente-list-renderer.js',
+  '/centro-financiero/js/respaldo.js',
+  '/centro-financiero/js/verificacion-sync.js',
+  '/centro-financiero/js/auth-arranque.js'
+];
+const urlsToCache = [...CRITICAL_FILES, ...JS_FILES];
 
 // Install: precache files
 self.addEventListener('install', event => {
@@ -50,56 +55,44 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Fetch: network-first for API calls, cache-first for assets
+// Fetch: Network-first for everything (ensures latest version)
+// Falls back to cache only if offline
 self.addEventListener('fetch', event => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Network-first for Supabase API calls (must be fresh)
-  if (url.hostname.includes('supabase') || url.hostname.includes('googleapis')) {
-    event.respondWith(
-      fetch(request)
-        .then(response => {
-          // Cache successful responses for offline fallback
-          if (response.status === 200) {
-            const cache = caches.open(CACHE_NAME);
-            cache.then(c => c.put(request, response.clone()));
-          }
-          return response;
-        })
-        .catch(() => {
-          // Fall back to cache if network fails
-          return caches.match(request);
-        })
-    );
+  // Skip non-GET requests
+  if (request.method !== 'GET') {
     return;
   }
 
-  // Cache-first for static assets (faster load)
+  // Network-first strategy for all requests
   event.respondWith(
-    caches.match(request).then(response => {
-      if (response) return response;
-
-      return fetch(request).then(response => {
-        // Cache successful responses
-        if (response.status === 200 && request.method === 'GET') {
+    fetch(request)
+      .then(response => {
+        // Cache successful responses for offline use
+        if (response.status === 200 && response.type !== 'error') {
           const cache = caches.open(CACHE_NAME);
           cache.then(c => c.put(request, response.clone()));
         }
         return response;
-      }).catch(() => {
-        // Return a basic offline page if available
-        if (request.mode === 'navigate') {
-          return caches.match('/index.html');
-        }
-        return new Response('Offline - recurso no disponible', {
-          status: 503,
-          statusText: 'Service Unavailable',
-          headers: new Headers({
-            'Content-Type': 'text/plain'
-          })
+      })
+      .catch(() => {
+        // Fall back to cache if network fails
+        return caches.match(request).then(cached => {
+          if (cached) return cached;
+
+          // Offline fallback
+          if (request.mode === 'navigate') {
+            return caches.match('/centro-financiero/index.html');
+          }
+
+          return new Response('Offline - recurso no disponible', {
+            status: 503,
+            statusText: 'Service Unavailable',
+            headers: new Headers({ 'Content-Type': 'text/plain' })
+          });
         });
-      });
-    })
+      })
   );
 });
