@@ -264,9 +264,10 @@ function updateEntriesSummary(){
   document.getElementById('summary-ingresos').textContent=fmtCOP(ingresos);
   document.getElementById('summary-gastos').textContent=fmtCOP(gastos);
 
-  const balanceEl=document.getElementById('summary-balance');
-  balanceEl.textContent=fmtCOP(balance);
-  balanceEl.style.color=balance>=0?'var(--accent)':'var(--danger)';
+  // Balance: ya se muestra en Ingresos y Gastos arriba, oculto por ahora
+  // const balanceEl=document.getElementById('summary-balance');
+  // balanceEl.textContent=fmtCOP(balance);
+  // balanceEl.style.color=balance>=0?'var(--accent)':'var(--danger)';
 }
 const RECURRENTES=[
   {name:'Salario (ingreso)',amount:2675,acc:'ontop',cat:'Otro',day:26,isIncome:true},
