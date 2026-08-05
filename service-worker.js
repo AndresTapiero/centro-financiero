@@ -1,10 +1,22 @@
 // Cache strategy: Network-first with fallback
 // Esto asegura que siempre busques la última versión del servidor
-const CACHE_NAME = 'centro-financiero-cache';
+// IMPORTANTE: sube este número cada vez que la lista de abajo cambie (archivos nuevos,
+// renombrados o borrados) — un CACHE_NAME distinto fuerza a borrar el cache viejo en
+// el evento 'activate', que es lo único que garantiza que un cliente con la app ya
+// instalada como PWA deje de servir archivos que ya no existen (ej. styles.css).
+const CACHE_NAME = 'centro-financiero-cache-v2';
 const CRITICAL_FILES = [
   '/centro-financiero/index.html',
-  '/centro-financiero/styles.css',
-  '/centro-financiero/manifest.json'
+  '/centro-financiero/manifest.json',
+  '/centro-financiero/css/tokens.css',
+  '/centro-financiero/css/layout.css',
+  '/centro-financiero/css/hero.css',
+  '/centro-financiero/css/cards.css',
+  '/centro-financiero/css/forms.css',
+  '/centro-financiero/css/buttons.css',
+  '/centro-financiero/css/entries-list.css',
+  '/centro-financiero/css/presupuesto.css',
+  '/centro-financiero/css/metricas.css'
 ];
 const JS_FILES = [
   '/centro-financiero/js/constantes.js',
@@ -19,8 +31,10 @@ const JS_FILES = [
   '/centro-financiero/js/pendientes-transferencias.js',
   '/centro-financiero/js/movimiento-list-renderer.js',
   '/centro-financiero/js/pendiente-list-renderer.js',
+  '/centro-financiero/js/swipe-delete.js',
   '/centro-financiero/js/respaldo.js',
   '/centro-financiero/js/verificacion-sync.js',
+  '/centro-financiero/js/offline-sync.js',
   '/centro-financiero/js/auth-arranque.js'
 ];
 const urlsToCache = [...CRITICAL_FILES, ...JS_FILES];
