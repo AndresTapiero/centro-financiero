@@ -190,6 +190,101 @@ function renderMetrics(){
   renderCategoryTrend();
   renderEmergencyGrowth();
   renderDebtProjection();
+  renderGastoTarjetasCategoria();
+  renderCreditoVsLiquidoPorCategoria();
+}
+
+/** Cargos nuevos (txType='gasto') a tarjetas de crédito este mes, agrupados por categoría.
+ *  Ojo: solo new charges — los pagos de deuda son txType='ingreso' en la tarjeta, no entran acá. */
+function renderGastoTarjetasCategoria(){
+  const el=document.getElementById('credit-cat-list');
+  const labelEl=document.getElementById('credit-cat-month-label');
+  if(!el)return;
+
+  const monthNames=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  if(labelEl&&currentMonth){
+    const [y,mo]=currentMonth.split('-');
+    labelEl.textContent='· '+monthNames[parseInt(mo)-1]+' '+y;
+  }
+
+  const monthEntries=entries.filter(e=>e.date.slice(0,7)===currentMonth);
+  const cargos=monthEntries.filter(e=>e.txType==='gasto'&&['davtc','rappitc'].includes(e.acc)&&e.cat!=='Transferencia'&&e.cat!=='[Ajuste de saldo]'&&e.cat!=='Pago Deuda');
+
+  if(cargos.length===0){
+    el.innerHTML='<div class="empty" style="padding:1.5rem">Sin cargos nuevos a tarjetas de crédito este mes.</div>';
+    return;
+  }
+
+  const bycat={};
+  cargos.forEach(e=>{ bycat[e.cat]=(bycat[e.cat]||0)+entryCOP(e); });
+  const total=Object.values(bycat).reduce((s,v)=>s+v,0)||1;
+  const sorted=Object.entries(bycat).sort((a,b)=>b[1]-a[1]);
+
+  el.innerHTML=sorted.map(([cat,val])=>{
+    const c=col(cat);
+    const pct=Math.round(val/total*100);
+    return `<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+        <span style="color:${c}">${scat(cat)}</span>
+        <span style="font-family:var(--mono)">${fmtCOP(val)} · ${pct}%</span>
+      </div>
+      <div class="budget-track"><div class="budget-fill" style="width:${pct}%;background:${c}"></div></div>
+    </div>`;
+  }).join('')+`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:12px;font-weight:700"><span>Total cargado este mes</span><span style="font-family:var(--mono)">${fmtCOP(total)}</span></div>`;
+}
+
+/** Para cada categoría con gasto este mes, qué porción se pagó con tarjeta de crédito
+ *  vs efectivo/débito — para detectar dónde se está financiando con crédito lo que
+ *  podría pagarse de contado. Solo muestra categorías con algo de crédito (evita llenar
+ *  la lista de categorías en 0%). */
+function renderCreditoVsLiquidoPorCategoria(){
+  const el=document.getElementById('credit-vs-liquido-list');
+  if(!el)return;
+
+  const monthEntries=entries.filter(e=>e.date.slice(0,7)===currentMonth);
+  const gastos=monthEntries.filter(e=>e.txType!=='ingreso'&&e.cat!=='Transferencia'&&e.cat!=='[Ajuste de saldo]');
+
+  if(gastos.length===0){
+    el.innerHTML='<div class="empty" style="padding:1.5rem">Sin gastos registrados este mes.</div>';
+    return;
+  }
+
+  const porCategoria={};
+  gastos.forEach(e=>{
+    const esCredito=ACCOUNTS_META[e.acc]&&ACCOUNTS_META[e.acc].type==='credito';
+    if(!porCategoria[e.cat])porCategoria[e.cat]={credito:0,liquido:0};
+    porCategoria[e.cat][esCredito?'credito':'liquido']+=entryCOP(e);
+  });
+
+  const filas=Object.entries(porCategoria)
+    .map(([cat,v])=>({cat,...v,total:v.credito+v.liquido}))
+    .filter(f=>f.credito>0)
+    .sort((a,b)=>b.total-a.total)
+    .slice(0,10);
+
+  if(filas.length===0){
+    el.innerHTML='<div class="empty" style="padding:1.5rem">No usaste tarjeta de crédito en ninguna categoría este mes.</div>';
+    return;
+  }
+
+  el.innerHTML=filas.map(f=>{
+    const c=col(f.cat);
+    const pctCredito=Math.round(f.credito/f.total*100);
+    return `<div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+        <span style="color:${c}">${scat(f.cat)}</span>
+        <span style="font-family:var(--mono);color:var(--text2)">${pctCredito}% en tarjeta</span>
+      </div>
+      <div style="display:flex;height:8px;border-radius:99px;overflow:hidden;background:var(--surface2)">
+        <div style="width:${pctCredito}%;background:#FF8C42"></div>
+        <div style="width:${100-pctCredito}%;background:var(--safe)"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text3);margin-top:3px;font-family:var(--mono)">
+        <span>💳 ${fmtCOP(f.credito)}</span>
+        <span>💵 ${fmtCOP(f.liquido)}</span>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 /** Últimos n meses en formato YYYY-MM, terminando en el mes actual (calendario, no depende de si hay datos) */
