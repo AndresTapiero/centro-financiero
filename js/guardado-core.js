@@ -1,6 +1,6 @@
 let entries=[];
 let pendingSaves=0; // contador de guardados en curso — evita que la sincronización pise cambios recién hechos
-const BUILD_VERSION='2026-08-01.movimientos-rediseñado'; // súbelo cada vez que se publique una versión nueva — sirve para confirmar que celular y PC corren el mismo código
+const BUILD_VERSION='2026-08-05.regla-50-y-utilizacion-cupo'; // súbelo cada vez que se publique una versión nueva — sirve para confirmar que celular y PC corren el mismo código
 
 let ultimoErrorGuardado=null;
 
