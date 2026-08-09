@@ -68,9 +68,6 @@ class PendienteListRenderer {
     const colorPunto = estado === 'vencido' ? 'var(--danger)' : estado === 'proximo' ? 'var(--warn)' : c;
     const colorMonto = p.isIncome ? 'var(--accent)' : estado === 'vencido' ? 'var(--danger)' : estado === 'proximo' ? 'var(--warn)' : 'var(--text)';
 
-    const [y, m, d] = (p.date || '').split('-');
-    const fechaCorta = p.date ? `${d}/${m}` : '';
-
     return `<div class="entry-row" data-id="${p.id}" style="--swipe-left-bg:var(--danger);--swipe-right-bg:var(--accent)">
       <div class="entry-row-swipe-bg entry-row-swipe-bg-pendiente" aria-hidden="true">
         <span class="swipe-right-text" style="position:absolute;left:16px">${p.isIncome ? '💰 Recibir' : '✓ Pagar'}</span>
@@ -79,19 +76,11 @@ class PendienteListRenderer {
       <div class="entry-row-content" style="${estiloFila};cursor:pointer" onclick="editPendiente('${p.id}')">
         <div class="entry-row-top">
           <span class="avatar-square" style="background:${colorPunto};width:32px;height:32px;font-size:12px;border-radius:8px;flex-shrink:0">${p.name.charAt(0).toUpperCase()}</span>
-          <div style="flex:1;min-width:0">
-            <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">
-              <span class="entry-date">${fechaCorta}${fechaCorta ? ' — ' : ''}</span>
-              <span class="entry-cat" style="background:${c}22;color:${c}">${scat(p.cat)}</span>
-            </div>
-            <div class="entry-name">${prefijoNombre}${p.name}</div>
-          </div>
+          <span class="entry-cat" style="background:${c}22;color:${c}">${scat(p.cat)}</span>
+          <div class="entry-name">${prefijoNombre}${p.name}</div>
           <div class="entry-amount-group">
             <span class="entry-amount" style="color:${colorMonto}">${p.isIncome ? '+' : ''}${montoStr}</span>
           </div>
-        </div>
-        <div class="entry-row-bottom">
-          <span class="entry-acc">${meta.label}${esTarjeta ? ` · saldo actual: ${saldoActualStr}` : ''}</span>
         </div>
       </div>
     </div>`;

@@ -62,27 +62,16 @@ class MovimientoListRenderer {
       ? 'background:rgba(255,107,107,.12);border-left:3px solid var(--danger)'
       : cardColor ? `border-left:3px solid ${cardColor}` : '';
 
-    const [y, m, d] = e.date.split('-');
-    const fechaCorta = `${d}/${m}`;
-
     return `<div class="entry-row" data-id="${e.id}">
       <div class="entry-row-swipe-bg" aria-hidden="true">🗑 Eliminar</div>
       <div class="entry-row-content" style="${borderStyle};cursor:pointer" onclick="openEditEntryModal('${e.id}')">
         <div class="entry-row-top">
           <span class="avatar-square" style="background:${c};width:32px;height:32px;font-size:12px;border-radius:8px;flex-shrink:0">${e.name.charAt(0).toUpperCase()}</span>
-          <div style="flex:1;min-width:0">
-            <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">
-              <span class="entry-date">${fechaCorta}</span>
-              <span class="entry-cat" style="background:${c}22;color:${c}">${scat(e.cat)}</span>
-            </div>
-            <div class="entry-name">${esAnomalia ? '⚠️ ' : ''}${e.name}</div>
-          </div>
+          <span class="entry-cat" style="background:${c}22;color:${c}">${scat(e.cat)}</span>
+          <div class="entry-name">${esAnomalia ? '⚠️ ' : ''}${e.name}</div>
           <div class="entry-amount-group">
             <span class="entry-amount" style="color:${esAnomalia ? 'var(--danger)' : isIncome ? 'var(--accent)' : 'var(--text)'}">${isIncome ? '+' : ''}${amtStr}</span>
           </div>
-        </div>
-        <div class="entry-row-bottom">
-          <span class="entry-acc">${meta.label} · ${saldoActual}${e.vehiculo ? ' · 🚗 ' + e.vehiculo : ''}${esAnomalia ? ' · <span style="color:var(--danger)">monto alto</span>' : ''}</span>
         </div>
         ${esAnomalia ? `<div class="entry-actions"><button class="entry-icon-btn" style="width:auto;padding:0 8px" onclick="event.stopPropagation();fixCurrency('${e.id}')">💱 Era COP</button></div>` : ''}
       </div>
