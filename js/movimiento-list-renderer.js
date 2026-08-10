@@ -66,9 +66,11 @@ class MovimientoListRenderer {
       <div class="entry-row-swipe-bg" aria-hidden="true">🗑 Eliminar</div>
       <div class="entry-row-content" style="${borderStyle};cursor:pointer" onclick="openEditEntryModal('${e.id}')">
         <div class="entry-row-top">
-          <span class="avatar-square" style="background:${c};width:32px;height:32px;font-size:12px;border-radius:8px;flex-shrink:0">${e.name.charAt(0).toUpperCase()}</span>
-          <span class="entry-cat" style="background:${c}22;color:${c}">${scat(e.cat)}</span>
-          <div class="entry-name">${esAnomalia ? '⚠️ ' : ''}${e.name}</div>
+          <span class="avatar-square" style="background:${c};width:44px;height:44px;font-size:18px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center">${e.name.charAt(0).toUpperCase()}</span>
+          <div style="flex:1;min-width:0">
+            <div class="entry-name">${esAnomalia ? '⚠️ ' : ''}${e.name}</div>
+            <span class="entry-cat" style="background:${c}22;color:${c}">${scat(e.cat)}</span>
+          </div>
           <div class="entry-amount-group">
             <span class="entry-amount" style="color:${esAnomalia ? 'var(--danger)' : isIncome ? 'var(--accent)' : 'var(--text)'}">${isIncome ? '+' : ''}${amtStr}</span>
           </div>
