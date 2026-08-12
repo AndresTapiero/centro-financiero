@@ -113,6 +113,10 @@ async function loadData(){
   Object.keys(dynamicAccounts).forEach(key=>renderDynamicAccountCard(key));
   refreshAllAccountSelectors();
   render();
+  renderPendientes();
+  if(typeof actualizarBadgePendientes==='function') actualizarBadgePendientes();
+  if(typeof mostrarNotificacionPendientes==='function') mostrarNotificacionPendientes();
+  if(typeof actualizarBtnNotif==='function') actualizarBtnNotif();
   document.getElementById('loading-gate').style.display='none';
 }
 

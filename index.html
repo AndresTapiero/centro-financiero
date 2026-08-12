@@ -85,6 +85,31 @@
     </div>
   </div>
 </div>
+<div id="express-modal" role="dialog" aria-modal="true" aria-label="Registro rápido" style="display:none;position:fixed;inset:0;z-index:1100;align-items:flex-end;justify-content:center">
+  <div onclick="cerrarModalExpress()" style="position:absolute;inset:0;background:rgba(0,0,0,.55)"></div>
+  <div style="position:relative;background:var(--surface);border-radius:20px 20px 0 0;padding:20px 20px 36px;width:100%;max-width:480px;box-shadow:0 -8px 40px rgba(0,0,0,.3)">
+    <div style="width:40px;height:4px;background:var(--border2);border-radius:99px;margin:0 auto 18px"></div>
+    <div style="display:flex;gap:6px;margin-bottom:14px">
+      <button type="button" id="express-tab-gasto" class="tipo-tab tipo-tab-gasto active" onclick="setTipoExpress('gasto')">➖ Gasto</button>
+      <button type="button" id="express-tab-ingreso" class="tipo-tab tipo-tab-ingreso" onclick="setTipoExpress('ingreso')">➕ Ingreso</button>
+    </div>
+    <input class="inp inp-num" id="express-amount" type="text" inputmode="decimal" placeholder="0" oninput="formatearInputMonto(this)" style="font-size:30px;font-weight:800;height:60px;text-align:center;margin-bottom:12px;letter-spacing:-1px">
+    <input class="inp" id="express-name" type="text" placeholder="¿En qué?" oninput="suggestCategoryExpress()" autocomplete="off" style="margin-bottom:6px">
+    <div id="express-suggest" style="display:none;font-size:11px;color:var(--accent);margin-bottom:8px;padding:5px 10px;background:rgba(168,224,99,.08);border-radius:6px;border:1px solid rgba(168,224,99,.2)">✨ Categoría sugerida — cámbiala si no aplica</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+      <select class="inp" id="express-account" style="height:38px;font-size:12px">
+        <optgroup label="🏦 COP"><option value="debito">🏦 Davivienda</option><option value="nequi">💳 Nequi</option><option value="nu">🛡️ Nu cajitas</option></optgroup>
+        <optgroup label="💳 Crédito"><option value="davtc">🔴 Davivienda TC</option><option value="rappitc">🟠 Rappi Card</option></optgroup>
+        <optgroup label="🌎 USD"><option value="arq">🌎 ARQ</option><option value="ontop">🌎 Ontop</option></optgroup>
+      </select>
+      <select class="inp" id="express-category" style="height:38px;font-size:12px"></select>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-add" style="flex:1;margin:0" onclick="addEntryExpress()">Registrar</button>
+      <button class="btn-add is-ghost" style="margin:0;padding:0 14px;width:auto;font-size:13px" onclick="expandirAModalCompleto()" title="Más campos">+ campos</button>
+    </div>
+  </div>
+</div>
 <div id="nuevo-movimiento-modal" role="dialog" aria-modal="true" aria-labelledby="nuevo-movimiento-title" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;height:100dvh;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center;padding:16px;overflow-y:auto" class="nuevo-movimiento-modal">
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(23,23,31,.25);max-height:88vh;overflow-y:auto;min-width:0">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
@@ -228,7 +253,7 @@
   <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:340px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.5)">
     <div id="edit-pendiente-title" style="font-size:13px;line-height:1.6;margin-bottom:10px">✏️ <strong>Editar monto</strong></div>
     <div id="edit-pendiente-hint" style="font-size:11px;color:var(--text3);margin-bottom:10px"></div>
-    <input class="inp inp-num" id="edit-pendiente-amount" type="number" step="0.01" style="width:100%;margin-bottom:10px">
+    <input class="inp inp-num" id="edit-pendiente-amount" type="text" inputmode="decimal" oninput="formatearInputMonto(this)" style="width:100%;margin-bottom:10px">
     <button class="btn-add" id="edit-pendiente-usar-saldo" style="display:none;margin:0 0 14px;background:var(--surface3);color:var(--text2);font-size:11px;height:32px" onclick="usarSaldoActualEnEdicion()">🔄 Usar saldo actual de la tarjeta</button>
     <div style="display:flex;gap:8px">
       <button class="btn-add" style="margin:0" onclick="resolverEditPendienteModal(true)">Guardar</button>
@@ -241,7 +266,8 @@
     <div id="opciones-title" style="font-size:13px;font-weight:700;margin-bottom:14px">⚙️ Opciones</div>
     <button class="btn-add is-ghost" style="margin:0 0 8px" onclick="document.getElementById('opciones-modal').style.display='none';syncNow()">🔄 Sincronizar</button>
     <button class="btn-add is-accent-outline" style="margin:0 0 8px" onclick="document.getElementById('opciones-modal').style.display='none';guardarConVerificacion()">💾 Guardar y verificar</button>
-    <button class="btn-add is-blue-outline" style="margin:0 0 14px" onclick="document.getElementById('opciones-modal').style.display='none';exportarRespaldo()">⬇️ Exportar respaldo</button>
+    <button class="btn-add is-blue-outline" style="margin:0 0 8px" onclick="document.getElementById('opciones-modal').style.display='none';exportarRespaldo()">⬇️ Exportar respaldo</button>
+    <button class="btn-add is-ghost" id="notif-btn" style="margin:0 0 14px" onclick="document.getElementById('opciones-modal').style.display='none';pedirPermisoNotificaciones()">🔔 Activar notificaciones de pendientes</button>
     <button class="btn-add is-text" style="margin:0" onclick="document.getElementById('opciones-modal').style.display='none'">Cerrar</button>
   </div>
 </div>
@@ -331,7 +357,7 @@
   <nav class="main-nav">
     <button class="nav-item active" onclick="switchTab('cuentas',this)"><span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="currentColor" viewBox="0 0 16 16"><path d="m8 0 6.61 3h.89a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5H15v7a.5.5 0 0 1 .485.38l.5 2a.498.498 0 0 1-.485.62H.5a.498.498 0 0 1-.485-.62l.5-2A.5.5 0 0 1 1 13V6H.5a.5.5 0 0 1-.5-.5v-2A.5.5 0 0 1 .5 3h.89zM3.777 3h8.447L8 1zM2 6v7h1V6zm2 0v7h2.5V6zm3.5 0v7h1V6zm2 0v7H12V6zM13 6v7h1V6zm2-1V4H1v1zm-.39 9H1.39l-.25 1h13.72z"/></svg></span><span>Cuentas</span></button>
     <button class="nav-item" onclick="switchTab('movimientos',this)"><span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="currentColor" viewBox="0 0 16 16"><path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/><path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/></svg></span><span>Movimientos</span></button>
-    <button class="nav-item" onclick="switchTab('pendientes',this)"><span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="currentColor" viewBox="0 0 16 16"><path d="M2.5 15a.5.5 0 1 1 0-1h1v-1a4.5 4.5 0 0 1 2.557-4.06c.29-.139.443-.377.443-.59v-.7c0-.213-.154-.451-.443-.59A4.5 4.5 0 0 1 3.5 3V2h-1a.5.5 0 0 1 0-1h11a.5.5 0 0 1 0 1h-1v1a4.5 4.5 0 0 1-2.557 4.06c-.29.139-.443.377-.443.59v.7c0 .213.154.451.443.59A4.5 4.5 0 0 1 12.5 13v1h1a.5.5 0 0 1 0 1zm2-13v1c0 .537.12 1.045.337 1.5h6.326c.216-.455.337-.963.337-1.5V2zm3 6.35c0 .701-.478 1.236-1.011 1.492A3.5 3.5 0 0 0 4.5 13s.866-1.299 3-1.48zm1 0v3.17c2.134.181 3 1.48 3 1.48a3.5 3.5 0 0 0-1.989-3.158C8.978 9.586 8.5 9.052 8.5 8.351z"/></svg></span><span>Pendientes</span></button>
+    <button class="nav-item" onclick="switchTab('pendientes',this)" style="position:relative"><span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="currentColor" viewBox="0 0 16 16"><path d="M2.5 15a.5.5 0 1 1 0-1h1v-1a4.5 4.5 0 0 1 2.557-4.06c.29-.139.443-.377.443-.59v-.7c0-.213-.154-.451-.443-.59A4.5 4.5 0 0 1 3.5 3V2h-1a.5.5 0 0 1 0-1h11a.5.5 0 0 1 0 1h-1v1a4.5 4.5 0 0 1-2.557 4.06c-.29.139-.443.377-.443.59v.7c0 .213.154.451.443.59A4.5 4.5 0 0 1 12.5 13v1h1a.5.5 0 0 1 0 1zm2-13v1c0 .537.12 1.045.337 1.5h6.326c.216-.455.337-.963.337-1.5V2zm3 6.35c0 .701-.478 1.236-1.011 1.492A3.5 3.5 0 0 0 4.5 13s.866-1.299 3-1.48zm1 0v3.17c2.134.181 3 1.48 3 1.48a3.5 3.5 0 0 0-1.989-3.158C8.978 9.586 8.5 9.052 8.5 8.351z"/></svg></span><span>Pendientes</span><span id="pendientes-badge" style="display:none;position:absolute;top:6px;right:6px;width:8px;height:8px;background:var(--warn);border-radius:50%"></span></button>
     <button class="nav-item" onclick="switchTab('presupuesto',this)"><span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/><path d="M8 13A5 5 0 1 1 8 3a5 5 0 0 1 0 10m0 1A6 6 0 1 0 8 2a6 6 0 0 0 0 12"/><path d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6m0 1a4 4 0 1 0 0-8 4 4 0 0 0 0 8"/><path d="M9.5 8a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/></svg></span><span>Presupuesto</span></button>
     <button class="nav-item" onclick="switchTab('metricas',this)"><span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="currentColor" viewBox="0 0 16 16"><path d="M4 11H2v3h2zm5-4H7v7h2zm5-5v12h-2V2zm-2-1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM6 7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1zm-5 4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1z"/></svg></span><span>Métricas</span></button>
     <button class="nav-item" onclick="switchTab('metas',this)"><span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="currentColor" viewBox="0 0 16 16"><path d="M2.5.5A.5.5 0 0 1 3 0h10a.5.5 0 0 1 .5.5q0 .807-.034 1.536a3 3 0 1 1-1.133 5.89c-.79 1.865-1.878 2.777-2.833 3.011v2.173l1.425.356c.194.048.377.135.537.255L13.3 15.1a.5.5 0 0 1-.3.9H3a.5.5 0 0 1-.3-.9l1.838-1.379c.16-.12.343-.207.537-.255L6.5 13.11v-2.173c-.955-.234-2.043-1.146-2.833-3.012a3 3 0 1 1-1.132-5.89A33 33 0 0 1 2.5.5m.099 2.54a2 2 0 0 0 .72 3.935c-.333-1.05-.588-2.346-.72-3.935m10.083 3.935a2 2 0 0 0 .72-3.935c-.133 1.59-.388 2.885-.72 3.935M3.504 1q.01.775.056 1.469c.13 2.028.457 3.546.87 4.667C5.294 9.48 6.484 10 7 10a.5.5 0 0 1 .5.5v2.61a1 1 0 0 1-.757.97l-1.426.356a.5.5 0 0 0-.179.085L4.5 15h7l-.638-.479a.5.5 0 0 0-.18-.085l-1.425-.356a1 1 0 0 1-.757-.97V10.5A.5.5 0 0 1 9 10c.516 0 1.706-.52 2.57-2.864.413-1.12.74-2.64.87-4.667q.045-.694.056-1.469z"/></svg></span><span>Metas</span></button>
@@ -523,7 +549,7 @@
       <div class="input-label">⏳ Nuevo pendiente por pagar</div>
       <div class="input-grid">
         <input class="inp" id="pend-name" type="text" placeholder="Ej: Arriendo, Colmédica..." oninput="suggestCategoryPend()" autocomplete="off"/>
-        <input class="inp inp-num" id="pend-amount" type="number" placeholder="Monto" step="0.01"/>
+        <input class="inp inp-num" id="pend-amount" type="text" inputmode="decimal" placeholder="Monto" oninput="formatearInputMonto(this)"/>
         <input class="inp" id="pend-date" type="date"/>
       </div>
       <div class="input-grid2">
@@ -776,7 +802,7 @@
   🎭 Modo demo — los datos son ficticios, nada se guarda
   <button onclick="desactivarModoDemo()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#FDE68A;font-size:11px;font-weight:700;padding:4px 12px;border-radius:6px;cursor:pointer;flex-shrink:0">Desactivar</button>
 </div>
-<button id="fab-nuevo-movimiento" class="fab" onclick="abrirModalNuevoMovimiento()" aria-label="Agregar movimiento">
+<button id="fab-nuevo-movimiento" class="fab" onclick="abrirModalExpress()" aria-label="Agregar movimiento">
   <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/></svg>
 </button>
 <script src="js/constantes.js"></script>
@@ -795,6 +821,7 @@
 <script src="js/respaldo.js"></script>
 <script src="js/verificacion-sync.js"></script>
 <script src="js/offline-sync.js"></script>
+<script src="js/express-notif.js"></script>
 <script src="js/demo-mode.js"></script>
 <script src="js/auth-arranque.js"></script>
 <script>
