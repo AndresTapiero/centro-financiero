@@ -339,7 +339,7 @@
         </div>
         <div class="input-grid">
           <input class="inp inp-desc" id="inp-name" type="text" placeholder="Descripción" oninput="suggestCategory()" autocomplete="off"/>
-          <input class="inp inp-num" id="inp-amount" type="number" placeholder="Monto" step="0.01"/>
+          <input class="inp inp-num" id="inp-amount" type="text" inputmode="decimal" placeholder="Monto" oninput="formatearInputMonto(this)"/>
           <input class="inp inp-date" id="inp-date" type="date"/>
         </div>
         <div id="suggest-badge" style="display:none;font-size:11px;color:var(--accent);margin-bottom:8px;padding:6px 10px;background:rgba(168,224,99,.08);border-radius:6px;border:1px solid rgba(168,224,99,.25)">✨ Categoría sugerida — puedes cambiarla si no aplica</div>
@@ -744,7 +744,7 @@
         <input class="inp" id="goal-catname" type="text" placeholder="Nombre de la categoría (ej: Inversión Cripto)"/>
         <span></span><span></span>
       </div>
-      <button class="btn-add" onclick="addGoal()">Crear meta</button>
+      <button class="btn-add" id="goal-add-btn" onclick="addGoal()">Crear meta</button>
     </div>
     <div id="goals-list"></div>
   </div>

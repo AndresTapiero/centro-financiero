@@ -1,3 +1,12 @@
+function formatearInputMonto(el){
+  const digitos=el.value.replace(/\D/g,'');
+  el.value=digitos?Number(digitos).toLocaleString('es-CO'):'';
+}
+
+function parseMontoFormateado(str){
+  return parseFloat(String(str).replace(/\./g,''))||0;
+}
+
 function abrirModalNuevoMovimiento(){
   document.getElementById('nuevo-movimiento-modal').style.display='flex';
   document.body.style.overflow='hidden'; // evita que el fondo se desplace/asome detrás del modal en móvil
@@ -12,7 +21,7 @@ function cerrarModalNuevoMovimiento(){
 
 async function addEntry(seguirAgregando){
   const name=document.getElementById('inp-name').value.trim();
-  const amount=redondear3(parseFloat(document.getElementById('inp-amount').value));
+  const amount=redondear3(parseMontoFormateado(document.getElementById('inp-amount').value));
   const cat=document.getElementById('inp-cat').value;
   const date=document.getElementById('inp-date').value||todayStr();
   const acc=document.getElementById('inp-account').value;
