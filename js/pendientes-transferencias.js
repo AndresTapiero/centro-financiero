@@ -166,9 +166,24 @@ async function payPendiente(id){
 }
 
 function onTransferAccChange(){
-  const origen=document.getElementById('tr-origen').value;
-  const destino=document.getElementById('tr-destino').value;
-  const mismaMoneda=ACCOUNTS_META[origen].currency===ACCOUNTS_META[destino].currency;
+  const origenSel=document.getElementById('tr-origen');
+  const destinoSel=document.getElementById('tr-destino');
+  const origen=origenSel.value;
+  const destino=destinoSel.value;
+
+  // Excluir mutuamente: la cuenta seleccionada en uno no puede aparecer en el otro
+  [...destinoSel.options].forEach(opt=>{ opt.disabled=opt.value===origen; });
+  [...origenSel.options].forEach(opt=>{ opt.disabled=opt.value===destino; });
+
+  // Si quedaron iguales (ej. carga inicial), auto-seleccionar la primera disponible en destino
+  if(origen===destino){
+    const otro=[...destinoSel.options].find(o=>o.value!==origen&&!o.disabled);
+    if(otro) destinoSel.value=otro.value;
+  }
+
+  const metaO=ACCOUNTS_META[origenSel.value];
+  const metaD=ACCOUNTS_META[destinoSel.value];
+  const mismaMoneda=metaO&&metaD&&metaO.currency===metaD.currency;
   const trmInp=document.getElementById('tr-trm');
   const hint=document.getElementById('tr-hint');
   if(mismaMoneda){
