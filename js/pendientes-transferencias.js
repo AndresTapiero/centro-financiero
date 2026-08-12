@@ -12,7 +12,8 @@ async function addPendiente(){
   const acc=document.getElementById('pend-account').value;
   const cat=document.getElementById('pend-cat').value;
   const isIncome=document.getElementById('pend-income').checked;
-  if(!name||isNaN(amount)||amount<=0)return;
+  if(!name){ toastError('⚠ Escribe una descripción'); marcarInvalido(document.getElementById('pend-name')); return; }
+  if(isNaN(amount)||amount<=0){ toastError('⚠ El monto debe ser mayor a 0'); marcarInvalido(document.getElementById('pend-amount')); return; }
   const nuevo={name,amount,date,acc,cat,isIncome};
   try{
     const {data:fila,error}=await sb.from('fin_pendientes').insert({

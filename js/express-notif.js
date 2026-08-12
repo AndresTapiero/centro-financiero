@@ -79,10 +79,8 @@ function expandirAModalCompleto() {
 async function addEntryExpress() {
   const name   = document.getElementById('express-name').value.trim();
   const amount = redondear3(parseMontoFormateado(document.getElementById('express-amount').value));
-  if (!name || isNaN(amount) || amount <= 0) {
-    document.getElementById('express-amount').focus();
-    return;
-  }
+  if (!name) { toastError('⚠ Escribe una descripción'); marcarInvalido(document.getElementById('express-name')); return; }
+  if (isNaN(amount) || amount <= 0) { toastError('⚠ El monto debe ser mayor a 0'); marcarInvalido(document.getElementById('express-amount')); return; }
   // Popula el formulario principal en silencio y delega a addEntry()
   document.getElementById('inp-name').value    = name;
   document.getElementById('inp-amount').value  = document.getElementById('express-amount').value;

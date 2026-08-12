@@ -316,6 +316,34 @@ function renderEstadoMes(){
   `;
 }
 
+function toastError(msg) {
+  const el = document.getElementById('save-toast');
+  if (!el) return;
+  clearTimeout(el._hideTimer);
+  el.textContent = msg;
+  el.style.cssText = 'display:block;opacity:1;background:rgba(220,38,38,.15);color:var(--danger);border:1px solid rgba(220,38,38,.4)';
+  el._hideTimer = setTimeout(() => {
+    el.style.opacity = '0';
+    setTimeout(() => { el.style.display = 'none'; }, 300);
+  }, 2500);
+}
+
+function marcarInvalido(el) {
+  if (!el) return;
+  el.style.borderColor = 'var(--danger)';
+  el.style.boxShadow = '0 0 0 2px rgba(220,38,38,.2)';
+  const limpiar = () => {
+    el.style.borderColor = '';
+    el.style.boxShadow = '';
+    el.removeEventListener('input', limpiar);
+    el.removeEventListener('change', limpiar);
+  };
+  el.addEventListener('input', limpiar);
+  el.addEventListener('change', limpiar);
+  setTimeout(limpiar, 3000);
+  el.focus();
+}
+
 function todayStr(){
   const fmt=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Bogota',year:'numeric',month:'2-digit',day:'2-digit'});
   return fmt.format(new Date()); // en-CA locale gives YYYY-MM-DD format
