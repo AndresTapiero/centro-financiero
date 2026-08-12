@@ -185,28 +185,59 @@ async function actualizarAcumuladoMeta(goal){
   }catch(e){ registrarErrorDiagnostico('fin_metas (acumulado)',e); }
 }
 
+let addingGoal=false;
+
 async function addGoal(){
+  if(addingGoal)return;
+  addingGoal=true;
+  const btn=document.getElementById('goal-add-btn');
+  if(btn){
+    btn.disabled=true;
+    btn.style.opacity='0.5';
+  }
+
   const name=document.getElementById('goal-name').value.trim();
   const type=document.getElementById('goal-type').value;
   const target=parseFloat(document.getElementById('goal-target').value)||0;
-  if(!name)return;
+  if(!name){
+    addingGoal=false;
+    if(btn){
+      btn.disabled=false;
+      btn.style.opacity='1';
+    }
+    return;
+  }
+
   const goal={name,type,target};
   if(type==='cuenta'){
     let accSeleccionada=document.getElementById('goal-account').value;
     if(accSeleccionada==='__nueva__'){
       const nuevoNombre=document.getElementById('goal-newacc-name').value.trim();
       const nuevaMoneda=document.getElementById('goal-newacc-currency').value;
-      if(!nuevoNombre)return;
+      if(!nuevoNombre){
+        addingGoal=false;
+        if(btn){
+          btn.disabled=false;
+          btn.style.opacity='1';
+        }
+        return;
+      }
       accSeleccionada=await createDynamicAccount(nuevoNombre,nuevaMoneda);
       document.getElementById('goal-newacc-name').value='';
     }
     goal.acc=accSeleccionada;
   }else{
     const catname=document.getElementById('goal-catname').value.trim();
-    if(!catname)return;
+    if(!catname){
+      addingGoal=false;
+      if(btn){
+        btn.disabled=false;
+        btn.style.opacity='1';
+      }
+      return;
+    }
     goal.cat=catname;
     goal.accumulated=0;
-    // asigna un color de una paleta rotativa para que se vea bien en gráficos
     const paleta=['#00D68F','#FFD54F','#5B8DEF','#F06292','#FFB347','#9B7FEA','#5EEAC8'];
     goal.color=paleta[goals.filter(g=>g.type==='categoria').length%paleta.length];
     COLORS[catname]=goal.color;
@@ -227,7 +258,12 @@ async function addGoal(){
     goal.id=nuevaFila.id;
   }catch(e){
     registrarErrorDiagnostico('fin_metas (crear)',e);
-    return; // no la agregamos localmente si no se pudo guardar, para no mostrar algo que no existe en la nube
+    addingGoal=false;
+    if(btn){
+      btn.disabled=false;
+      btn.style.opacity='1';
+    }
+    return;
   }
 
   goals.push(goal);
@@ -236,6 +272,12 @@ async function addGoal(){
   document.getElementById('goal-catname').value='';
   refreshGoalCategoryOptions();
   renderGoals();
+
+  addingGoal=false;
+  if(btn){
+    btn.disabled=false;
+    btn.style.opacity='1';
+  }
 }
 
 async function deleteGoal(id){
