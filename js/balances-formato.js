@@ -381,7 +381,7 @@ const KEYWORD_MAP=[
   {keywords:['ciclismo','bicicleta','bici'],cat:'Deportes · Ciclismo'},
   {keywords:['cine','pelicula','concierto','fiesta','entretenimiento','salida'],cat:'Entretenimiento'},
   {keywords:['corte','peluqueria','barberia','manicure'],cat:'Cuidado personal'},
-  {keywords:['skin','serum','protector solar','hidratante','facial','tónico','retinol','colageno','limpiador','fotoprotector','contorno de ojos'],cat:'Skin Care'},
+  {keywords:['skin','serum','protector solar','hidratante','facial','tónico','retinol','colageno','limpiador','fotoprotector','contorno de ojos'],cat:'Cuidado personal · Skin Care'},
   {keywords:['pago tarjeta','pago tc','pago rappi card','pago davivienda'],cat:'Pago Deuda'},
 ];
 
