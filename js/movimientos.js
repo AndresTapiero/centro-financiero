@@ -202,7 +202,16 @@ function openEditEntryModal(id){
   document.getElementById('edit-entry-amount-label').textContent=`Monto (${curDisplay})`;
 
   onEditEntryAccountChange();
+  const cop=entryCOP(e);
+  const fixBtn=document.getElementById('edit-entry-fix-currency-btn');
+  if(fixBtn) fixBtn.style.display=(cop>5000000&&(e.currency||meta.currency)==='USD')?'block':'none';
   document.getElementById('edit-entry-modal').style.display='flex';
+}
+
+function fixCurrencyDesdeModal(){
+  const id=_editEntryId;
+  resolverEditEntryModal(false);
+  fixCurrency(id);
 }
 
 function onEditEntryAccountChange(){
@@ -339,6 +348,11 @@ function switchTab(tab,btn){
   if(tab==='metricas')renderMetrics();
   if(tab==='metas')renderGoals();
   if(tab==='diagnostico')renderDiagnostico();
+  const fab=document.getElementById('fab-nuevo-movimiento');
+  if(fab){
+    const visible=tab==='cuentas'||tab==='movimientos';
+    fab.classList.toggle('fab-hidden',!visible);
+  }
 }
 
 function entryCOP(e){

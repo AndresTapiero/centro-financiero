@@ -59,7 +59,7 @@ class MovimientoListRenderer {
     const esAnomalia = cop > 5000000;
     const cardColor = e.acc === 'davtc' ? '#EF4444' : e.acc === 'rappitc' ? '#FF8C42' : null;
     const borderStyle = esAnomalia
-      ? 'background:rgba(255,107,107,.12);border-left:3px solid var(--danger)'
+      ? 'border-left:3px solid var(--danger)'
       : cardColor ? `border-left:3px solid ${cardColor}` : '';
 
     return `<div class="entry-row" data-id="${e.id}">
@@ -75,7 +75,6 @@ class MovimientoListRenderer {
             <span class="entry-amount" style="color:${esAnomalia ? 'var(--danger)' : isIncome ? 'var(--accent)' : 'var(--text)'}">${isIncome ? '+' : ''}${amtStr}</span>
           </div>
         </div>
-        ${esAnomalia ? `<div class="entry-actions"><button class="entry-icon-btn" style="width:auto;padding:0 8px" onclick="event.stopPropagation();fixCurrency('${e.id}')">💱 Era COP</button></div>` : ''}
       </div>
     </div>`;
   }

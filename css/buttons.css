@@ -16,6 +16,8 @@
 .btn-add.is-blue-outline{background:var(--surface3);color:var(--blue);border:1px solid var(--blue)}
 .btn-add.is-accent{background:var(--accent)}
 .btn-add.is-accent:hover{background:var(--accent2)}
+.btn-add.is-danger-subtle{background:none;color:var(--text3);border:1px solid var(--border2)}
+.btn-add.is-danger-subtle:hover{color:var(--danger);border-color:rgba(255,107,107,.35)}
 
 .btn-row{display:flex;gap:8px;width:100%}
 .btn-row .btn-add{flex:1;min-width:0}
@@ -30,6 +32,11 @@
 .entry-del-btn:hover{background:rgba(220,38,38,.08);color:var(--danger);border-color:rgba(220,38,38,.3)}
 .btn-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:0 2px;transition:color .15s}
 .btn-del:hover{color:var(--danger)}
+
+.fab{position:fixed;bottom:28px;right:24px;width:56px;height:56px;border-radius:50%;background:var(--accent);color:#0F1117;border:none;cursor:pointer;box-shadow:0 4px 24px rgba(14,159,110,.45);z-index:900;display:flex;align-items:center;justify-content:center;transition:transform .15s,opacity .2s,box-shadow .15s}
+.fab:hover{transform:scale(1.09);box-shadow:0 6px 32px rgba(14,159,110,.6)}
+.fab:active{transform:scale(.94)}
+.fab-hidden{opacity:0;pointer-events:none;transform:scale(.75)}
 
 @media(max-width:640px){
   .btn-row{flex-direction:column}
