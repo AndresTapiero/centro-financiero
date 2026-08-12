@@ -103,7 +103,7 @@ async function resolverEditPendienteModal(confirmado){
   const p=pendientes.find(x=>x.id===id);
   if(!p)return;
   const nuevoMonto=redondear3(parseMontoFormateado(document.getElementById('edit-pendiente-amount').value));
-  if(isNaN(nuevoMonto)||nuevoMonto<=0)return;
+  if(isNaN(nuevoMonto)||nuevoMonto<=0){ toastError('⚠ El monto debe ser mayor a 0'); marcarInvalido(document.getElementById('edit-pendiente-amount')); return; }
   p.amount=nuevoMonto;
   renderPendientes();
   updateNetWorth();
@@ -187,7 +187,8 @@ async function doTransfer(){
   const monto=redondear3(parseFloat(document.getElementById('tr-monto').value));
   const trm=parseFloat(document.getElementById('tr-trm').value)||accounts.trm;
   let recibido=redondear3(parseFloat(document.getElementById('tr-recibido').value));
-  if(!monto||monto<=0||origen===destino)return;
+  if(!monto||monto<=0){ toastError('⚠ El monto a transferir debe ser mayor a 0'); marcarInvalido(document.getElementById('tr-monto')); return; }
+  if(origen===destino){ toastError('⚠ La cuenta de origen y destino deben ser distintas'); return; }
 
   const metaO=ACCOUNTS_META[origen], metaD=ACCOUNTS_META[destino];
   let recibidoTeorico;

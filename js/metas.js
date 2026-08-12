@@ -200,11 +200,10 @@ async function addGoal(){
   const type=document.getElementById('goal-type').value;
   const target=parseFloat(document.getElementById('goal-target').value)||0;
   if(!name){
+    toastError('⚠ Escribe un nombre para la meta');
+    marcarInvalido(document.getElementById('goal-name'));
     addingGoal=false;
-    if(btn){
-      btn.disabled=false;
-      btn.style.opacity='1';
-    }
+    if(btn){ btn.disabled=false; btn.style.opacity='1'; }
     return;
   }
 
@@ -215,11 +214,10 @@ async function addGoal(){
       const nuevoNombre=document.getElementById('goal-newacc-name').value.trim();
       const nuevaMoneda=document.getElementById('goal-newacc-currency').value;
       if(!nuevoNombre){
+        toastError('⚠ Escribe un nombre para la cuenta nueva');
+        marcarInvalido(document.getElementById('goal-newacc-name'));
         addingGoal=false;
-        if(btn){
-          btn.disabled=false;
-          btn.style.opacity='1';
-        }
+        if(btn){ btn.disabled=false; btn.style.opacity='1'; }
         return;
       }
       accSeleccionada=await createDynamicAccount(nuevoNombre,nuevaMoneda);
@@ -229,11 +227,10 @@ async function addGoal(){
   }else{
     const catname=document.getElementById('goal-catname').value.trim();
     if(!catname){
+      toastError('⚠ Escribe un nombre de categoría para la meta');
+      marcarInvalido(document.getElementById('goal-catname'));
       addingGoal=false;
-      if(btn){
-        btn.disabled=false;
-        btn.style.opacity='1';
-      }
+      if(btn){ btn.disabled=false; btn.style.opacity='1'; }
       return;
     }
     goal.cat=catname;
