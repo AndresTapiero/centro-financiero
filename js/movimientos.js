@@ -339,6 +339,11 @@ function switchTab(tab,btn){
   if(tab==='metricas')renderMetrics();
   if(tab==='metas')renderGoals();
   if(tab==='diagnostico')renderDiagnostico();
+  const fab=document.getElementById('fab-nuevo-movimiento');
+  if(fab){
+    const visible=tab==='cuentas'||tab==='movimientos';
+    fab.classList.toggle('fab-hidden',!visible);
+  }
 }
 
 function entryCOP(e){
