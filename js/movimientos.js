@@ -198,7 +198,14 @@ function openEditEntryModal(id){
   catSel.innerHTML=document.getElementById('inp-cat').innerHTML; // mismas opciones/optgroups, incluye metas por categoría
   catSel.value=e.cat;
 
-  document.getElementById('edit-entry-amount').value=e.amount;
+  const amtInp=document.getElementById('edit-entry-amount');
+  if(curDisplay==='USD'){
+    amtInp.type='number'; amtInp.step='0.01'; amtInp.oninput=null;
+    amtInp.value=e.amount;
+  }else{
+    amtInp.type='text'; amtInp.inputMode='decimal'; amtInp.oninput=()=>formatearInputMonto(amtInp);
+    amtInp.value=Math.round(e.amount).toLocaleString('es-CO');
+  }
   document.getElementById('edit-entry-amount-label').textContent=`Monto (${curDisplay})`;
 
   onEditEntryAccountChange();
@@ -223,6 +230,16 @@ function onEditEntryAccountChange(){
   const label=document.getElementById('edit-entry-amount-label');
   const currencyChoice=meta.currency==='USD'?document.getElementById('edit-entry-currency').value:meta.currency;
   label.textContent=`Monto (${currencyChoice})`;
+  const amtInpChg=document.getElementById('edit-entry-amount');
+  const currentVal=amtInpChg.value;
+  if(currencyChoice==='USD'){
+    amtInpChg.type='number'; amtInpChg.step='0.01'; amtInpChg.oninput=null;
+    if(amtInpChg.type==='text') amtInpChg.value=parseMontoFormateado(currentVal)||'';
+  }else{
+    amtInpChg.type='text'; amtInpChg.inputMode='decimal'; amtInpChg.oninput=()=>formatearInputMonto(amtInpChg);
+    const raw=parseFloat(currentVal)||0;
+    if(raw) amtInpChg.value=Math.round(raw).toLocaleString('es-CO');
+  }
 }
 document.getElementById('edit-entry-currency')?.addEventListener('change',onEditEntryAccountChange);
 
@@ -238,7 +255,10 @@ async function resolverEditEntryModal(confirmado){
   const newMeta=ACCOUNTS_META[newAcc];
   const newCurrencyChoice=newMeta.currency==='USD'?document.getElementById('edit-entry-currency').value:newMeta.currency;
   const newCat=document.getElementById('edit-entry-category').value;
-  const montoEscrito=redondear3(parseFloat(document.getElementById('edit-entry-amount').value));
+  const _amtInp=document.getElementById('edit-entry-amount');
+  const montoEscrito=redondear3(_amtInp.type==='number'
+    ?parseFloat(_amtInp.value)||0
+    :parseMontoFormateado(_amtInp.value));
   if(isNaN(montoEscrito)||montoEscrito<=0)return;
 
   const oldAcc=e.acc;

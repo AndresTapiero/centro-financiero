@@ -2,11 +2,12 @@ function renderPendientes(){
   const list=document.getElementById('pendientes-list');
   if(!list)return;
   list.innerHTML=new PendienteListRenderer(pendientes, todayStr()).render();
+  if(typeof actualizarBadgePendientes==='function') actualizarBadgePendientes();
 }
 
 async function addPendiente(){
   const name=document.getElementById('pend-name').value.trim();
-  const amount=redondear3(parseFloat(document.getElementById('pend-amount').value));
+  const amount=redondear3(parseMontoFormateado(document.getElementById('pend-amount').value));
   const date=document.getElementById('pend-date').value;
   const acc=document.getElementById('pend-account').value;
   const cat=document.getElementById('pend-cat').value;
@@ -62,7 +63,7 @@ function onPendAccountChange(){
   // Sugerencia de conveniencia: si eliges una tarjeta y el campo está vacío, sugerimos el saldo actual
   // — pero lo puedes cambiar antes de guardar (ej. para poner el pago mínimo en vez del total).
   if(meta&&meta.type==='credito'&&!amountInp.value){
-    amountInp.value=accounts[acc];
+    amountInp.value=Math.round(accounts[acc]).toLocaleString('es-CO');
     amountInp.placeholder='Saldo actual sugerido — edítalo si vas a pagar otro monto';
   }
 }
@@ -73,7 +74,7 @@ function editPendiente(id){
   if(!p)return;
   _editPendienteId=id;
   const meta=ACCOUNTS_META[p.acc];
-  document.getElementById('edit-pendiente-amount').value=p.amount;
+  document.getElementById('edit-pendiente-amount').value=Math.round(p.amount).toLocaleString('es-CO');
   const hintEl=document.getElementById('edit-pendiente-hint');
   const btnSaldo=document.getElementById('edit-pendiente-usar-saldo');
   if(meta.type==='credito'){
@@ -90,7 +91,7 @@ function editPendiente(id){
 function usarSaldoActualEnEdicion(){
   const p=pendientes.find(x=>x.id===_editPendienteId);
   if(!p)return;
-  document.getElementById('edit-pendiente-amount').value=accounts[p.acc];
+  document.getElementById('edit-pendiente-amount').value=Math.round(accounts[p.acc]).toLocaleString('es-CO');
 }
 
 async function resolverEditPendienteModal(confirmado){
@@ -100,7 +101,7 @@ async function resolverEditPendienteModal(confirmado){
   if(!confirmado||!id)return;
   const p=pendientes.find(x=>x.id===id);
   if(!p)return;
-  const nuevoMonto=redondear3(parseFloat(document.getElementById('edit-pendiente-amount').value));
+  const nuevoMonto=redondear3(parseMontoFormateado(document.getElementById('edit-pendiente-amount').value));
   if(isNaN(nuevoMonto)||nuevoMonto<=0)return;
   p.amount=nuevoMonto;
   renderPendientes();
