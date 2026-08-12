@@ -26,7 +26,8 @@ async function addEntry(seguirAgregando){
   const date=document.getElementById('inp-date').value||todayStr();
   const acc=document.getElementById('inp-account').value;
   const type=document.getElementById('inp-type').value;
-  if(!name||isNaN(amount)||amount<=0)return;
+  if(!name){ toastError('⚠ Escribe una descripción'); marcarInvalido(document.getElementById('inp-name')); return; }
+  if(isNaN(amount)||amount<=0){ toastError('⚠ El monto debe ser mayor a 0'); marcarInvalido(document.getElementById('inp-amount')); return; }
 
   const meta=ACCOUNTS_META[acc];
   const sign=type==='gasto'?1:-1;
