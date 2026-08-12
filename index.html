@@ -258,6 +258,7 @@
           <button class="user-menu-item" onclick="toggleUserMenu();toggleDarkMode()">🌙 Modo oscuro</button>
           <button class="user-menu-item" onclick="toggleUserMenu();document.getElementById('opciones-modal').style.display='flex'">⚙️ Opciones</button>
           <button class="user-menu-item" onclick="toggleUserMenu();switchTab('diagnostico')">🔧 Diagnóstico</button>
+          <button class="user-menu-item" id="demo-toggle-btn" onclick="toggleUserMenu();modoDemo?desactivarModoDemo():activarModoDemo()">🎭 Modo demo</button>
           <button class="user-menu-item" style="color:var(--danger)" onclick="toggleUserMenu();cerrarSesion()">🚪 Cerrar sesión</button>
         </div>
       </div>
@@ -771,6 +772,10 @@
 
   <div class="hint">💾 Todo se guarda automáticamente en tu base de datos y persiste en cualquier dispositivo donde inicies sesión.<br>Selecciona la cuenta correcta en cada movimiento — el saldo se actualiza solo.<br>👈 Desliza un movimiento hacia la izquierda para eliminarlo, o tócalo para editarlo.<br><span id="build-version" style="opacity:.5;font-size:9px;letter-spacing:0;margin-top:8px;display:block"></span></div>
 </div>
+<div id="demo-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#92400E;color:#FDE68A;z-index:950;align-items:center;justify-content:center;gap:12px;padding:10px 16px;font-size:12px;font-weight:600;text-align:center">
+  🎭 Modo demo — los datos son ficticios, nada se guarda
+  <button onclick="desactivarModoDemo()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#FDE68A;font-size:11px;font-weight:700;padding:4px 12px;border-radius:6px;cursor:pointer;flex-shrink:0">Desactivar</button>
+</div>
 <button id="fab-nuevo-movimiento" class="fab" onclick="abrirModalNuevoMovimiento()" aria-label="Agregar movimiento">
   <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/></svg>
 </button>
@@ -790,6 +795,7 @@
 <script src="js/respaldo.js"></script>
 <script src="js/verificacion-sync.js"></script>
 <script src="js/offline-sync.js"></script>
+<script src="js/demo-mode.js"></script>
 <script src="js/auth-arranque.js"></script>
 <script>
 if ('serviceWorker' in navigator) {
