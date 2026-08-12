@@ -12,6 +12,7 @@ function abrirModalNuevoMovimiento(){
   document.body.style.overflow='hidden'; // evita que el fondo se desplace/asome detrás del modal en móvil
   document.getElementById('inp-date').value=todayStr();
   document.getElementById('inp-name').focus();
+  if(typeof actualizarBtnCat==='function') actualizarBtnCat('inp-cat');
 }
 
 function cerrarModalNuevoMovimiento(){
