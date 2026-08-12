@@ -381,6 +381,7 @@ const KEYWORD_MAP=[
   {keywords:['ciclismo','bicicleta','bici'],cat:'Deportes · Ciclismo'},
   {keywords:['cine','pelicula','concierto','fiesta','entretenimiento','salida'],cat:'Entretenimiento'},
   {keywords:['corte','peluqueria','barberia','manicure'],cat:'Cuidado personal'},
+  {keywords:['skin','serum','protector solar','hidratante','facial','tónico','retinol','colageno','limpiador','fotoprotector','contorno de ojos'],cat:'Skin Care'},
   {keywords:['pago tarjeta','pago tc','pago rappi card','pago davivienda'],cat:'Pago Deuda'},
 ];
 
@@ -409,10 +410,8 @@ function suggestCategory(){
       catSelect.value=catFinal;
       catSelect.dispatchEvent(new Event('change'));
       badge.style.display='block';
-      badge.textContent=`✨ Sugerido: ${scat(catFinal)} — cámbialo abajo si no aplica`;
-      catSelect.style.borderColor='var(--accent)';
-      catSelect.style.boxShadow='0 0 0 2px rgba(168,224,99,.15)';
-      setTimeout(()=>{catSelect.style.borderColor='';catSelect.style.boxShadow='';},1200);
+      badge.textContent=`✨ Sugerido: ${scat(catFinal)} — cámbialo si no aplica`;
+      if(typeof actualizarBtnCat==='function') actualizarBtnCat('inp-cat');
       return;
     }
   }
@@ -459,6 +458,7 @@ function actualizarTabsTipo(){
 }
 
 function onCategoryChange(){
+  if(typeof actualizarBtnCat==='function') actualizarBtnCat('inp-cat');
   const cat=document.getElementById('inp-cat').value;
   const row=document.getElementById('vehiculo-tag-row');
   row.style.display=cat.startsWith('Vehículo')?'grid':'none';

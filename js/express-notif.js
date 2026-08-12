@@ -19,6 +19,7 @@ function abrirModalExpress() {
     const catOpt = document.querySelector(`#express-category option[value="${ultimo.cat}"]`);
     if (catOpt) document.getElementById('express-category').value = ultimo.cat;
   }
+  actualizarBtnCat('express-category');
 
   setTipoExpress('gasto');
   document.getElementById('express-modal').style.display = 'flex';
@@ -92,6 +93,58 @@ async function addEntryExpress() {
   onAccountChange();
   cerrarModalExpress();
   await addEntry();
+}
+
+// ─── Category picker ────────────────────────────────────────────────────────
+
+let _catPickerTargetId = null;
+
+function abrirCatPicker(targetId) {
+  _catPickerTargetId = targetId;
+  const sel = document.getElementById(targetId);
+  if (!sel) return;
+  const currentVal = sel.value;
+
+  let html = '';
+  for (const group of sel.querySelectorAll('optgroup')) {
+    html += `<div style="font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin:14px 0 8px">${esc(group.label)}</div>`;
+    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:2px">';
+    for (const opt of group.querySelectorAll('option')) {
+      const c = col(opt.value);
+      const active = opt.value === currentVal;
+      html += `<button data-val="${esc(opt.value)}" onclick="seleccionarCatPicker(this.dataset.val)"
+        style="background:${c}${active?'30':'15'};color:${c};border:1.5px solid ${c}${active?'':' transparent'};border-radius:99px;padding:5px 13px;font-size:11px;font-weight:600;cursor:pointer;line-height:1.3;transition:border-color .1s,background .1s">
+        ${active ? '✓ ' : ''}${esc(scat(opt.value))}</button>`;
+    }
+    html += '</div>';
+  }
+  document.getElementById('cat-picker-list').innerHTML = html;
+  document.getElementById('cat-picker-modal').style.display = 'flex';
+}
+
+function seleccionarCatPicker(value) {
+  const sel = document.getElementById(_catPickerTargetId);
+  if (sel) { sel.value = value; sel.dispatchEvent(new Event('change')); }
+  actualizarBtnCat(_catPickerTargetId);
+  cerrarCatPicker();
+}
+
+function cerrarCatPicker() {
+  document.getElementById('cat-picker-modal').style.display = 'none';
+  _catPickerTargetId = null;
+}
+
+function actualizarBtnCat(selectId) {
+  const btn  = document.getElementById('cat-btn-' + selectId);
+  const dot  = document.getElementById('cat-dot-' + selectId);
+  const lbl  = document.getElementById('cat-label-' + selectId);
+  if (!btn) return;
+  const sel = document.getElementById(selectId);
+  if (!sel) return;
+  const c = col(sel.value);
+  if (dot) { dot.style.background = c; }
+  if (lbl) { lbl.textContent = scat(sel.value) || 'Categoría'; }
+  btn.style.borderColor = c + '55';
 }
 
 // ─── Badge pendientes próximos ───────────────────────────────────────────────

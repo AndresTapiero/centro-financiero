@@ -85,6 +85,14 @@
     </div>
   </div>
 </div>
+<div id="cat-picker-modal" role="dialog" aria-modal="true" aria-label="Seleccionar categoría" style="display:none;position:fixed;inset:0;z-index:1150;align-items:flex-end;justify-content:center">
+  <div onclick="cerrarCatPicker()" style="position:absolute;inset:0;background:rgba(0,0,0,.55)"></div>
+  <div style="position:relative;background:var(--surface);border-radius:20px 20px 0 0;padding:20px 20px 40px;width:100%;max-width:480px;max-height:72vh;overflow-y:auto">
+    <div style="width:40px;height:4px;background:var(--border2);border-radius:99px;margin:0 auto 16px"></div>
+    <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:4px">Categoría</div>
+    <div id="cat-picker-list"></div>
+  </div>
+</div>
 <div id="express-modal" role="dialog" aria-modal="true" aria-label="Registro rápido" style="display:none;position:fixed;inset:0;z-index:1100;align-items:flex-end;justify-content:center">
   <div onclick="cerrarModalExpress()" style="position:absolute;inset:0;background:rgba(0,0,0,.55)"></div>
   <div style="position:relative;background:var(--surface);border-radius:20px 20px 0 0;padding:20px 20px 36px;width:100%;max-width:480px;box-shadow:0 -8px 40px rgba(0,0,0,.3)">
@@ -102,7 +110,12 @@
         <optgroup label="💳 Crédito"><option value="davtc">🔴 Davivienda TC</option><option value="rappitc">🟠 Rappi Card</option></optgroup>
         <optgroup label="🌎 USD"><option value="arq">🌎 ARQ</option><option value="ontop">🌎 Ontop</option></optgroup>
       </select>
-      <select class="inp" id="express-category" style="height:38px;font-size:12px"></select>
+      <button id="cat-btn-express-category" class="inp" onclick="abrirCatPicker('express-category')" style="height:38px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:8px;padding:0 10px;text-align:left;background:var(--surface3)">
+        <span id="cat-dot-express-category" style="width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--text3)"></span>
+        <span id="cat-label-express-category" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Categoría</span>
+        <span style="opacity:.4;font-size:10px;flex-shrink:0">▾</span>
+      </button>
+      <select id="express-category" style="display:none"></select>
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn-add" style="flex:1;margin:0" onclick="addEntryExpress()">Registrar</button>
@@ -150,7 +163,12 @@
               <option value="ontop">🌎 Ontop</option>
             </optgroup>
           </select>
-          <select class="inp" id="inp-cat" onchange="onCategoryChange()">
+          <button id="cat-btn-inp-cat" class="inp" onclick="abrirCatPicker('inp-cat')" style="cursor:pointer;display:flex;align-items:center;gap:8px;padding:0 12px;text-align:left;background:var(--surface3)">
+            <span id="cat-dot-inp-cat" style="width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--text3)"></span>
+            <span id="cat-label-inp-cat" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Categoría</span>
+            <span style="opacity:.4;font-size:10px;flex-shrink:0">▾</span>
+          </button>
+          <select id="inp-cat" style="display:none" onchange="onCategoryChange()">
             <optgroup label="💰 Ingresos">
               <option value="Ingreso · Salario">Salario</option>
               <option value="Ingreso · Freelance/Media">Freelance / Media</option>
@@ -174,6 +192,7 @@
             </optgroup>
             <optgroup label="Otras">
               <option value="Cuidado personal">Cuidado personal</option>
+              <option value="Skin Care">Skin Care</option>
               <option value="Entretenimiento">Entretenimiento</option>
               <option value="Hogar">Hogar</option>
               <option value="Otro">Otro</option>

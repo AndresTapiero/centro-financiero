@@ -13,7 +13,7 @@ const COLORS={
   // Transporte y Tecnología: familia azul/violeta
   'Transporte':'#3B82F6','Tecnología':'#8B5CF6','Cuidado personal':'#A78BFA',
   // Entretenimiento y Ropa: familia rosa
-  'Entretenimiento':'#EC4899','Ropa':'#F472B6',
+  'Entretenimiento':'#EC4899','Ropa':'#F472B6','Skin Care':'#F9A8D4',
   // Deuda y costos financieros: familia roja (única con connotación de alerta)
   'Intereses':'#DC2626','Pago Deuda':'#B91C1C','Comisión':'#EF4444',
   // Servicios/Suscripciones/Otro: familia neutra (gastos de fondo, sin urgencia visual)
