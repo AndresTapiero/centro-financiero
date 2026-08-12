@@ -76,6 +76,7 @@ function activarModoDemo() {
   goals     = DEMO_GOALS_DATA.map(g => ({ ...g }));
   currentMonth = mes;
 
+  if(typeof limpiarFiltros==='function') limpiarFiltros();
   fillAccountInputs();
   populateMonthSelector();
   document.getElementById('month-select').value = mes;

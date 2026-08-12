@@ -260,7 +260,7 @@ async function resolverEditEntryModal(confirmado){
   const montoEscrito=redondear3(_amtInp.type==='number'
     ?parseFloat(_amtInp.value)||0
     :parseMontoFormateado(_amtInp.value));
-  if(isNaN(montoEscrito)||montoEscrito<=0)return;
+  if(isNaN(montoEscrito)||montoEscrito<=0){ toastError('⚠ El monto debe ser mayor a 0'); marcarInvalido(document.getElementById('edit-entry-amount')); return; }
 
   const oldAcc=e.acc;
   const oldMeta=ACCOUNTS_META[oldAcc];
@@ -378,6 +378,7 @@ function switchTab(tab,btn){
 
 function entryCOP(e){
   const meta=ACCOUNTS_META[e.acc];
+  if(!meta)return e.amount; // cuenta eliminada — devuelve el monto sin convertir
   const currency=e.currency||meta.currency;
   return currency==='USD'?e.amount*accounts.trm:e.amount;
 }

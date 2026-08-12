@@ -316,6 +316,8 @@ function renderEstadoMes(){
   `;
 }
 
+function esc(str){ return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
 function toastError(msg) {
   const el = document.getElementById('save-toast');
   if (!el) return;
