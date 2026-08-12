@@ -16,6 +16,8 @@
 .btn-add.is-blue-outline{background:var(--surface3);color:var(--blue);border:1px solid var(--blue)}
 .btn-add.is-accent{background:var(--accent)}
 .btn-add.is-accent:hover{background:var(--accent2)}
+.btn-add.is-danger-subtle{background:none;color:var(--text3);border:1px solid var(--border2)}
+.btn-add.is-danger-subtle:hover{color:var(--danger);border-color:rgba(255,107,107,.35)}
 
 .btn-row{display:flex;gap:8px;width:100%}
 .btn-row .btn-add{flex:1;min-width:0}

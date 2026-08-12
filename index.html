@@ -211,7 +211,8 @@
       <select class="inp" id="edit-entry-category" style="width:100%"></select>
     </div>
     <button class="btn-add" style="margin:0 0 8px" onclick="resolverEditEntryModal(true)">Guardar cambios</button>
-    <button class="btn-add is-danger-outline" style="margin:0 0 8px" onclick="eliminarDesdeModalEdicion()">Eliminar movimiento</button>
+    <button id="edit-entry-fix-currency-btn" class="btn-add is-ghost" style="display:none;margin:0 0 8px" onclick="fixCurrencyDesdeModal()">💱 El monto era en pesos (COP)</button>
+    <button class="btn-add is-danger-subtle" style="margin:0 0 8px" onclick="eliminarDesdeModalEdicion()">Eliminar movimiento</button>
     <button class="btn-add is-text" style="margin:0" onclick="resolverEditEntryModal(false)">Cancelar</button>
   </div>
 </div>
