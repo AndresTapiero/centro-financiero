@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="glow" cx="68%" cy="42%" r="52%">
+      <stop offset="0%" stop-color="#0E9F6E" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#0E9F6E" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" fill="#14141F"/>
+  <rect width="512" height="512" fill="url(#glow)"/>
+
+  <!-- Bar 1 — left, shortest -->
+  <rect x="101" y="316" width="90" height="132" rx="13" fill="#0E9F6E" opacity="0.48"/>
+
+  <!-- Bar 2 — center, medium -->
+  <rect x="211" y="240" width="90" height="208" rx="13" fill="#0E9F6E" opacity="0.74"/>
+
+  <!-- Bar 3 — right, tallest -->
+  <rect x="321" y="152" width="90" height="296" rx="13" fill="#0E9F6E"/>
+
+  <!-- Trend line connecting tops -->
+  <polyline points="146,309 256,233 366,145"
+    stroke="rgba(255,255,255,0.28)" stroke-width="9"
+    fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Peak dot -->
+  <circle cx="366" cy="145" r="18" fill="#FFFFFF" opacity="0.12"/>
+  <circle cx="366" cy="145" r="9"  fill="#FFFFFF" opacity="0.92"/>
+</svg>
