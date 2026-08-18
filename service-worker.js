@@ -4,7 +4,7 @@
 // renombrados o borrados) — un CACHE_NAME distinto fuerza a borrar el cache viejo en
 // el evento 'activate', que es lo único que garantiza que un cliente con la app ya
 // instalada como PWA deje de servir archivos que ya no existen (ej. styles.css).
-const CACHE_NAME = 'centro-financiero-cache-v3';
+const CACHE_NAME = 'centro-financiero-cache-v4';
 const CRITICAL_FILES = [
   '/centro-financiero/index.html',
   '/centro-financiero/manifest.json',

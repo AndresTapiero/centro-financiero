@@ -10,6 +10,17 @@ function onExpressAccountChange(){
   if(amtInp.dataset.currency&&amtInp.dataset.currency!==meta.currency) amtInp.value='';
   amtInp.dataset.currency=meta.currency;
   setAmountInputMode(amtInp,meta.currency==='USD','0');
+  // Hint de modo
+  const hint=document.getElementById('express-currency-hint');
+  if(hint){
+    if(meta.currency==='USD'){
+      hint.textContent='🌎 USD — escribe con decimales, ej: 10.40';
+      hint.style.display='block';
+    } else {
+      hint.textContent='';
+      hint.style.display='none';
+    }
+  }
 }
 
 function abrirModalExpress() {

@@ -105,7 +105,8 @@
       <button type="button" id="express-tab-gasto" class="tipo-tab tipo-tab-gasto active" onclick="setTipoExpress('gasto')">➖ Gasto</button>
       <button type="button" id="express-tab-ingreso" class="tipo-tab tipo-tab-ingreso" onclick="setTipoExpress('ingreso')">➕ Ingreso</button>
     </div>
-    <input class="inp inp-num" id="express-amount" type="text" inputmode="decimal" placeholder="0" oninput="formatearInputMonto(this)" style="font-size:30px;font-weight:800;height:60px;text-align:center;margin-bottom:12px;letter-spacing:-1px">
+    <input class="inp inp-num" id="express-amount" type="text" inputmode="decimal" placeholder="0" oninput="formatearInputMonto(this)" style="font-size:30px;font-weight:800;height:60px;text-align:center;margin-bottom:6px;letter-spacing:-1px">
+    <div id="express-currency-hint" style="display:none;text-align:center;font-size:10px;color:var(--text3);margin-bottom:8px;letter-spacing:.5px"></div>
     <input class="inp" id="express-name" type="text" placeholder="¿En qué?" oninput="suggestCategoryExpress()" autocomplete="off" style="margin-bottom:6px">
     <div id="express-suggest" style="display:none;font-size:11px;color:var(--accent);margin-bottom:8px;padding:5px 10px;background:rgba(168,224,99,.08);border-radius:6px;border:1px solid rgba(168,224,99,.2)">✨ Categoría sugerida — cámbiala si no aplica</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
