@@ -7,19 +7,12 @@ function onExpressAccountChange(){
   const meta=ACCOUNTS_META[acc]||(typeof dynamicAccounts!=='undefined'&&dynamicAccounts[acc]);
   if(!meta) return;
   const amtInp=document.getElementById('express-amount');
-  if(amtInp.dataset.currency&&amtInp.dataset.currency!==meta.currency) amtInp.value='';
-  amtInp.dataset.currency=meta.currency;
-  setAmountInputMode(amtInp,meta.currency==='USD','0');
-  // Hint de modo
+  const isUSD=meta.currency==='USD';
+  setAmountInputMode(amtInp,isUSD,'0');
   const hint=document.getElementById('express-currency-hint');
   if(hint){
-    if(meta.currency==='USD'){
-      hint.textContent='🌎 USD — escribe con decimales, ej: 10.40';
-      hint.style.display='block';
-    } else {
-      hint.textContent='';
-      hint.style.display='none';
-    }
+    hint.textContent=isUSD?'🌎 USD — escribe con decimales, ej: 10.40':'';
+    hint.style.display=isUSD?'block':'none';
   }
 }
 

@@ -497,17 +497,11 @@ function onAccountChange(){
   curRow.style.display=meta.currency==='USD'?'grid':'none';
   if(meta.currency==='USD')document.getElementById('inp-currency').value='USD';
   const amtInp=document.getElementById('inp-amount');
-  const isUSD=meta.currency==='USD';
-  if(amtInp.dataset.currency&&amtInp.dataset.currency!==meta.currency) amtInp.value='';
-  amtInp.dataset.currency=meta.currency;
-  setAmountInputMode(amtInp,isUSD,'Monto');
+  setAmountInputMode(amtInp,meta.currency==='USD','Monto');
 }
 
 function onEntryCurrencyChange(){
   const chosen=document.getElementById('inp-currency').value;
-  const amtInp=document.getElementById('inp-amount');
-  if(amtInp.dataset.currency&&amtInp.dataset.currency!==chosen) amtInp.value='';
-  amtInp.dataset.currency=chosen;
-  setAmountInputMode(amtInp,chosen==='USD','Monto');
+  setAmountInputMode(document.getElementById('inp-amount'),chosen==='USD','Monto');
 }
 

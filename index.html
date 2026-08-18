@@ -105,7 +105,7 @@
       <button type="button" id="express-tab-gasto" class="tipo-tab tipo-tab-gasto active" onclick="setTipoExpress('gasto')">➖ Gasto</button>
       <button type="button" id="express-tab-ingreso" class="tipo-tab tipo-tab-ingreso" onclick="setTipoExpress('ingreso')">➕ Ingreso</button>
     </div>
-    <input class="inp inp-num" id="express-amount" type="text" inputmode="decimal" placeholder="0" oninput="formatearInputMonto(this)" style="font-size:30px;font-weight:800;height:60px;text-align:center;margin-bottom:6px;letter-spacing:-1px">
+    <input class="inp inp-num" id="express-amount" type="text" inputmode="decimal" placeholder="0" data-currency="COP" oninput="formatearInputMonto(this)" style="font-size:30px;font-weight:800;height:60px;text-align:center;margin-bottom:6px;letter-spacing:-1px">
     <div id="express-currency-hint" style="display:none;text-align:center;font-size:10px;color:var(--text3);margin-bottom:8px;letter-spacing:.5px"></div>
     <input class="inp" id="express-name" type="text" placeholder="¿En qué?" oninput="suggestCategoryExpress()" autocomplete="off" style="margin-bottom:6px">
     <div id="express-suggest" style="display:none;font-size:11px;color:var(--accent);margin-bottom:8px;padding:5px 10px;background:rgba(168,224,99,.08);border-radius:6px;border:1px solid rgba(168,224,99,.2)">✨ Categoría sugerida — cámbiala si no aplica</div>
@@ -140,7 +140,7 @@
         </div>
         <div class="input-grid">
           <input class="inp inp-desc" id="inp-name" type="text" placeholder="Descripción" oninput="suggestCategory()" autocomplete="off"/>
-          <input class="inp inp-num" id="inp-amount" type="text" inputmode="decimal" placeholder="Monto" oninput="formatearInputMonto(this)"/>
+          <input class="inp inp-num" id="inp-amount" type="text" inputmode="decimal" placeholder="Monto" data-currency="COP" oninput="formatearInputMonto(this)"/>
           <input class="inp inp-date" id="inp-date" type="date"/>
         </div>
         <div id="suggest-badge" style="display:none;font-size:11px;color:var(--accent);margin-bottom:8px;padding:6px 10px;background:rgba(168,224,99,.08);border-radius:6px;border:1px solid rgba(168,224,99,.25)">✨ Categoría sugerida — puedes cambiarla si no aplica</div>
@@ -574,7 +574,7 @@
         <button type="button" id="pend-tab-gasto" class="tipo-tab tipo-tab-gasto active" onclick="setTipoPend('gasto')">➖ Gasto</button>
         <button type="button" id="pend-tab-ingreso" class="tipo-tab tipo-tab-ingreso" onclick="setTipoPend('ingreso')">➕ Ingreso</button>
       </div>
-      <input class="inp inp-num" id="pend-amount" type="text" inputmode="decimal" placeholder="0" oninput="formatearInputMonto(this)" style="font-size:30px;font-weight:800;height:60px;text-align:center;margin-bottom:12px;letter-spacing:-1px">
+      <input class="inp inp-num" id="pend-amount" type="text" inputmode="decimal" placeholder="0" data-currency="COP" oninput="formatearInputMonto(this)" style="font-size:30px;font-weight:800;height:60px;text-align:center;margin-bottom:12px;letter-spacing:-1px">
       <input class="inp" id="pend-name" type="text" placeholder="¿Qué pendiente?" oninput="suggestCategoryPend()" autocomplete="off" style="margin-bottom:6px">
       <div id="pend-suggest" style="display:none;font-size:11px;color:var(--accent);margin-bottom:8px;padding:5px 10px;background:rgba(168,224,99,.08);border-radius:6px;border:1px solid rgba(168,224,99,.2)">✨ Categoría sugerida — cámbiala si no aplica</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">

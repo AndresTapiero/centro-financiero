@@ -1,39 +1,18 @@
-// Tabla de inputs de monto → su select de cuenta asociado
-const _ACC_FOR_AMOUNT={
-  'inp-amount':'inp-account',
-  'express-amount':'express-account',
-  'pend-amount':'pend-account',
-};
-
-// Devuelve true si el input de monto está asociado a una cuenta USD
-function _esCuentaUSD(el){
-  const accSelId=_ACC_FOR_AMOUNT[el.id];
-  if(!accSelId) return false;
-  const accEl=document.getElementById(accSelId);
-  if(!accEl) return false;
-  const acc=accEl.value;
-  const meta=(typeof ACCOUNTS_META!=='undefined'&&ACCOUNTS_META[acc])
-           ||(typeof dynamicAccounts!=='undefined'&&dynamicAccounts[acc]);
-  if(!meta) return false;
-  // inp-amount: respetar el override USD→COP
-  if(el.id==='inp-amount'){
-    const ov=document.getElementById('inp-currency');
-    if(meta.currency==='USD'&&ov) return ov.value==='USD';
-  }
-  return meta.currency==='USD';
-}
-
-// Formatea el input: si la cuenta es USD no hace nada (decimales nativos);
-// si es COP aplica formato de miles con punto.
+// Lee data-currency del input. Si es 'USD' no formatea (decimales libres).
+// Si es 'COP' (o no está seteado) aplica formato de miles con punto.
 function formatearInputMonto(el){
-  if(_esCuentaUSD(el)) return; // USD: el browser maneja decimales — no interceptar
+  if(el.getAttribute('data-currency')==='USD') return;
   const digitos=el.value.replace(/\D/g,'');
   el.value=digitos?Number(digitos).toLocaleString('es-CO'):'';
 }
 
-// Actualiza placeholder según la moneda de la cuenta
+// Setea data-currency y placeholder; limpia el valor si la moneda cambia.
 function setAmountInputMode(inp, isUSD, placeholderCOP){
   if(!inp) return;
+  const prev=inp.getAttribute('data-currency');
+  const next=isUSD?'USD':'COP';
+  if(prev&&prev!==next) inp.value='';
+  inp.setAttribute('data-currency', next);
   inp.placeholder=isUSD?'0.00':(placeholderCOP||'Monto');
 }
 
