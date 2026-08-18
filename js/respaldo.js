@@ -24,6 +24,8 @@ onTransferAccChange();
 onGoalTypeChange();
 document.getElementById('sort-fecha')?.classList.add('active');
 onAccountChange();
+if(typeof actualizarBtnCat==='function') actualizarBtnCat('pend-cat');
+if(typeof onPendAccountChange==='function') onPendAccountChange();
 async function exportarRespaldo(){
   const respaldo={
     fecha_exportacion:new Date().toISOString(),

@@ -1,3 +1,10 @@
+let _pendTipo='gasto';
+function setTipoPend(tipo){
+  _pendTipo=tipo;
+  document.getElementById('pend-tab-gasto').classList.toggle('active',tipo==='gasto');
+  document.getElementById('pend-tab-ingreso').classList.toggle('active',tipo==='ingreso');
+}
+
 function renderPendientes(){
   const list=document.getElementById('pendientes-list');
   if(!list)return;
@@ -11,7 +18,7 @@ async function addPendiente(){
   const date=document.getElementById('pend-date').value;
   const acc=document.getElementById('pend-account').value;
   const cat=document.getElementById('pend-cat').value;
-  const isIncome=document.getElementById('pend-income').checked;
+  const isIncome=_pendTipo==='ingreso';
   if(!name){ toastError('⚠ Escribe una descripción'); marcarInvalido(document.getElementById('pend-name')); return; }
   if(isNaN(amount)||amount<=0){ toastError('⚠ El monto debe ser mayor a 0'); marcarInvalido(document.getElementById('pend-amount')); return; }
   const nuevo={name,amount,date,acc,cat,isIncome};
@@ -34,7 +41,9 @@ async function addPendiente(){
   pendientes.push(nuevo);
   document.getElementById('pend-name').value='';
   document.getElementById('pend-amount').value='';
-  document.getElementById('pend-income').checked=false;
+  const suggestEl=document.getElementById('pend-suggest');
+  if(suggestEl) suggestEl.style.display='none';
+  setTipoPend('gasto');
   renderPendientes();
   updateNetWorth();
 }
@@ -61,6 +70,9 @@ function onPendAccountChange(){
   const acc=document.getElementById('pend-account').value;
   const meta=ACCOUNTS_META[acc];
   const amountInp=document.getElementById('pend-amount');
+  if(amountInp.dataset.currency&&amountInp.dataset.currency!==meta.currency) amountInp.value='';
+  amountInp.dataset.currency=meta.currency;
+  amountInp.placeholder=meta.currency==='USD'?'0.00':'Monto';
   // Sugerencia de conveniencia: si eliges una tarjeta y el campo está vacío, sugerimos el saldo actual
   // — pero lo puedes cambiar antes de guardar (ej. para poner el pago mínimo en vez del total).
   if(meta&&meta.type==='credito'&&!amountInp.value){
@@ -75,7 +87,11 @@ function editPendiente(id){
   if(!p)return;
   _editPendienteId=id;
   const meta=ACCOUNTS_META[p.acc];
-  document.getElementById('edit-pendiente-amount').value=Math.round(p.amount).toLocaleString('es-CO');
+  const editAmtInp=document.getElementById('edit-pendiente-amount');
+  editAmtInp.dataset.currency=meta.currency;
+  editAmtInp.value=meta.currency==='USD'
+    ? String(p.amount)
+    : Math.round(p.amount).toLocaleString('es-CO');
   const hintEl=document.getElementById('edit-pendiente-hint');
   const btnSaldo=document.getElementById('edit-pendiente-usar-saldo');
   if(meta.type==='credito'){

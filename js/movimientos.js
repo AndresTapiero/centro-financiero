@@ -1,10 +1,22 @@
 function formatearInputMonto(el){
-  const digitos=el.value.replace(/\D/g,'');
-  el.value=digitos?Number(digitos).toLocaleString('es-CO'):'';
+  if(el.dataset.currency==='USD'){
+    // Solo dígitos y un punto decimal; máximo 2 decimales
+    let v=el.value.replace(/[^\d.]/g,'');
+    const dot=v.indexOf('.');
+    if(dot!==-1) v=v.slice(0,dot+1)+v.slice(dot+1).replace(/\./g,'').slice(0,2);
+    el.value=v;
+  }else{
+    const digitos=el.value.replace(/\D/g,'');
+    el.value=digitos?Number(digitos).toLocaleString('es-CO'):'';
+  }
 }
 
 function parseMontoFormateado(str){
-  return parseFloat(String(str).replace(/\./g,''))||0;
+  const s=String(str);
+  // Si termina en .X o .XX es formato decimal USD → parsear directo
+  if(/\.\d{1,2}$/.test(s)) return parseFloat(s)||0;
+  // Formato COP con miles: remover puntos separadores
+  return parseFloat(s.replace(/\./g,''))||0;
 }
 
 function abrirModalNuevoMovimiento(){
@@ -13,6 +25,7 @@ function abrirModalNuevoMovimiento(){
   document.getElementById('inp-date').value=todayStr();
   document.getElementById('inp-name').focus();
   if(typeof actualizarBtnCat==='function') actualizarBtnCat('inp-cat');
+  if(typeof onAccountChange==='function') onAccountChange();
 }
 
 function cerrarModalNuevoMovimiento(){

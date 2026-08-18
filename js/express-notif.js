@@ -2,6 +2,16 @@
 
 let _expressTipo = 'gasto';
 
+function onExpressAccountChange(){
+  const acc=document.getElementById('express-account').value;
+  const meta=ACCOUNTS_META[acc];
+  if(!meta) return;
+  const amtInp=document.getElementById('express-amount');
+  if(amtInp.dataset.currency&&amtInp.dataset.currency!==meta.currency) amtInp.value='';
+  amtInp.dataset.currency=meta.currency;
+  amtInp.placeholder=meta.currency==='USD'?'0.00':'0';
+}
+
 function abrirModalExpress() {
   const ultimo = entries.find(e => e.txType === 'gasto') || entries[0];
 
@@ -20,6 +30,7 @@ function abrirModalExpress() {
     if (catOpt) document.getElementById('express-category').value = ultimo.cat;
   }
   actualizarBtnCat('express-category');
+  onExpressAccountChange();
 
   setTipoExpress('gasto');
   document.getElementById('express-modal').style.display = 'flex';
