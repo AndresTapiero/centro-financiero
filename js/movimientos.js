@@ -1,30 +1,40 @@
-// COP: formato miles con punto (ej: 1.234.567). Solo se aplica a inputs text.
+// Tabla de inputs de monto → su select de cuenta asociado
+const _ACC_FOR_AMOUNT={
+  'inp-amount':'inp-account',
+  'express-amount':'express-account',
+  'pend-amount':'pend-account',
+};
+
+// Devuelve true si el input de monto está asociado a una cuenta USD
+function _esCuentaUSD(el){
+  const accSelId=_ACC_FOR_AMOUNT[el.id];
+  if(!accSelId) return false;
+  const accEl=document.getElementById(accSelId);
+  if(!accEl) return false;
+  const acc=accEl.value;
+  const meta=(typeof ACCOUNTS_META!=='undefined'&&ACCOUNTS_META[acc])
+           ||(typeof dynamicAccounts!=='undefined'&&dynamicAccounts[acc]);
+  if(!meta) return false;
+  // inp-amount: respetar el override USD→COP
+  if(el.id==='inp-amount'){
+    const ov=document.getElementById('inp-currency');
+    if(meta.currency==='USD'&&ov) return ov.value==='USD';
+  }
+  return meta.currency==='USD';
+}
+
+// Formatea el input: si la cuenta es USD no hace nada (decimales nativos);
+// si es COP aplica formato de miles con punto.
 function formatearInputMonto(el){
+  if(_esCuentaUSD(el)) return; // USD: el browser maneja decimales — no interceptar
   const digitos=el.value.replace(/\D/g,'');
   el.value=digitos?Number(digitos).toLocaleString('es-CO'):'';
 }
 
-// Cambia el modo del input según la moneda:
-//   USD → type=number, step=0.01 (el navegador maneja decimales nativamente)
-//   COP → type=text con formatter de miles
+// Actualiza placeholder según la moneda de la cuenta
 function setAmountInputMode(inp, isUSD, placeholderCOP){
   if(!inp) return;
-  if(isUSD){
-    inp.type='number';
-    inp.step='0.01';
-    inp.min='0';
-    inp.inputMode='decimal';
-    inp.oninput=null;
-    inp.placeholder='0.00';
-  }else{
-    inp.type='text';
-    inp.step='';
-    inp.min='';
-    inp.inputMode='decimal';
-    inp.oninput=()=>formatearInputMonto(inp);
-    inp.placeholder=placeholderCOP||'Monto';
-    if(inp.value) formatearInputMonto(inp);
-  }
+  inp.placeholder=isUSD?'0.00':(placeholderCOP||'Monto');
 }
 
 function parseMontoFormateado(str){
