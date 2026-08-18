@@ -425,20 +425,22 @@ document.getElementById('inp-name')?.addEventListener('keyup',suggestCategory);
 function suggestCategoryPend(){
   const text=document.getElementById('pend-name').value.toLowerCase()
     .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const badgeEl=document.getElementById('pend-suggest');
   const catSelect=document.getElementById('pend-cat');
-  if(text.length<3)return;
+  if(text.length<3){ if(badgeEl) badgeEl.style.display='none'; return; }
   for(const rule of KEYWORD_MAP){
     if(rule.keywords.some(k=>text.includes(k))){
       const opts=[...catSelect.options].map(o=>o.value);
       const target=rule.special==='comida'?'Alimentación · Comidas afuera · Entre semana':rule.cat;
       if(opts.includes(target)){
         catSelect.value=target;
-        catSelect.style.borderColor='var(--accent)';
-        setTimeout(()=>{catSelect.style.borderColor='';},1200);
+        if(typeof actualizarBtnCat==='function') actualizarBtnCat('pend-cat');
+        if(badgeEl) badgeEl.style.display='block';
       }
       return;
     }
   }
+  if(badgeEl) badgeEl.style.display='none';
 }
 
 let vehiculos=['Moto']; // lista dinámica de vehículos — empieza con Moto, crece cuando agregues otro
@@ -494,5 +496,12 @@ function onAccountChange(){
   const curRow=document.getElementById('currency-override-row');
   curRow.style.display=meta.currency==='USD'?'grid':'none';
   if(meta.currency==='USD')document.getElementById('inp-currency').value='USD';
+  const amtInp=document.getElementById('inp-amount');
+  setAmountInputMode(amtInp,meta.currency==='USD','Monto');
+}
+
+function onEntryCurrencyChange(){
+  const chosen=document.getElementById('inp-currency').value;
+  setAmountInputMode(document.getElementById('inp-amount'),chosen==='USD','Monto');
 }
 

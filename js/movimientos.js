@@ -1,10 +1,33 @@
+// Variable global que registra la moneda activa de cada input de monto.
+// Es la fuente de verdad para formatearInputMonto — más fiable que atributos DOM.
+const _monedaInput={'inp-amount':'COP','express-amount':'COP','pend-amount':'COP'};
+
+// Formatea como miles (COP) o deja pasar decimales (USD).
 function formatearInputMonto(el){
+  const moneda=_monedaInput[el.id]||el.getAttribute('data-currency')||'COP';
+  if(moneda==='USD') return;
   const digitos=el.value.replace(/\D/g,'');
   el.value=digitos?Number(digitos).toLocaleString('es-CO'):'';
 }
 
+// Actualiza la moneda activa (variable global + atributo DOM) y el placeholder.
+// Limpia el valor si la moneda cambia.
+function setAmountInputMode(inp, isUSD, placeholderCOP){
+  if(!inp) return;
+  const next=isUSD?'USD':'COP';
+  const prev=_monedaInput[inp.id]||inp.getAttribute('data-currency')||'COP';
+  if(prev!==next) inp.value='';
+  _monedaInput[inp.id]=next;
+  inp.setAttribute('data-currency',next);
+  inp.placeholder=isUSD?'0.00':(placeholderCOP||'Monto');
+}
+
 function parseMontoFormateado(str){
-  return parseFloat(String(str).replace(/\./g,''))||0;
+  const s=String(str).trim();
+  // Valor de type=number o decimal con punto: termina en .X o .XX sin ser separador de miles (.XXX)
+  if(/\.\d{1,2}$/.test(s)&&!/\.\d{3}/.test(s)) return parseFloat(s)||0;
+  // Formato COP con puntos de miles: removerlos y parsear
+  return parseFloat(s.replace(/\./g,''))||0;
 }
 
 function abrirModalNuevoMovimiento(){
@@ -13,6 +36,7 @@ function abrirModalNuevoMovimiento(){
   document.getElementById('inp-date').value=todayStr();
   document.getElementById('inp-name').focus();
   if(typeof actualizarBtnCat==='function') actualizarBtnCat('inp-cat');
+  if(typeof onAccountChange==='function') onAccountChange();
 }
 
 function cerrarModalNuevoMovimiento(){
