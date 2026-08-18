@@ -72,7 +72,7 @@ function onPendAccountChange(){
   const amountInp=document.getElementById('pend-amount');
   if(amountInp.dataset.currency&&amountInp.dataset.currency!==meta.currency) amountInp.value='';
   amountInp.dataset.currency=meta.currency;
-  amountInp.placeholder=meta.currency==='USD'?'0.00':'Monto';
+  setAmountInputMode(amountInp,meta.currency==='USD','Monto');
   // Sugerencia de conveniencia: si eliges una tarjeta y el campo está vacío, sugerimos el saldo actual
   // — pero lo puedes cambiar antes de guardar (ej. para poner el pago mínimo en vez del total).
   if(meta&&meta.type==='credito'&&!amountInp.value){

@@ -500,7 +500,7 @@ function onAccountChange(){
   const isUSD=meta.currency==='USD';
   if(amtInp.dataset.currency&&amtInp.dataset.currency!==meta.currency) amtInp.value='';
   amtInp.dataset.currency=meta.currency;
-  amtInp.placeholder=isUSD?'0.00':'Monto';
+  setAmountInputMode(amtInp,isUSD,'Monto');
 }
 
 function onEntryCurrencyChange(){
@@ -508,6 +508,6 @@ function onEntryCurrencyChange(){
   const amtInp=document.getElementById('inp-amount');
   if(amtInp.dataset.currency&&amtInp.dataset.currency!==chosen) amtInp.value='';
   amtInp.dataset.currency=chosen;
-  amtInp.placeholder=chosen==='USD'?'0.00':'Monto';
+  setAmountInputMode(amtInp,chosen==='USD','Monto');
 }
 

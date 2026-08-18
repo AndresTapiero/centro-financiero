@@ -4,12 +4,12 @@ let _expressTipo = 'gasto';
 
 function onExpressAccountChange(){
   const acc=document.getElementById('express-account').value;
-  const meta=ACCOUNTS_META[acc];
+  const meta=ACCOUNTS_META[acc]||(typeof dynamicAccounts!=='undefined'&&dynamicAccounts[acc]);
   if(!meta) return;
   const amtInp=document.getElementById('express-amount');
   if(amtInp.dataset.currency&&amtInp.dataset.currency!==meta.currency) amtInp.value='';
   amtInp.dataset.currency=meta.currency;
-  amtInp.placeholder=meta.currency==='USD'?'0.00':'0';
+  setAmountInputMode(amtInp,meta.currency==='USD','0');
 }
 
 function abrirModalExpress() {
@@ -80,12 +80,12 @@ function expandirAModalCompleto() {
   const tipo   = _expressTipo;
   cerrarModalExpress();
   abrirModalNuevoMovimiento();
-  document.getElementById('inp-amount').value = amount;
-  document.getElementById('inp-name').value   = name;
+  document.getElementById('inp-name').value    = name;
   document.getElementById('inp-account').value = acc;
-  document.getElementById('inp-cat').value    = cat;
+  document.getElementById('inp-cat').value     = cat;
   setTipoMovimiento(tipo);
-  onAccountChange();
+  onAccountChange(); // configura el tipo de input (number vs text) según la cuenta
+  document.getElementById('inp-amount').value  = amount; // después de configurar el modo
 }
 
 async function addEntryExpress() {
@@ -95,13 +95,13 @@ async function addEntryExpress() {
   if (isNaN(amount) || amount <= 0) { toastError('⚠ El monto debe ser mayor a 0'); marcarInvalido(document.getElementById('express-amount')); return; }
   // Popula el formulario principal en silencio y delega a addEntry()
   document.getElementById('inp-name').value    = name;
-  document.getElementById('inp-amount').value  = document.getElementById('express-amount').value;
   document.getElementById('inp-account').value = document.getElementById('express-account').value;
   document.getElementById('inp-cat').value     = document.getElementById('express-category').value;
   document.getElementById('inp-date').value    = todayStr();
   document.getElementById('inp-type').value    = _expressTipo;
   setTipoMovimiento(_expressTipo);
-  onAccountChange();
+  onAccountChange(); // configura tipo de input antes de asignar el monto
+  document.getElementById('inp-amount').value  = document.getElementById('express-amount').value;
   cerrarModalExpress();
   await addEntry();
 }

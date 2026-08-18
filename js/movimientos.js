@@ -1,52 +1,38 @@
-// Mapa de inputs de monto → su select de cuenta asociado
-const _AMOUNT_ACC_MAP={
-  'inp-amount':'inp-account',
-  'express-amount':'express-account',
-  'pend-amount':'pend-account',
-};
-
-function _getInputCurrency(el){
-  const accSelId=_AMOUNT_ACC_MAP[el.id];
-  if(accSelId){
-    const acc=document.getElementById(accSelId)?.value;
-    const allMeta=typeof dynamicAccounts!=='undefined'
-      ?Object.assign({},ACCOUNTS_META,dynamicAccounts)
-      :ACCOUNTS_META;
-    const meta=allMeta?.[acc];
-    if(meta){
-      // inp-amount respeta el override USD→COP cuando aplica
-      if(el.id==='inp-amount'){
-        const override=document.getElementById('inp-currency');
-        if(meta.currency==='USD'&&override) return override.value;
-      }
-      return meta.currency||'COP';
-    }
-  }
-  return el.dataset.currency||'COP';
+// COP: formato miles con punto (ej: 1.234.567). Solo se aplica a inputs text.
+function formatearInputMonto(el){
+  const digitos=el.value.replace(/\D/g,'');
+  el.value=digitos?Number(digitos).toLocaleString('es-CO'):'';
 }
 
-function formatearInputMonto(el){
-  if(_getInputCurrency(el)==='USD'){
-    // Permite punto o coma como decimal (teclados colombianos usan coma)
-    let v=el.value.replace(/[^\d.,]/g,'');
-    v=v.replace(',','.');
-    const dot=v.indexOf('.');
-    if(dot!==-1) v=v.slice(0,dot+1)+v.slice(dot+1).replace(/[.,]/g,'').slice(0,2);
-    el.value=v;
+// Cambia el modo del input según la moneda:
+//   USD → type=number, step=0.01 (el navegador maneja decimales nativamente)
+//   COP → type=text con formatter de miles
+function setAmountInputMode(inp, isUSD, placeholderCOP){
+  if(!inp) return;
+  if(isUSD){
+    inp.type='number';
+    inp.step='0.01';
+    inp.min='0';
+    inp.inputMode='decimal';
+    inp.oninput=null;
+    inp.placeholder='0.00';
   }else{
-    const digitos=el.value.replace(/\D/g,'');
-    el.value=digitos?Number(digitos).toLocaleString('es-CO'):'';
+    inp.type='text';
+    inp.step='';
+    inp.min='';
+    inp.inputMode='decimal';
+    inp.oninput=()=>formatearInputMonto(inp);
+    inp.placeholder=placeholderCOP||'Monto';
+    if(inp.value) formatearInputMonto(inp);
   }
 }
 
 function parseMontoFormateado(str){
   const s=String(str).trim();
-  // Coma como decimal (teclados colombianos): "10,40" o "10,4"
-  if(/,\d{1,2}$/.test(s)&&!s.includes('.')) return parseFloat(s.replace(',','.'))||0;
-  // Punto como decimal USD: termina en .X o .XX sin ser separador de miles (.XXX)
+  // Valor de type=number o decimal con punto: termina en .X o .XX sin ser separador de miles (.XXX)
   if(/\.\d{1,2}$/.test(s)&&!/\.\d{3}/.test(s)) return parseFloat(s)||0;
-  // Formato COP con miles: remover puntos separadores de miles
-  return parseFloat(s.replace(/\./g,'').replace(',','.'))||0;
+  // Formato COP con puntos de miles: removerlos y parsear
+  return parseFloat(s.replace(/\./g,''))||0;
 }
 
 function abrirModalNuevoMovimiento(){
