@@ -1,9 +1,37 @@
+// Mapa de inputs de monto → su select de cuenta asociado
+const _AMOUNT_ACC_MAP={
+  'inp-amount':'inp-account',
+  'express-amount':'express-account',
+  'pend-amount':'pend-account',
+};
+
+function _getInputCurrency(el){
+  const accSelId=_AMOUNT_ACC_MAP[el.id];
+  if(accSelId){
+    const acc=document.getElementById(accSelId)?.value;
+    const allMeta=typeof dynamicAccounts!=='undefined'
+      ?Object.assign({},ACCOUNTS_META,dynamicAccounts)
+      :ACCOUNTS_META;
+    const meta=allMeta?.[acc];
+    if(meta){
+      // inp-amount respeta el override USD→COP cuando aplica
+      if(el.id==='inp-amount'){
+        const override=document.getElementById('inp-currency');
+        if(meta.currency==='USD'&&override) return override.value;
+      }
+      return meta.currency||'COP';
+    }
+  }
+  return el.dataset.currency||'COP';
+}
+
 function formatearInputMonto(el){
-  if(el.dataset.currency==='USD'){
-    // Solo dígitos y un punto decimal; máximo 2 decimales
-    let v=el.value.replace(/[^\d.]/g,'');
+  if(_getInputCurrency(el)==='USD'){
+    // Permite punto o coma como decimal (teclados colombianos usan coma)
+    let v=el.value.replace(/[^\d.,]/g,'');
+    v=v.replace(',','.');
     const dot=v.indexOf('.');
-    if(dot!==-1) v=v.slice(0,dot+1)+v.slice(dot+1).replace(/\./g,'').slice(0,2);
+    if(dot!==-1) v=v.slice(0,dot+1)+v.slice(dot+1).replace(/[.,]/g,'').slice(0,2);
     el.value=v;
   }else{
     const digitos=el.value.replace(/\D/g,'');
@@ -12,11 +40,13 @@ function formatearInputMonto(el){
 }
 
 function parseMontoFormateado(str){
-  const s=String(str);
-  // Si termina en .X o .XX es formato decimal USD → parsear directo
-  if(/\.\d{1,2}$/.test(s)) return parseFloat(s)||0;
-  // Formato COP con miles: remover puntos separadores
-  return parseFloat(s.replace(/\./g,''))||0;
+  const s=String(str).trim();
+  // Coma como decimal (teclados colombianos): "10,40" o "10,4"
+  if(/,\d{1,2}$/.test(s)&&!s.includes('.')) return parseFloat(s.replace(',','.'))||0;
+  // Punto como decimal USD: termina en .X o .XX sin ser separador de miles (.XXX)
+  if(/\.\d{1,2}$/.test(s)&&!/\.\d{3}/.test(s)) return parseFloat(s)||0;
+  // Formato COP con miles: remover puntos separadores de miles
+  return parseFloat(s.replace(/\./g,'').replace(',','.'))||0;
 }
 
 function abrirModalNuevoMovimiento(){
