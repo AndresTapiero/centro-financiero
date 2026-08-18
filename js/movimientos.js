@@ -1,18 +1,24 @@
-// Lee data-currency del input. Si es 'USD' no formatea (decimales libres).
-// Si es 'COP' (o no está seteado) aplica formato de miles con punto.
+// Variable global que registra la moneda activa de cada input de monto.
+// Es la fuente de verdad para formatearInputMonto — más fiable que atributos DOM.
+const _monedaInput={'inp-amount':'COP','express-amount':'COP','pend-amount':'COP'};
+
+// Formatea como miles (COP) o deja pasar decimales (USD).
 function formatearInputMonto(el){
-  if(el.getAttribute('data-currency')==='USD') return;
+  const moneda=_monedaInput[el.id]||el.getAttribute('data-currency')||'COP';
+  if(moneda==='USD') return;
   const digitos=el.value.replace(/\D/g,'');
   el.value=digitos?Number(digitos).toLocaleString('es-CO'):'';
 }
 
-// Setea data-currency y placeholder; limpia el valor si la moneda cambia.
+// Actualiza la moneda activa (variable global + atributo DOM) y el placeholder.
+// Limpia el valor si la moneda cambia.
 function setAmountInputMode(inp, isUSD, placeholderCOP){
   if(!inp) return;
-  const prev=inp.getAttribute('data-currency');
   const next=isUSD?'USD':'COP';
-  if(prev&&prev!==next) inp.value='';
-  inp.setAttribute('data-currency', next);
+  const prev=_monedaInput[inp.id]||inp.getAttribute('data-currency')||'COP';
+  if(prev!==next) inp.value='';
+  _monedaInput[inp.id]=next;
+  inp.setAttribute('data-currency',next);
   inp.placeholder=isUSD?'0.00':(placeholderCOP||'Monto');
 }
 
