@@ -4,54 +4,33 @@ function render(){
   const total=gastos.reduce((s,e)=>s+entryCOP(e),0);
   const today=gastos.filter(e=>e.date===todayStr()).reduce((s,e)=>s+entryCOP(e),0);
 
-  const ACCOUNT_ORDER={nequi:1,debito:2,nu:3,arq:4,ontop:5,davtc:6,rappitc:7};
   let monthEntriesFiltradas=filterAccount==='todas'?monthEntries:monthEntries.filter(e=>e.acc===filterAccount);
   if(filterType!=='todos')monthEntriesFiltradas=monthEntriesFiltradas.filter(e=>e.txType===filterType);
   if(filterCategory!=='todas')monthEntriesFiltradas=monthEntriesFiltradas.filter(e=>e.cat===filterCategory);
   poblarFiltroCategoria(monthEntries);
   updateEntriesSummary();
+  // El orden por cuenta sale de ACCOUNTS_META, no de una lista fija de 7 slugs: con una lista
+  // fija, cualquier cuenta creada por el usuario daba undefined, la resta daba NaN y el
+  // comparador dejaba de ser consistente (el orden resultante quedaba al azar).
+  const ordenCuentas=Object.keys(ACCOUNTS_META);
+  const posicionCuenta=acc=>{
+    const i=ordenCuentas.indexOf(acc);
+    return i===-1?Number.MAX_SAFE_INTEGER:i; // cuentas eliminadas, al final
+  };
   let sorted;
   if(sortMode==='cuenta'){
     sorted=[...monthEntriesFiltradas].sort((a,b)=>{
-      const diff=ACCOUNT_ORDER[a.acc]-ACCOUNT_ORDER[b.acc];
+      const diff=posicionCuenta(a.acc)-posicionCuenta(b.acc);
       return diff!==0?diff:b.date.localeCompare(a.date);
     });
   }else{
     sorted=[...monthEntriesFiltradas].sort((a,b)=>b.date.localeCompare(a.date));
   }
-  const list=document.getElementById('entries-list');
-  if(sortMode==='fecha'){
-    list.innerHTML=new MovimientoListRenderer(sorted).render();
-  }else{
-    list.innerHTML=sorted.length?sorted.map(e=>{
-    const c=col(e.cat);
-    const meta=ACCOUNTS_META[e.acc];
-    const displayCurrency=e.currency||meta.currency;
-    const isIncome=e.txType==='ingreso';
-    const amtStr=(displayCurrency==='USD'?fmtUSD(e.amount):fmtCOP(e.amount));
-    const saldoActual=meta.currency==='USD'?'$'+accounts[e.acc]+' USD':fmtCOP(accounts[e.acc]);
-    const cop=entryCOP(e);
-    const esAnomalia=cop>5000000;
-    const cardColor=e.acc==='davtc'?'#EF4444':e.acc==='rappitc'?'#FF8C42':null;
-    const borderStyle=esAnomalia?'background:rgba(255,107,107,.12);border-left:3px solid var(--danger)':cardColor?`border-left:3px solid ${cardColor}`:'';
-    return`<div class="entry-row" data-id="${e.id}">
-      <div class="entry-row-swipe-bg" aria-hidden="true">🗑 Eliminar</div>
-      <div class="entry-row-content" style="${borderStyle};cursor:pointer" onclick="openEditEntryModal('${e.id}')">
-        <div class="entry-row-top">
-          <span class="entry-date">${fmtDate(e.date)}</span>
-          <span class="avatar-square" style="background:${c};width:28px;height:28px;font-size:11px;border-radius:8px">${e.name.charAt(0).toUpperCase()}</span>
-          <div class="entry-name">${esAnomalia?'⚠️ ':''}${e.name}</div>
-          <span class="entry-amount" style="color:${esAnomalia?'var(--danger)':isIncome?'var(--accent)':'var(--text)'}">${isIncome?'+':'−'}${amtStr}</span>
-        </div>
-        <div class="entry-row-bottom">
-          <span class="entry-cat" style="background:${c}22;color:${c}">${scat(e.cat)}</span>
-          <span class="entry-acc">${meta.label} · ${saldoActual}${e.vehiculo?' · 🚗 '+e.vehiculo:''}${esAnomalia?' · <span style="color:var(--danger)">monto alto</span>':''}</span>
-        </div>
-        ${esAnomalia?`<div class="entry-actions"><button class="entry-icon-btn" style="width:auto;padding:0 8px" onclick="event.stopPropagation();fixCurrency('${e.id}')">💱 Era COP</button></div>`:''}
-      </div>
-    </div>`;
-    }).join(''):'<div class="empty">📋 Sin movimientos</div>';
-  }
+  // Una sola plantilla de fila para los dos modos: antes el modo "cuenta" usaba una copia
+  // inline con otro diseño (avatar de 28px, fecha y saldo), así que cambiar el orden
+  // cambiaba también el aspecto de la lista.
+  document.getElementById('entries-list').innerHTML=
+    new MovimientoListRenderer(sorted, sortMode==='cuenta'?'cuenta':'fecha').render();
 
   const bycat={};
   gastos.forEach(e=>bycat[e.cat]=(bycat[e.cat]||0)+entryCOP(e));
@@ -92,13 +71,13 @@ function render(){
     const comprasCat=gastos.filter(e=>e.cat===cat).sort((a,b)=>b.date.localeCompare(a.date));
     const detailId=`budget-detail-${idx}`;
     const comprasHTML=comprasCat.length?comprasCat.map(e=>{
-      const meta=ACCOUNTS_META[e.acc];
+      const meta=ACCOUNTS_META[e.acc]||{label:'Cuenta eliminada',currency:'COP',type:'debito'};
       const displayCurrency=e.currency||meta.currency;
       const amtStr=displayCurrency==='USD'?fmtUSD(e.amount):fmtCOP(e.amount);
       return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px">
         <span style="color:var(--text3);font-family:var(--mono);min-width:34px">${fmtDate(e.date)}</span>
-        <span style="flex:1;padding:0 8px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.name}</span>
-        <span style="color:var(--text3);font-size:9px;font-family:var(--mono);margin-right:8px">${meta.label}</span>
+        <span style="flex:1;padding:0 8px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(e.name)}</span>
+        <span style="color:var(--text3);font-size:9px;font-family:var(--mono);margin-right:8px">${esc(meta.label)}</span>
         <span style="font-family:var(--mono);font-weight:600">${amtStr}</span>
       </div>`;
     }).join(''):'<div style="font-size:11px;color:var(--text3);padding:8px 0">Sin compras registradas en esta categoría este mes.</div>';
@@ -183,11 +162,14 @@ function renderMetrics(){
   const bycat=window._bycat||{};
   const total=window._total||0;
   document.getElementById('m-total').textContent=fmtCOP(total);
-  document.getElementById('m-total-sub').textContent=`en ${entries.filter(e=>e.txType!=='ingreso').length} movimientos`;
+  // El total de arriba es del mes seleccionado: el conteo tiene que serlo también.
+  // Antes contaba entries completo, así que el total decía "agosto" y el conteo "desde siempre".
+  const gastosDelMes=entries.filter(e=>e.date.slice(0,7)===currentMonth&&e.txType!=='ingreso'&&e.cat!=='Transferencia'&&e.cat!=='[Ajuste de saldo]');
+  document.getElementById('m-total-sub').textContent=`en ${gastosDelMes.length} movimientos`;
   document.getElementById('m-today').textContent=fmtCOP(window._today||0);
   document.getElementById('m-pct').textContent=(window._pct||0)+'%';
   document.getElementById('m-pct').style.color=(window._pct||0)>85?'var(--danger)':(window._pct||0)>65?'var(--warn)':'var(--accent)';
-  const debtTotal=accounts.davtc+accounts.rappitc;
+  const debtTotal=calcularDeudaTotal();
   document.getElementById('m-debt').textContent=fmtCOP(debtTotal);
 
   const sorted=Object.entries(bycat).sort((a,b)=>b[1]-a[1]).filter(([c,v])=>v>0);
@@ -461,8 +443,8 @@ function renderPatrimonioHistorico(){
 
   const monthNames=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
   const hoy=todayStr().slice(0,7);
-  const liquidCOPActual=accounts.nequi+accounts.debito+accounts.nu+accounts.lulo+(accounts.arq*accounts.trm)+(accounts.ontop*accounts.trm);
-  const debtCOPActual=accounts.davtc+accounts.rappitc;
+  const liquidCOPActual=calcularLiquidezTotal();
+  const debtCOPActual=calcularDeudaTotal();
 
   const datos=ultimosMeses(12).map(m=>{
     if(m===hoy)return {mes:m,neto:liquidCOPActual-debtCOPActual};
@@ -553,7 +535,7 @@ function renderGastoHormiga(){
     const c=col(g.cat);
     return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
       <div style="min-width:0">
-        <div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${g.nombre}</div>
+        <div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(g.nombre)}</div>
         <div style="font-size:9px;color:var(--text3)"><span style="color:${c}">${scat(g.cat)}</span> · ${g.mesesCount} meses · ~${fmtCOP(g.promedioMensual)}/mes</div>
       </div>
       <div style="text-align:right;flex-shrink:0;padding-left:10px">
@@ -568,7 +550,7 @@ function renderDebtProjection(){
   const el=document.getElementById('debt-projection');
   if(!el)return;
   const pagosDeuda=entries.filter(e=>e.cat==='Pago Deuda'&&e.txType!=='ingreso');
-  const totalDeuda=accounts.davtc+accounts.rappitc;
+  const totalDeuda=calcularDeudaTotal();
 
   if(pagosDeuda.length===0||totalDeuda<=0){
     el.innerHTML=totalDeuda<=0

@@ -64,11 +64,14 @@ export function cargarFuente(archivos, nombres = []) {
     return `/* ─── ${rel} ─── */\n${codigo}`;
   });
 
-  // Los const/let de nivel superior no aparecen en globalThis ni en el navegador ni aquí;
-  // este epílogo los copia para que los tests puedan leerlos.
-  const epilogo = nombres
-    .map(n => `try{ globalThis[${JSON.stringify(n)}] = ${n}; }catch(e){}`)
-    .join('\n');
+  // Los const/let/class de nivel superior no aparecen en globalThis (ni aquí ni en el navegador).
+  // __eval es un eval DIRECTO dentro del ámbito del script, así que sí alcanza esas variables:
+  // permite tanto leerlas (`__eval('MovimientoListRenderer')`) como reasignarlas
+  // (`__eval('accounts = {...}')`) para montar el estado de cada test.
+  const epilogo = [
+    'globalThis.__eval = function(codigo){ return eval(codigo); };',
+    ...nombres.map(n => `try{ globalThis[${JSON.stringify(n)}] = ${n}; }catch(e){}`),
+  ].join('\n');
 
   try {
     vm.runInContext(partes.join('\n;\n') + '\n;\n' + epilogo, ctx, { filename: 'fuente-concatenada.js' });
