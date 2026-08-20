@@ -88,7 +88,8 @@ function renderDynamicAccountCard(key){
   card.id='card-'+key;
   const inicial=meta.label.charAt(0).toUpperCase();
   const monedaTexto=meta.currency==='USD'?'Dólares':'Pesos';
-  card.innerHTML=`<div class="acc-label"><span class="avatar-square" style="background:#2563EB">${inicial}</span><span>${meta.label}</span><span class="currency-badge">${monedaTexto}</span></div><input class="acc-value" id="acc-${key}" onblur="handleAccountFieldBlur('${key}')">`;
+  // meta.label lo escribes tú al crear la cuenta, así que va escapado antes de entrar a innerHTML.
+  card.innerHTML=`<div class="acc-label"><span class="avatar-square" style="background:#2563EB">${esc(inicial)}</span><span>${esc(meta.label)}</span><span class="currency-badge">${monedaTexto}</span></div><input class="acc-value" id="acc-${key}" onblur="handleAccountFieldBlur('${key}')">`;
   grid.appendChild(card);
   document.getElementById('acc-'+key).value=meta.currency==='USD'?'$'+accounts[key]+' USD':fmtCOP(accounts[key]);
 }
@@ -130,6 +131,13 @@ let currentUserId=null; // se fija al iniciar sesión — necesario para escribi
 
 async function guardarCuentasSupabase(){
   if(!currentUserId)return false;
+  // Si la carga falló, 'accounts' puede ser SEED_ACCOUNTS (datos de ejemplo) en vez de tus saldos
+  // reales: guardar ahora los escribiría encima de las filas buenas. guardarConVerificacion() ya
+  // respetaba esta guardia, pero addEntry/doTransfer/confirmAdjustment/payPendiente llegan por acá.
+  if(cargaConFallos){
+    registrarErrorDiagnostico('fin_accounts (guardado bloqueado)','La carga de datos falló; no se guarda para no pisar tus saldos reales.');
+    return false;
+  }
   try{
     const filas=Object.keys(ACCOUNTS_META).map(slug=>({
       user_id:currentUserId,
@@ -278,6 +286,12 @@ async function addGoal(){
 }
 
 async function deleteGoal(id){
+  // Antes bastaba un toque en la × para borrarla de memoria y de la nube, sin vuelta atrás
+  // — deleteEntry y deletePendiente sí preguntaban.
+  const g=goals.find(x=>x.id===id);
+  if(!g)return;
+  const confirmado=await customConfirm(`¿Eliminar la meta "${g.name}"?\n\nNo se borra ningún movimiento ni saldo: solo dejas de hacerle seguimiento.`);
+  if(!confirmado)return;
   goals=goals.filter(g=>g.id!==id);
   refreshGoalCategoryOptions();
   renderGoals();
@@ -342,7 +356,9 @@ function renderGoals(){
   list.innerHTML=goals.map(g=>{
     let actual,moneda='COP';
     if(g.type==='cuenta'){
-      const meta=ACCOUNTS_META[g.acc];
+      // La cuenta vinculada pudo eliminarse: sin respaldo, meta.currency lanzaba y se caía
+      // el render de todas las metas.
+      const meta=ACCOUNTS_META[g.acc]||{label:'Cuenta eliminada',currency:'COP'};
       actual=accounts[g.acc]||0;
       moneda=meta.currency;
     }else{
@@ -375,13 +391,13 @@ function renderGoals(){
     }
 
     return `<div class="card">
-      <div class="card-title">${g.type==='cuenta'?'💧':'🏷️'} ${g.name} <button class="btn-del" onclick="deleteGoal('${g.id}')" style="float:right">×</button></div>
+      <div class="card-title">${g.type==='cuenta'?'💧':'🏷️'} ${esc(g.name)} <button class="btn-del" onclick="deleteGoal('${g.id}')" style="float:right">×</button></div>
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
         <span style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--accent)">${actualStr}</span>
         ${g.target?`<span style="font-size:11px;color:var(--text3)">meta: ${fmtCOP(g.target)}</span>`:'<span style="font-size:11px;color:var(--text3)">sin meta fija — solo trazabilidad</span>'}
       </div>
       ${pct!==null?`<div class="debt-track"><div class="debt-fill" style="width:${pct}%;background:${colorMeta}"></div></div><div style="font-size:10px;margin-top:4px;display:flex;justify-content:space-between"><span style="color:${colorMeta};font-weight:600">${mensajeMeta}</span><span style="color:var(--text3)">${pct}%</span></div>`:''}
-      <div style="font-size:10px;color:var(--text3);margin-top:8px">${g.type==='cuenta'?'Vinculada a: '+ACCOUNTS_META[g.acc].label:'Acumula movimientos categorizados como "'+g.name+'"'}</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:8px">${g.type==='cuenta'?'Vinculada a: '+esc((ACCOUNTS_META[g.acc]||{}).label||'Cuenta eliminada'):'Acumula movimientos categorizados como "'+esc(g.name)+'"'}</div>
       ${proyeccionHTML}
     </div>`;
   }).join('');

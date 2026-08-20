@@ -2,7 +2,7 @@ async function sendSummary(){
   const bycat=window._bycat||{};
   const total=window._total||0;
   const lines=Object.entries(bycat).sort((a,b)=>b[1]-a[1]).map(([c,v])=>`${c}: ${fmtCOP(v)}`).join(' | ');
-  const debtTotal=accounts.davtc+accounts.rappitc;
+  const debtTotal=calcularDeudaTotal();
   const resumen=`Analiza mis movimientos del mes. Total gastado: ${fmtCOP(total)} en ${entries.length} registros. Por categoría: ${lines}. Cuentas — Nequi: ${fmtCOP(accounts.nequi)}, Débito: ${fmtCOP(accounts.debito)}, Nu: ${fmtCOP(accounts.nu)}, ARQ: ${fmtUSD(accounts.arq)}, Ontop: ${fmtUSD(accounts.ontop)}. Deuda total: ${fmtCOP(debtTotal)} (Davivienda ${fmtCOP(accounts.davtc)}, Rappi ${fmtCOP(accounts.rappitc)}). Dame tu análisis como estratega financiero.`;
   const btn=document.querySelector('.btn-analyze');
   const textoOriginal=btn?btn.textContent:'';

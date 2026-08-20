@@ -4,7 +4,7 @@
 // renombrados o borrados) — un CACHE_NAME distinto fuerza a borrar el cache viejo en
 // el evento 'activate', que es lo único que garantiza que un cliente con la app ya
 // instalada como PWA deje de servir archivos que ya no existen (ej. styles.css).
-const CACHE_NAME = 'centro-financiero-cache-v6';
+const CACHE_NAME = 'centro-financiero-cache-v7';
 const CRITICAL_FILES = [
   '/centro-financiero/index.html',
   '/centro-financiero/manifest.json',
@@ -35,6 +35,8 @@ const JS_FILES = [
   '/centro-financiero/js/respaldo.js',
   '/centro-financiero/js/verificacion-sync.js',
   '/centro-financiero/js/offline-sync.js',
+  '/centro-financiero/js/express-notif.js',
+  '/centro-financiero/js/demo-mode.js',
   '/centro-financiero/js/auth-arranque.js'
 ];
 const urlsToCache = [...CRITICAL_FILES, ...JS_FILES];
@@ -77,6 +79,14 @@ self.addEventListener('fetch', event => {
 
   // Skip non-GET requests
   if (request.method !== 'GET') {
+    return;
+  }
+
+  // Solo se cachean los archivos de la propia app. Antes se guardaba en la Cache API TODA
+  // respuesta GET con status 200, incluidas las de la API de Supabase: los movimientos
+  // quedaban almacenados fuera de la sesión y, sin conexión, se servían respuestas viejas
+  // como si fueran las actuales. Las peticiones a la API pasan directo a la red.
+  if (url.origin !== self.location.origin) {
     return;
   }
 

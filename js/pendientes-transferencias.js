@@ -110,14 +110,17 @@ function usarSaldoActualEnEdicion(){
 }
 
 async function resolverEditPendienteModal(confirmado){
-  document.getElementById('edit-pendiente-modal').style.display='none';
   const id=_editPendienteId;
-  _editPendienteId=null;
-  if(!confirmado||!id)return;
+  const cerrar=()=>{ document.getElementById('edit-pendiente-modal').style.display='none'; _editPendienteId=null; };
+  // Igual que en el modal de movimientos: validar antes de cerrar, para que un monto inválido
+  // no descarte la edición con el modal ya fuera de pantalla.
+  if(!confirmado||!id){ cerrar(); return; }
   const p=pendientes.find(x=>x.id===id);
-  if(!p)return;
-  const nuevoMonto=redondear3(parseMontoFormateado(document.getElementById('edit-pendiente-amount').value));
-  if(isNaN(nuevoMonto)||nuevoMonto<=0){ toastError('⚠ El monto debe ser mayor a 0'); marcarInvalido(document.getElementById('edit-pendiente-amount')); return; }
+  if(!p){ cerrar(); return; }
+  const amtInp=document.getElementById('edit-pendiente-amount');
+  const nuevoMonto=redondear3(parseMontoFormateado(amtInp.value));
+  if(isNaN(nuevoMonto)||nuevoMonto<=0){ toastError('⚠ El monto debe ser mayor a 0'); marcarInvalido(amtInp); return; }
+  cerrar();
   p.amount=nuevoMonto;
   renderPendientes();
   updateNetWorth();
@@ -139,6 +142,32 @@ async function payPendiente(id){
   const meta=ACCOUNTS_META[accFinal];
   const txType=p.isIncome?'ingreso':'gasto';
   const sign=p.isIncome?-1:1; // misma convención que addEntry: gasto=+resta, ingreso=+suma
+
+  // Igual que addEntry(): primero guardamos el movimiento en la nube y solo si funciona tocamos
+  // saldos y borramos el pendiente. Antes el saldo se movía y el pendiente se borraba pase lo que
+  // pase, así que un insert fallido dejaba la cuenta descuadrada sin ningún movimiento que lo explique.
+  let filaNueva;
+  try{
+    const {data:fila,error}=await sb.from('fin_movimientos').insert({
+      user_id:currentUserId,
+      fecha:todayStr(),
+      nombre:p.name,
+      monto:montoVigente,
+      categoria:p.cat,
+      account_id:accountIdBySlug[accFinal],
+      tx_type:txType,
+    }).select().single();
+    if(error)throw error;
+    filaNueva=fila;
+  }catch(e){
+    registrarErrorDiagnostico('fin_movimientos (pagar pendiente)',e);
+    const statusEl=document.getElementById('sync-status');
+    statusEl.style.display='block'; statusEl.style.opacity='1';
+    statusEl.textContent='🛑 No se pudo registrar el pago — el pendiente sigue ahí, no se cambió ningún saldo. Revisa 🔧 Diagnóstico.';
+    statusEl.className='sync-status error';
+    return;
+  }
+
   if(meta.type==='credito'){ accounts[accFinal]=redondear3(accounts[accFinal]+(sign*montoVigente)); }
   else{ accounts[accFinal]=redondear3(accounts[accFinal]-(sign*montoVigente)); }
 
@@ -154,19 +183,7 @@ async function payPendiente(id){
     }
   }
 
-  try{
-    const {data:fila,error}=await sb.from('fin_movimientos').insert({
-      user_id:currentUserId,
-      fecha:todayStr(),
-      nombre:p.name,
-      monto:montoVigente,
-      categoria:p.cat,
-      account_id:accountIdBySlug[accFinal],
-      tx_type:txType,
-    }).select().single();
-    if(error)throw error;
-    entries.unshift({id:fila.id,date:todayStr(),name:p.name,amount:montoVigente,cat:p.cat,acc:accFinal,txType});
-  }catch(e){ registrarErrorDiagnostico('fin_movimientos (pagar pendiente)',e); }
+  entries.unshift({id:filaNueva.id,date:todayStr(),name:p.name,amount:montoVigente,cat:p.cat,acc:accFinal,txType});
   pendientes=pendientes.filter(x=>x.id!==id);
   fillAccountInputs();
   populateMonthSelector();
@@ -220,6 +237,13 @@ async function doTransfer(){
   if(origen===destino){ toastError('⚠ La cuenta de origen y destino deben ser distintas'); return; }
 
   const metaO=ACCOUNTS_META[origen], metaD=ACCOUNTS_META[destino];
+  // Entre monedas distintas se divide o multiplica por la TRM: sin este control, una TRM de 0
+  // convertiría el saldo destino en Infinity.
+  if(metaO.currency!==metaD.currency&&(!trm||trm<=0||isNaN(trm))){
+    toastError('⚠ Necesitas una TRM mayor a 0 para transferir entre monedas distintas');
+    marcarInvalido(document.getElementById('tr-trm'));
+    return;
+  }
   let recibidoTeorico;
   if(metaO.currency===metaD.currency){ recibidoTeorico=monto; }
   else if(metaO.currency==='USD'&&metaD.currency==='COP'){ recibidoTeorico=redondear3(monto*trm); }
@@ -285,12 +309,24 @@ async function doTransfer(){
   }catch(e){ registrarErrorDiagnostico('fin_movimientos (transferencia)',e); }
 
   const okAccounts=await guardarCuentasSupabase();
-  if(okEntries&&okAccounts){
+  // La TRM vive en fin_configuracion, no en fin_accounts: guardarCuentasSupabase() solo recorre
+  // ACCOUNTS_META, así que sin esto la TRM que escribiste aquí se perdía al recargar y los saldos
+  // en dólares volvían a calcularse con el valor viejo.
+  let okTrm=true;
+  try{
+    const {error}=await sb.from('fin_configuracion').upsert(
+      {user_id:currentUserId,trm:accounts.trm,vehiculos:vehiculos&&vehiculos.length?vehiculos:['Moto']},
+      {onConflict:'user_id'}
+    );
+    if(error)throw error;
+  }catch(e){ okTrm=false; registrarErrorDiagnostico('fin_configuracion (TRM de transferencia)',e); }
+
+  if(okEntries&&okAccounts&&okTrm){
     statusEl.textContent='✓ Transferencia guardada';
     statusEl.className='sync-status ok';
     setTimeout(()=>{statusEl.style.opacity='0.35'},1500);
   }else{
-    const faltante=[!okEntries&&'el movimiento',!okAccounts&&'el saldo'].filter(Boolean).join(' y ');
+    const faltante=[!okEntries&&'el movimiento',!okAccounts&&'el saldo',!okTrm&&'la TRM'].filter(Boolean).join(' y ');
     statusEl.textContent=`🛑 Los números en pantalla ya cambiaron, pero no se pudo guardar ${faltante} en la nube. Ve a 🔧 Diagnóstico y reintenta antes de cerrar la app.`;
     statusEl.className='sync-status error';
   }

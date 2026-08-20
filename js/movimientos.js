@@ -257,25 +257,41 @@ function onEditEntryAccountChange(){
   const currencyChoice=meta.currency==='USD'?document.getElementById('edit-entry-currency').value:meta.currency;
   label.textContent=`Monto (${currencyChoice})`;
   const amtInpChg=document.getElementById('edit-entry-amount');
+  const eraTexto=amtInpChg.type==='text';
   const currentVal=amtInpChg.value;
+  // El valor se interpreta con el formato que TENÍA el campo, y se convierte antes de cambiar
+  // el type. Antes se asignaba type='number' y en la línea siguiente se preguntaba si el type
+  // era 'text' — nunca lo era, así que la conversión no ocurría y un monto COP de "36.000"
+  // acababa leyéndose como 36 en el input numérico.
+  const valorNumerico=eraTexto?parseMontoFormateado(currentVal):(parseFloat(currentVal)||0);
   if(currencyChoice==='USD'){
-    amtInpChg.type='number'; amtInpChg.step='0.01'; amtInpChg.oninput=null;
-    if(amtInpChg.type==='text') amtInpChg.value=parseMontoFormateado(currentVal)||'';
+    amtInpChg.oninput=null;
+    amtInpChg.type='number'; amtInpChg.step='0.01';
+    amtInpChg.value=valorNumerico?String(valorNumerico):'';
   }else{
     amtInpChg.type='text'; amtInpChg.inputMode='decimal'; amtInpChg.oninput=()=>formatearInputMonto(amtInpChg);
-    const raw=parseFloat(currentVal)||0;
-    if(raw) amtInpChg.value=Math.round(raw).toLocaleString('es-CO');
+    amtInpChg.value=valorNumerico?Math.round(valorNumerico).toLocaleString('es-CO'):'';
   }
 }
 document.getElementById('edit-entry-currency')?.addEventListener('change',onEditEntryAccountChange);
 
 async function resolverEditEntryModal(confirmado){
-  document.getElementById('edit-entry-modal').style.display='none';
   const id=_editEntryId;
-  _editEntryId=null;
-  if(!confirmado||!id)return;
+  // Cancelar sí cierra de inmediato; confirmar solo cierra si el monto es válido.
+  // Antes se cerraba y se anulaba _editEntryId ANTES de validar, así que un monto inválido
+  // descartaba la edición en silencio: el aviso salía sobre la pantalla de fondo y el campo
+  // que marcarInvalido() intentaba resaltar ya no estaba a la vista.
+  if(!confirmado||!id){
+    document.getElementById('edit-entry-modal').style.display='none';
+    _editEntryId=null;
+    return;
+  }
   const e=entries.find(x=>x.id===id);
-  if(!e)return;
+  if(!e){
+    document.getElementById('edit-entry-modal').style.display='none';
+    _editEntryId=null;
+    return;
+  }
 
   const newAcc=document.getElementById('edit-entry-account').value;
   const newMeta=ACCOUNTS_META[newAcc];
@@ -285,7 +301,11 @@ async function resolverEditEntryModal(confirmado){
   const montoEscrito=redondear3(_amtInp.type==='number'
     ?parseFloat(_amtInp.value)||0
     :parseMontoFormateado(_amtInp.value));
-  if(isNaN(montoEscrito)||montoEscrito<=0){ toastError('⚠ El monto debe ser mayor a 0'); marcarInvalido(document.getElementById('edit-entry-amount')); return; }
+  if(isNaN(montoEscrito)||montoEscrito<=0){ toastError('⚠ El monto debe ser mayor a 0'); marcarInvalido(_amtInp); return; }
+
+  // Validado: ya se puede cerrar y soltar el id.
+  document.getElementById('edit-entry-modal').style.display='none';
+  _editEntryId=null;
 
   const oldAcc=e.acc;
   const oldMeta=ACCOUNTS_META[oldAcc];

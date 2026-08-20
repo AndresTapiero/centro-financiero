@@ -14,11 +14,13 @@ function toggleDarkMode(){
   updateUserMenuButton();
 }
 
+// El botón muestra la inicial de tu correo (lo pone poblarMenuUsuario al iniciar sesión).
+// Antes esta función le escribía encima un 🌙/👤 según el modo oscuro, así que el contenido
+// dependía de cuál de las dos corriera de última. El estado del tema va solo en el title.
 function updateUserMenuButton(){
   const btn=document.getElementById('user-menu-btn');
   if(!btn)return;
-  btn.textContent=darkModeEnabled?'🌙':'👤';
-  btn.title=darkModeEnabled?'Desactivar modo oscuro':'Cambiar a modo oscuro';
+  btn.title=darkModeEnabled?'Menú de cuenta · modo oscuro activo':'Menú de cuenta';
 }
 
 // Inicializar dark mode al cargar
@@ -57,7 +59,7 @@ async function handleAccountFieldBlur(key){
 
   pendingAdjustment={key,oldVal,newVal,tipoMovimiento};
   document.getElementById('adjust-banner-text').innerHTML=
-    `<strong>${meta.label}:</strong> detecté un cambio de <strong>${deltaAbsStr}</strong> (${etiqueta}).<br>Saldo anterior: ${meta.currency==='USD'?'$'+oldVal+' USD':fmtCOP(oldVal)} → nuevo: ${meta.currency==='USD'?'$'+newVal+' USD':fmtCOP(newVal)}.<br>¿Confirmas y registro el movimiento?`;
+    `<strong>${esc(meta.label)}:</strong> detecté un cambio de <strong>${deltaAbsStr}</strong> (${etiqueta}).<br>Saldo anterior: ${meta.currency==='USD'?'$'+oldVal+' USD':fmtCOP(oldVal)} → nuevo: ${meta.currency==='USD'?'$'+newVal+' USD':fmtCOP(newVal)}.<br>¿Confirmas y registro el movimiento?`;
   document.getElementById('adjust-banner').style.display='block';
 }
 
@@ -129,7 +131,7 @@ function calcularSaldoHistorico(mesSeleccionado){
     // reconstruir con datos que no son de fiar produciría un número sin sentido.
     return {nequi:accounts.nequi,debito:accounts.debito,arq:accounts.arq,ontop:accounts.ontop,esHistorico:false,fallo:cargaConFallos&&mesSeleccionado<hoy};
   }
-  const cuentas=['nequi','debito','arq','ontop'];
+  const cuentas=CUENTAS_GASTO_DIARIO;
   const saldos={};
   cuentas.forEach(acc=>{ saldos[acc]=accounts[acc]; });
   entries.forEach(e=>{
@@ -174,9 +176,54 @@ function calcularPatrimonioMes(mesISO){
   return {liquido,deuda,neto:liquido-deuda};
 }
 
+// Cuentas de las que se gasta en el día a día. Nu (fondo de emergencia), Lulo (ahorro vivienda)
+// y las cuentas dinámicas quedan fuera a propósito: son ahorro, y contarlas como "libre para
+// gastar" haría creer que hay más plata disponible de la que realmente hay.
+const CUENTAS_GASTO_DIARIO=['nequi','debito','arq','ontop'];
+
+/** Suma en COP de un grupo de cuentas, convirtiendo las que están en dólares. */
+function sumarEnCOP(slugs){
+  return slugs.reduce((s,slug)=>{
+    const meta=ACCOUNTS_META[slug];
+    const saldo=accounts[slug]||0;
+    if(!meta)return s;
+    return s+(meta.currency==='USD'?saldo*accounts.trm:saldo);
+  },0);
+}
+
+/** Plata disponible para gastar este mes (sin tocar los ahorros). Es lo que muestra el hero. */
+function calcularSaldoDisponible(){
+  return sumarEnCOP(CUENTAS_GASTO_DIARIO);
+}
+
+/** Todo el dinero líquido, ahorros y cuentas creadas por ti incluidos. Es la base del patrimonio. */
+function calcularLiquidezTotal(){
+  const slugs=Object.keys(ACCOUNTS_META).filter(k=>ACCOUNTS_META[k].type!=='credito');
+  return sumarEnCOP(slugs);
+}
+
+/** Pendientes por pagar que saldrán de las cuentas de gasto diario, en COP. */
+function sumarPendientesDeGastoDiario(){
+  return pendientes
+    .filter(p=>!p.isIncome&&CUENTAS_GASTO_DIARIO.includes(p.acc))
+    .reduce((s,p)=>{
+      const meta=ACCOUNTS_META[p.acc];
+      if(!meta)return s; // cuenta eliminada
+      return s+(meta.currency==='USD'?p.amount*accounts.trm:p.amount);
+    },0);
+}
+
+/** Deuda total de tarjetas, en COP. */
+function calcularDeudaTotal(){
+  const slugs=Object.keys(ACCOUNTS_META).filter(k=>ACCOUNTS_META[k].type==='credito');
+  return sumarEnCOP(slugs);
+}
+
 function updateNetWorth(){
-  const liquidCOP=accounts.nequi+accounts.debito+accounts.nu+accounts.lulo+(accounts.arq*accounts.trm)+(accounts.ontop*accounts.trm);
-  const debtCOP=accounts.davtc+accounts.rappitc;
+  // Antes esto sumaba a mano una lista fija de slugs, así que una cuenta creada por ti no
+  // aparecía ni en el patrimonio ni en ningún total: el dinero simplemente no existía.
+  const liquidCOP=calcularLiquidezTotal();
+  const debtCOP=calcularDeudaTotal();
   document.getElementById('nw-liquid').textContent=fmtCOP(liquidCOP);
   document.getElementById('nw-debt').textContent=fmtCOP(debtCOP);
   const net=liquidCOP-debtCOP;
@@ -184,14 +231,11 @@ function updateNetWorth(){
   nwEl.textContent=fmtCOP(net);
   nwEl.style.color=net>=0?'var(--safe)':'var(--danger)';
 
-  // Desglose del mes: saldo inicial + ingresos - gastos = saldo final
+  // Desglose del mes: ingresos - gastos, sobre las cuentas de gasto diario
   const monthEntries=entries.filter(e=>e.date.slice(0,7)===currentMonth);
   const ingresosMes=monthEntries.filter(e=>e.txType==='ingreso'&&e.cat!=='[Ajuste de saldo]').reduce((s,e)=>s+entryCOP(e),0);
   const gastosMes=monthEntries.filter(e=>e.txType!=='ingreso'&&e.cat!=='Transferencia'&&e.cat!=='[Ajuste de saldo]').reduce((s,e)=>s+entryCOP(e),0);
-
-  // Calcular saldo inicial: saldo final - (ingresos - gastos)
-  const saldoFinal=accounts.nequi+accounts.debito+(accounts.arq*accounts.trm)+(accounts.ontop*accounts.trm);
-  const saldoInicial=saldoFinal-(ingresosMes-gastosMes);
+  const saldoFinal=calcularSaldoDisponible();
 
   const breakdownEl=document.getElementById('ats-breakdown');
   const simpleEl=document.getElementById('ats-simple');
@@ -203,12 +247,7 @@ function updateNetWorth(){
   if(esMesActual){
     breakdownEl.style.display='block';
     simpleEl.style.display='none';
-    const pendCOP=pendientes.filter(p=>!p.isIncome&&['nequi','debito','arq','ontop'].includes(p.acc))
-      .reduce((s,p)=>{
-        const meta=ACCOUNTS_META[p.acc];
-        const monto=meta.currency==='USD'?p.amount*accounts.trm:p.amount;
-        return s+monto;
-      },0);
+    const pendCOP=sumarPendientesDeGastoDiario();
     const libreReal=saldoFinal-pendCOP;
 
     const ingresosEl=document.getElementById('ats-ingresos');
@@ -235,12 +274,7 @@ function updateNetWorth(){
     breakdownEl.style.display='none';
     simpleEl.style.display='block';
     const bruto=saldoHist.nequi+saldoHist.debito+(saldoHist.arq*accounts.trm)+(saldoHist.ontop*accounts.trm);
-    const pendCOP=saldoHist.esHistorico?0:pendientes.filter(p=>!p.isIncome&&['nequi','debito','arq','ontop'].includes(p.acc))
-      .reduce((s,p)=>{
-        const meta=ACCOUNTS_META[p.acc];
-        const monto=meta.currency==='USD'?p.amount*accounts.trm:p.amount;
-        return s+monto;
-      },0);
+    const pendCOP=saldoHist.esHistorico?0:sumarPendientesDeGastoDiario();
     const libre=bruto-pendCOP;
     document.getElementById('ats-bruto').textContent=fmtCOP(bruto);
     document.getElementById('ats-pendientes').textContent=fmtCOP(pendCOP);
@@ -415,12 +449,13 @@ function suggestCategory(){
       return;
     }
   }
-  // No hubo match con el texto actual — se asume "Otro" por defecto en vez de dejar la categoría anterior
-  catSelect.value='Otro';
+  // Sin coincidencia: se respeta la categoría que haya, que normalmente es una que elegiste a mano.
+  // Antes se forzaba 'Otro' aquí, así que corregir una letra de la descripción después de elegir
+  // "Salud" la devolvía a "Otro" sin avisar.
   badge.style.display='none';
 }
-document.getElementById('inp-name')?.addEventListener('input',suggestCategory);
-document.getElementById('inp-name')?.addEventListener('keyup',suggestCategory);
+// El enganche vive en el atributo oninput de index.html. Antes había además un listener de 'input'
+// y otro de 'keyup' en este archivo: la función corría tres veces por cada tecla.
 
 function suggestCategoryPend(){
   const text=document.getElementById('pend-name').value.toLowerCase()

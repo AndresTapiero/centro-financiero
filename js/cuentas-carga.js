@@ -296,6 +296,14 @@ function checkLowBalances(){
   });
 }
 
-function parseNum(str){ return parseFloat(String(str).replace(/[^0-9.\-]/g,''))||0; }
+// Lee un monto escrito o formateado por la app ("$3.039.260", "$231.28 USD", "800.000").
+// Antes hacía parseFloat() directo sobre el texto con los puntos de miles todavía puestos,
+// así que "$3.039.260" se leía como 3.039: bastaba con entrar y salir de un campo de saldo
+// para que la app creyera que la cuenta había bajado a $3. Ahora limpia el símbolo de moneda
+// y delega en parseMontoFormateado(), que ya distingue separador de miles de decimal.
+function parseNum(str){
+  const limpio=String(str).replace(/[^\d.,-]/g,'').replace(/,/g,'');
+  return parseMontoFormateado(limpio);
+}
 
 const FIELD_TO_ID={nequi:'acc-nequi',debito:'acc-debito',nu:'acc-nu',lulo:'acc-lulo',arq:'acc-arq',ontop:'acc-ontop',trm:'acc-trm',davtc:'acc-davtc',rappitc:'acc-rappitc'};

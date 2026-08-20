@@ -28,6 +28,7 @@ class PendienteListRenderer {
   /** Convierte el monto de un pendiente a COP, igual que entryCOP() para movimientos */
   montoCOP(p){
     const meta = ACCOUNTS_META[p.acc];
+    if(!meta) return p.amount; // cuenta eliminada — se devuelve sin convertir, igual que entryCOP()
     return meta.currency === 'USD' ? p.amount * accounts.trm : p.amount;
   }
 
@@ -52,13 +53,11 @@ class PendienteListRenderer {
   }
 
   renderFila(p){
-    const meta = ACCOUNTS_META[p.acc];
+    // Respaldo por si la cuenta fue eliminada: sin esto, meta.currency lanzaba y abortaba
+    // el render de toda la lista de pendientes.
+    const meta = ACCOUNTS_META[p.acc] || { label: 'Cuenta eliminada', currency: 'COP', type: 'debito' };
     const c = p.isIncome ? '#22D3B0' : col(p.cat, p.name);
     const montoStr = meta.currency === 'USD' ? fmtUSD(p.amount) : fmtCOP(p.amount);
-    const esTarjeta = meta.type === 'credito';
-    // Para tarjetas mostramos el saldo actual como referencia, sin forzarlo — el pago del mes
-    // (ej. mínimo) puede ser distinto al saldo total, y el monto lo decides tú al editar.
-    const saldoActualStr = esTarjeta ? (meta.currency === 'USD' ? fmtUSD(accounts[p.acc]) : fmtCOP(accounts[p.acc])) : null;
 
     const estado = this.estadoDe(p);
     const estiloFila = estado === 'vencido' ? 'background:rgba(255,107,107,.1);border-left:3px solid var(--danger)'
@@ -75,9 +74,9 @@ class PendienteListRenderer {
       </div>
       <div class="entry-row-content" style="${estiloFila};cursor:pointer" onclick="editPendiente('${p.id}')">
         <div class="entry-row-top">
-          <span class="avatar-square" style="background:${colorPunto};width:44px;height:44px;font-size:18px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center">${p.name.charAt(0).toUpperCase()}</span>
+          <span class="avatar-square" style="background:${colorPunto};width:44px;height:44px;font-size:18px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center">${esc(p.name.charAt(0).toUpperCase())}</span>
           <div style="flex:1;min-width:0">
-            <div class="entry-name">${prefijoNombre}${p.name}</div>
+            <div class="entry-name">${prefijoNombre}${esc(p.name)}</div>
             <span class="entry-cat" style="background:${c}22;color:${c}">${scat(p.cat)}</span>
           </div>
           <div class="entry-amount-group">

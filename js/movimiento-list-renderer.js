@@ -7,23 +7,26 @@
 
 class MovimientoListRenderer {
   /**
-   * @param {Array} entries - movimientos ya filtrados y ordenados (más reciente primero)
+   * @param {Array} entries - movimientos ya filtrados y ordenados
+   * @param {'fecha'|'cuenta'} agruparPor - de qué va el encabezado de cada grupo
    */
-  constructor(entries){
+  constructor(entries, agruparPor = 'fecha'){
     this.entries = entries;
+    this.agruparPor = agruparPor;
   }
 
-  /** Agrupa los movimientos por fecha (YYYY-MM-DD), preservando el orden de entrada */
-  agruparPorFecha(){
+  /** Agrupa por fecha o por cuenta, preservando el orden de entrada */
+  agrupar(){
     const grupos = new Map();
     for(const e of this.entries){
-      if(!grupos.has(e.date)) grupos.set(e.date, []);
-      grupos.get(e.date).push(e);
+      const clave = this.agruparPor === 'cuenta' ? e.acc : e.date;
+      if(!grupos.has(clave)) grupos.set(clave, []);
+      grupos.get(clave).push(e);
     }
     return grupos;
   }
 
-  /** Subtotal neto del día: gastos suman, ingresos restan, transferencias no cuentan */
+  /** Subtotal neto del grupo: gastos suman, ingresos restan, transferencias no cuentan */
   subtotalDelDia(itemsDelDia){
     return itemsDelDia.reduce((suma, e) => {
       if(e.cat === 'Transferencia') return suma;
@@ -39,22 +42,26 @@ class MovimientoListRenderer {
     return `${d} de ${meses[m-1]} de ${y}`;
   }
 
-  renderEncabezadoGrupo(fechaISO, itemsDelDia){
-    const subtotal = this.subtotalDelDia(itemsDelDia);
+  renderEncabezadoGrupo(clave, itemsDelGrupo){
+    const subtotal = this.subtotalDelDia(itemsDelGrupo);
     const colorSubtotal = subtotal > 0 ? 'var(--text2)' : subtotal < 0 ? 'var(--accent)' : 'var(--text3)';
+    const titulo = this.agruparPor === 'cuenta'
+      ? esc((ACCOUNTS_META[clave] || {}).label || 'Cuenta eliminada')
+      : MovimientoListRenderer.fechaLarga(clave);
     return `<div class="date-group-header">
-      <span>${MovimientoListRenderer.fechaLarga(fechaISO)}</span>
+      <span>${titulo}</span>
       <span style="color:${colorSubtotal}">${subtotal===0?'—':fmtCOP(Math.abs(subtotal))}</span>
     </div>`;
   }
 
   renderFila(e){
     const c = col(e.cat);
-    const meta = ACCOUNTS_META[e.acc];
+    // Una cuenta borrada deja movimientos apuntando a un slug que ya no existe: sin este
+    // respaldo, meta.currency lanzaba y abortaba el render de la lista completa.
+    const meta = ACCOUNTS_META[e.acc] || { label: 'Cuenta eliminada', currency: 'COP', type: 'debito' };
     const displayCurrency = e.currency || meta.currency;
     const isIncome = e.txType === 'ingreso';
     const amtStr = (displayCurrency === 'USD' ? fmtUSD(e.amount) : fmtCOP(e.amount));
-    const saldoActual = meta.currency === 'USD' ? '$' + accounts[e.acc] + ' USD' : fmtCOP(accounts[e.acc]);
     const cop = entryCOP(e);
     const esAnomalia = cop > 5000000;
     const cardColor = e.acc === 'davtc' ? '#EF4444' : e.acc === 'rappitc' ? '#FF8C42' : null;
@@ -66,9 +73,10 @@ class MovimientoListRenderer {
       <div class="entry-row-swipe-bg" aria-hidden="true">🗑 Eliminar</div>
       <div class="entry-row-content" style="${borderStyle};cursor:pointer" onclick="openEditEntryModal('${e.id}')">
         <div class="entry-row-top">
-          <span class="avatar-square" style="background:${c};width:44px;height:44px;font-size:18px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center">${e.name.charAt(0).toUpperCase()}</span>
+          <span class="avatar-square" style="background:${c};width:44px;height:44px;font-size:18px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center">${esc(e.name.charAt(0).toUpperCase())}</span>
           <div style="flex:1;min-width:0">
-            <div class="entry-name">${esAnomalia ? '⚠️ ' : ''}${e.name}</div>
+            <div class="entry-name">${esAnomalia ? '⚠️ ' : ''}${esc(e.name)}</div>
+            ${this.agruparPor === 'cuenta' ? `<span class="entry-date">${fmtDate(e.date)}</span> ` : ''}
             <span class="entry-cat" style="background:${c}22;color:${c}">${scat(e.cat)}</span>
           </div>
           <div class="entry-amount-group">
@@ -79,13 +87,12 @@ class MovimientoListRenderer {
     </div>`;
   }
 
-  /** Devuelve el HTML completo: un encabezado de fecha con subtotal, seguido de sus movimientos, por cada día */
+  /** HTML completo: un encabezado con subtotal seguido de sus movimientos, por cada grupo */
   render(){
     if(this.entries.length === 0) return '<div class="empty">📋 Sin movimientos</div>';
-    const grupos = this.agruparPorFecha();
     let html = '';
-    for(const [fecha, items] of grupos){
-      html += this.renderEncabezadoGrupo(fecha, items);
+    for(const [clave, items] of this.agrupar()){
+      html += this.renderEncabezadoGrupo(clave, items);
       html += items.map(e => this.renderFila(e)).join('');
     }
     return html;
