@@ -14,11 +14,13 @@ function toggleDarkMode(){
   updateUserMenuButton();
 }
 
+// El botón muestra la inicial de tu correo (lo pone poblarMenuUsuario al iniciar sesión).
+// Antes esta función le escribía encima un 🌙/👤 según el modo oscuro, así que el contenido
+// dependía de cuál de las dos corriera de última. El estado del tema va solo en el title.
 function updateUserMenuButton(){
   const btn=document.getElementById('user-menu-btn');
   if(!btn)return;
-  btn.textContent=darkModeEnabled?'🌙':'👤';
-  btn.title=darkModeEnabled?'Desactivar modo oscuro':'Cambiar a modo oscuro';
+  btn.title=darkModeEnabled?'Menú de cuenta · modo oscuro activo':'Menú de cuenta';
 }
 
 // Inicializar dark mode al cargar
@@ -57,7 +59,7 @@ async function handleAccountFieldBlur(key){
 
   pendingAdjustment={key,oldVal,newVal,tipoMovimiento};
   document.getElementById('adjust-banner-text').innerHTML=
-    `<strong>${meta.label}:</strong> detecté un cambio de <strong>${deltaAbsStr}</strong> (${etiqueta}).<br>Saldo anterior: ${meta.currency==='USD'?'$'+oldVal+' USD':fmtCOP(oldVal)} → nuevo: ${meta.currency==='USD'?'$'+newVal+' USD':fmtCOP(newVal)}.<br>¿Confirmas y registro el movimiento?`;
+    `<strong>${esc(meta.label)}:</strong> detecté un cambio de <strong>${deltaAbsStr}</strong> (${etiqueta}).<br>Saldo anterior: ${meta.currency==='USD'?'$'+oldVal+' USD':fmtCOP(oldVal)} → nuevo: ${meta.currency==='USD'?'$'+newVal+' USD':fmtCOP(newVal)}.<br>¿Confirmas y registro el movimiento?`;
   document.getElementById('adjust-banner').style.display='block';
 }
 

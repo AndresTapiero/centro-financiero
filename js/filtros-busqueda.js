@@ -33,17 +33,20 @@ function toggleBuscadorHistorico(){
   document.getElementById('search-historico').style.display=buscadorHistoricoAbierto?'block':'none';
 }
 
+let _timerBuscador=null;
 function actualizarBuscador(){
   const q=document.getElementById('quick-search').value.trim().toLowerCase();
   const btn=document.getElementById('search-historico-btn');
 
-  // Si escriben algo, mostrar el botón de búsqueda histórica
+  // Si escriben algo, mostrar el botón de búsqueda histórica (esto sí es inmediato)
   btn.style.display=q.length>=2?'block':'none';
 
-  // Si está buscando solo en el mes actual (sin filtros históricos activados)
-  if(!buscadorHistoricoAbierto){
-    buscarEnMes(q);
-  }
+  // buscarEnMes puede acabar llamando a render(), que reconstruye lista, presupuesto,
+  // pendientes y patrimonio: hacerlo en cada tecla se siente lento en móvil.
+  clearTimeout(_timerBuscador);
+  _timerBuscador=setTimeout(()=>{
+    if(!buscadorHistoricoAbierto)buscarEnMes(q);
+  },250);
 }
 
 function buscarEnMes(q){
@@ -72,7 +75,6 @@ function renderQuickSearchResults(matches,q){
     list.innerHTML=`<div class="empty">Sin resultados para "${q}" en ${MovimientoListRenderer.fechaLarga(currentMonth.split('-').map((x,i)=>i===2?'01':x).join('-')).replace(' 01','').split(' ').slice(1).join(' ')}</div>`;
     document.getElementById('entries-summary').style.display='none';
   }else{
-    const ACCOUNT_ORDER={nequi:1,debito:2,nu:3,arq:4,ontop:5,davtc:6,rappitc:7};
     const sorted=[...matches].sort((a,b)=>b.date.localeCompare(a.date));
     list.innerHTML=new MovimientoListRenderer(sorted).render();
     updateEntriesSummary();
@@ -124,7 +126,7 @@ function renderSearchResults(matches,q){
   const sorted=[...matches].sort((a,b)=>b.date.localeCompare(a.date));
   resultsEl.innerHTML=`<div style="font-size:10px;color:var(--text3);margin-bottom:6px">${sorted.length} resultado(s) en todo tu historial</div>`+
     sorted.map(e=>{
-      const meta=ACCOUNTS_META[e.acc];
+      const meta=ACCOUNTS_META[e.acc]||{label:'Cuenta eliminada',currency:'COP'};
       const c=col(e.cat);
       const montoStr=(e.currency||meta.currency)==='USD'?fmtUSD(e.amount):fmtCOP(e.amount);
       const mes=e.date.slice(0,7);
@@ -137,7 +139,7 @@ function renderSearchResults(matches,q){
         </div>
         <div class="entry-row-bottom">
           <span class="entry-cat" style="background:${c}22;color:${c}">${scat(e.cat)}</span>
-          <span class="entry-acc">${meta.label} · ${mes}</span>
+          <span class="entry-acc">${esc(meta.label)} · ${mes}</span>
         </div>
       </div>`;
     }).join('');

@@ -88,7 +88,8 @@ function renderDynamicAccountCard(key){
   card.id='card-'+key;
   const inicial=meta.label.charAt(0).toUpperCase();
   const monedaTexto=meta.currency==='USD'?'Dólares':'Pesos';
-  card.innerHTML=`<div class="acc-label"><span class="avatar-square" style="background:#2563EB">${inicial}</span><span>${meta.label}</span><span class="currency-badge">${monedaTexto}</span></div><input class="acc-value" id="acc-${key}" onblur="handleAccountFieldBlur('${key}')">`;
+  // meta.label lo escribes tú al crear la cuenta, así que va escapado antes de entrar a innerHTML.
+  card.innerHTML=`<div class="acc-label"><span class="avatar-square" style="background:#2563EB">${esc(inicial)}</span><span>${esc(meta.label)}</span><span class="currency-badge">${monedaTexto}</span></div><input class="acc-value" id="acc-${key}" onblur="handleAccountFieldBlur('${key}')">`;
   grid.appendChild(card);
   document.getElementById('acc-'+key).value=meta.currency==='USD'?'$'+accounts[key]+' USD':fmtCOP(accounts[key]);
 }
@@ -285,6 +286,12 @@ async function addGoal(){
 }
 
 async function deleteGoal(id){
+  // Antes bastaba un toque en la × para borrarla de memoria y de la nube, sin vuelta atrás
+  // — deleteEntry y deletePendiente sí preguntaban.
+  const g=goals.find(x=>x.id===id);
+  if(!g)return;
+  const confirmado=await customConfirm(`¿Eliminar la meta "${g.name}"?\n\nNo se borra ningún movimiento ni saldo: solo dejas de hacerle seguimiento.`);
+  if(!confirmado)return;
   goals=goals.filter(g=>g.id!==id);
   refreshGoalCategoryOptions();
   renderGoals();

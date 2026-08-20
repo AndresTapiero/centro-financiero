@@ -4,9 +4,9 @@
   color-scheme: light;
   --bg:#F5F3EE; --surface:#FFFFFF; --surface2:#F5F3EE; --surface3:#EDEBE3;
   --border:#E7E4DB; --border2:#D9D5C9;
-  --text:#17171F; --text2:#6B6F7D; --text3:#767B87;
-  --accent:#0E9F6E; --accent2:#0B8259;
-  --danger:#DC2626; --warn:#D97706; --blue:#2563EB; --purple:#7C3AED;
+  --text:#17171F; --text2:#6B6F7D; --text3:#5F646E;
+  --accent:#0A7D57; --accent2:#086444;
+  --danger:#DC2626; --warn:#A85B05; --blue:#2563EB; --purple:#7C3AED;
   /* Verde fijo para semáforos financieros (Libre real, Saldo actual, Patrimonio neto...).
      No cambia con el tema — a diferencia de --accent (verde en claro, azul en oscuro),
      esto necesita ser un verde real siempre, porque es una señal de "estás bien". */
@@ -21,9 +21,9 @@
   color-scheme: dark;
   --bg:#0F1117; --surface:#1C1F26; --surface2:#14171F; --surface3:#2D333B;
   --border:#30363D; --border2:#444C56;
-  --text:#E6EDF3; --text2:#8B949E; --text3:#6E7681;
-  --accent:#1F6FEB; --accent2:#0969DA;
-  --danger:#DC2626; --warn:#D97706; --blue:#0969DA; --purple:#7C3AED;
+  --text:#E6EDF3; --text2:#8B949E; --text3:#98A1AC;
+  --accent:#589BFF; --accent2:#3D86F0;
+  --danger:#F27A72; --warn:#E09A44; --blue:#589BFF; --purple:#A78BFA;
   /* Antes hero-bg era igual a --bg y la tarjeta de saldo se perdía contra el fondo negro.
      Ahora es un tono elevado con borde y resplandor de acento para que siga siendo lo primero que se ve. */
   --hero-bg:#161B26; --hero-text:#E6EDF3; --hero-text2:#8B949E;
