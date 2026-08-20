@@ -139,6 +139,32 @@ async function payPendiente(id){
   const meta=ACCOUNTS_META[accFinal];
   const txType=p.isIncome?'ingreso':'gasto';
   const sign=p.isIncome?-1:1; // misma convención que addEntry: gasto=+resta, ingreso=+suma
+
+  // Igual que addEntry(): primero guardamos el movimiento en la nube y solo si funciona tocamos
+  // saldos y borramos el pendiente. Antes el saldo se movía y el pendiente se borraba pase lo que
+  // pase, así que un insert fallido dejaba la cuenta descuadrada sin ningún movimiento que lo explique.
+  let filaNueva;
+  try{
+    const {data:fila,error}=await sb.from('fin_movimientos').insert({
+      user_id:currentUserId,
+      fecha:todayStr(),
+      nombre:p.name,
+      monto:montoVigente,
+      categoria:p.cat,
+      account_id:accountIdBySlug[accFinal],
+      tx_type:txType,
+    }).select().single();
+    if(error)throw error;
+    filaNueva=fila;
+  }catch(e){
+    registrarErrorDiagnostico('fin_movimientos (pagar pendiente)',e);
+    const statusEl=document.getElementById('sync-status');
+    statusEl.style.display='block'; statusEl.style.opacity='1';
+    statusEl.textContent='🛑 No se pudo registrar el pago — el pendiente sigue ahí, no se cambió ningún saldo. Revisa 🔧 Diagnóstico.';
+    statusEl.className='sync-status error';
+    return;
+  }
+
   if(meta.type==='credito'){ accounts[accFinal]=redondear3(accounts[accFinal]+(sign*montoVigente)); }
   else{ accounts[accFinal]=redondear3(accounts[accFinal]-(sign*montoVigente)); }
 
@@ -154,19 +180,7 @@ async function payPendiente(id){
     }
   }
 
-  try{
-    const {data:fila,error}=await sb.from('fin_movimientos').insert({
-      user_id:currentUserId,
-      fecha:todayStr(),
-      nombre:p.name,
-      monto:montoVigente,
-      categoria:p.cat,
-      account_id:accountIdBySlug[accFinal],
-      tx_type:txType,
-    }).select().single();
-    if(error)throw error;
-    entries.unshift({id:fila.id,date:todayStr(),name:p.name,amount:montoVigente,cat:p.cat,acc:accFinal,txType});
-  }catch(e){ registrarErrorDiagnostico('fin_movimientos (pagar pendiente)',e); }
+  entries.unshift({id:filaNueva.id,date:todayStr(),name:p.name,amount:montoVigente,cat:p.cat,acc:accFinal,txType});
   pendientes=pendientes.filter(x=>x.id!==id);
   fillAccountInputs();
   populateMonthSelector();

@@ -31,6 +31,7 @@ async function syncNow(){
       const {data,error}=await sb.from('fin_accounts').select('*').eq('archived',false);
       if(error)throw error;
       resA=data;
+      const trmPrevia=accounts.trm; // la conservamos: el accounts={} de abajo la borra
       accounts={};
       resA.forEach(row=>{
         accounts[row.slug]=Number(row.balance);
@@ -45,6 +46,9 @@ async function syncNow(){
         accounts.trm=Number(cfg.trm);
         if(cfg.vehiculos&&cfg.vehiculos.length)vehiculos=cfg.vehiculos;
       }
+      // Misma guardia que loadData(): sin TRM, todo lo que multiplica por ella (patrimonio, saldo
+      // libre, metas, ARQ/Ontop) se vuelve NaN en pantalla.
+      if(!accounts.trm||isNaN(accounts.trm))accounts.trm=trmPrevia&&!isNaN(trmPrevia)?trmPrevia:4000;
     }catch(e){ resA=null; registrarErrorDiagnostico('fin_accounts (sync)',e); }
 
     let resE=null;

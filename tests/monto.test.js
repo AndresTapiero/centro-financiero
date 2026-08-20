@@ -1,5 +1,16 @@
-// Tests: formatearInputMonto, setAmountInputMode, parseMontoFormateado
+// Tests: formatearInputMonto, setAmountInputMode, parseMontoFormateado, parseNum
 // node tests/monto.test.js
+//
+// Las funciones NO se copian aquí: se cargan desde js/ con el helper cargar-fuente,
+// así que estos tests siempre corren contra el código que está en producción.
+
+import { cargarFuente } from './helpers/cargar-fuente.js';
+
+const src = cargarFuente(
+  ['js/constantes.js', 'js/movimientos.js', 'js/cuentas-carga.js', 'js/balances-formato.js'],
+  ['_monedaInput'],
+);
+const { formatearInputMonto, setAmountInputMode, parseMontoFormateado, parseNum, _monedaInput } = src;
 
 let passed = 0, failed = 0;
 function test(name, fn) {
@@ -21,34 +32,6 @@ function mockInput(id, value='', dataCurrency='COP') {
     getAttribute: k => attrs[k] ?? null,
     setAttribute: (k,v) => { attrs[k]=String(v); },
   };
-}
-
-// ─── Funciones bajo test (copia exacta del JS producción) ────────────────────
-
-// Variable global de moneda
-const _monedaInput = {'inp-amount':'COP','express-amount':'COP','pend-amount':'COP'};
-
-function formatearInputMonto(el) {
-  const moneda = _monedaInput[el.id] || el.getAttribute('data-currency') || 'COP';
-  if (moneda === 'USD') return;
-  const digitos = el.value.replace(/\D/g, '');
-  el.value = digitos ? Number(digitos).toLocaleString('es-CO') : '';
-}
-
-function setAmountInputMode(inp, isUSD, placeholderCOP) {
-  if (!inp) return;
-  const next = isUSD ? 'USD' : 'COP';
-  const prev = _monedaInput[inp.id] || inp.getAttribute('data-currency') || 'COP';
-  if (prev !== next) inp.value = '';
-  _monedaInput[inp.id] = next;
-  inp.setAttribute('data-currency', next);
-  inp.placeholder = isUSD ? '0.00' : (placeholderCOP || 'Monto');
-}
-
-function parseMontoFormateado(str) {
-  const s = String(str).trim();
-  if (/\.\d{1,2}$/.test(s) && !/\.\d{3}/.test(s)) return parseFloat(s) || 0;
-  return parseFloat(s.replace(/\./g, '')) || 0;
 }
 
 // ─── Reset del estado global entre tests ─────────────────────────────────────
@@ -159,16 +142,12 @@ console.log('\nFlujo express completo (COP → USD → "10.40"):');
 test('Flujo completo sin alterar el decimal', () => {
   resetMoneda();
   const el = mockInput('express-amount', '', 'COP');
-  // Estado inicial: COP
   assert(_monedaInput['express-amount'], 'COP');
-  // Simular cambio de cuenta a Ontop (USD)
   setAmountInputMode(el, true, '0');
   assert(_monedaInput['express-amount'], 'USD', 'variable global debe ser USD');
-  // Simular usuario escribe "10.", luego "10.4", luego "10.40"
   el.value='10.'; formatearInputMonto(el); assert(el.value,'10.','10. debe pasar');
   el.value='10.4'; formatearInputMonto(el); assert(el.value,'10.4','10.4 debe pasar');
   el.value='10.40'; formatearInputMonto(el); assert(el.value,'10.40','10.40 debe pasar');
-  // Verificar que parsea correctamente al guardar
   assertClose(parseMontoFormateado(el.value), 10.4);
 });
 
@@ -194,6 +173,37 @@ test('"1.234.567" → 1234567', () => assert(parseMontoFormateado('1.234.567'), 
 test('"1.500" → 1500',   () => assert(parseMontoFormateado('1.500'), 1500));
 test('"10"    → 10',     () => assert(parseMontoFormateado('10'), 10));
 test('""      → 0',      () => assert(parseMontoFormateado(''), 0));
+
+// ─── Tests: parseNum — regresión del bug que destruía saldos ──────────────────
+// parseNum lee lo que fillAccountInputs()/updateCap() escribieron ya formateado.
+// Antes hacía parseFloat() con los puntos de miles puestos: "$3.039.260" → 3.039.
+// Bastaba entrar y salir de un campo de saldo, sin escribir, para que la app
+// ofreciera registrar un "faltante" de tres millones y dejara la cuenta en $3.
+console.log('\nparseNum (saldos y topes ya formateados):');
+
+test('"$3.039.260" → 3039260 (no 3.039)', () => assert(parseNum('$3.039.260'), 3039260));
+test('"$605.254"   → 605254',             () => assert(parseNum('$605.254'), 605254));
+test('"$3.000"     → 3000 (no 3)',        () => assert(parseNum('$3.000'), 3000));
+test('"$1.187.348" → 1187348',            () => assert(parseNum('$1.187.348'), 1187348));
+test('"$999"       → 999',                () => assert(parseNum('$999'), 999));
+test('"$3596"      → 3596 (TRM)',         () => assert(parseNum('$3596'), 3596));
+test('"800.000"    → 800000 (tope)',      () => assert(parseNum('800.000'), 800000));
+test('"1.630.000"  → 1630000 (tope)',     () => assert(parseNum('1.630.000'), 1630000));
+test('"$231.28 USD" → 231.28',            () => assertClose(parseNum('$231.28 USD'), 231.28));
+test('"$73.75 USD"  → 73.75',             () => assertClose(parseNum('$73.75 USD'), 73.75));
+test('"$0.99 USD"   → 0.99',              () => assertClose(parseNum('$0.99 USD'), 0.99));
+test('"$-50.000"   → -50000 (negativo)',  () => assert(parseNum('$-50.000'), -50000));
+test('""           → 0',                  () => assert(parseNum(''), 0));
+
+// Ida y vuelta: lo que la app pinta debe volver a leerse igual, sin deriva.
+console.log('\nparseNum — ida y vuelta con fmtCOP/fmtUSD:');
+const { fmtCOP, fmtUSD } = src;
+for (const v of [3039260, 605254, 3000, 1187348, 999, 0]) {
+  test(`fmtCOP(${v}) → parseNum → ${v}`, () => assert(parseNum(fmtCOP(v)), v));
+}
+for (const v of [231.28, 73.75, 0.99]) {
+  test(`fmtUSD(${v}) → parseNum → ${v}`, () => assertClose(parseNum(fmtUSD(v)), v));
+}
 
 console.log(`\n${'─'.repeat(46)}`);
 console.log(`  ${passed} passed  |  ${failed} failed`);

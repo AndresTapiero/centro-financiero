@@ -162,7 +162,7 @@ function toggleBudgetDetail(detailId){
 
 async function updateCap(el){
   const cat=el.dataset.cat;
-  const nuevoValor=parseNum(el.value);
+  const nuevoValor=Math.round(parseNum(el.value)); // los topes son pesos enteros: evita que "800,5" derive a 8005 en el siguiente blur
   if(!nuevoValor||nuevoValor<=0){ el.value=CAPS[cat].toLocaleString('es-CO'); return; }
   CAPS[cat]=nuevoValor;
   el.value=nuevoValor.toLocaleString('es-CO');

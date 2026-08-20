@@ -130,6 +130,13 @@ let currentUserId=null; // se fija al iniciar sesión — necesario para escribi
 
 async function guardarCuentasSupabase(){
   if(!currentUserId)return false;
+  // Si la carga falló, 'accounts' puede ser SEED_ACCOUNTS (datos de ejemplo) en vez de tus saldos
+  // reales: guardar ahora los escribiría encima de las filas buenas. guardarConVerificacion() ya
+  // respetaba esta guardia, pero addEntry/doTransfer/confirmAdjustment/payPendiente llegan por acá.
+  if(cargaConFallos){
+    registrarErrorDiagnostico('fin_accounts (guardado bloqueado)','La carga de datos falló; no se guarda para no pisar tus saldos reales.');
+    return false;
+  }
   try{
     const filas=Object.keys(ACCOUNTS_META).map(slug=>({
       user_id:currentUserId,
