@@ -60,9 +60,9 @@ class PendienteListRenderer {
     const montoStr = meta.currency === 'USD' ? fmtUSD(p.amount) : fmtCOP(p.amount);
 
     const estado = this.estadoDe(p);
-    const estiloFila = estado === 'vencido' ? 'background:rgba(255,107,107,.1);border-left:3px solid var(--danger)'
-      : estado === 'proximo' ? 'background:rgba(255,179,71,.08);border-left:3px solid var(--warn)'
-      : '';
+    // El estado va en una clase, no en un style inline: el inline pisaba el fondo opaco de
+    // .entry-row-content y dejaba ver la capa de swipe (azul/rojo) detrás de la fila.
+    const claseEstado = estado === 'vencido' ? ' is-vencido' : estado === 'proximo' ? ' is-proximo' : '';
     const prefijoNombre = estado === 'vencido' ? '🔴 VENCIDO — ' : estado === 'proximo' ? '⏰ PRONTO — ' : p.isIncome ? '💰 ' : '';
     const colorPunto = estado === 'vencido' ? 'var(--danger)' : estado === 'proximo' ? 'var(--warn)' : c;
     const colorMonto = p.isIncome ? 'var(--accent)' : estado === 'vencido' ? 'var(--danger)' : estado === 'proximo' ? 'var(--warn)' : 'var(--text)';
@@ -72,7 +72,7 @@ class PendienteListRenderer {
         <span class="swipe-right-text" style="position:absolute;left:16px">${p.isIncome ? '💰 Recibir' : '✓ Pagar'}</span>
         <span class="swipe-left-text" style="position:absolute;right:16px">🗑 Eliminar</span>
       </div>
-      <div class="entry-row-content" style="${estiloFila};cursor:pointer" onclick="editPendiente('${p.id}')">
+      <div class="entry-row-content${claseEstado}" style="cursor:pointer" onclick="editPendiente('${p.id}')">
         <div class="entry-row-top">
           <span class="avatar-square" style="background:${colorPunto};width:44px;height:44px;font-size:18px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center">${esc(p.name.charAt(0).toUpperCase())}</span>
           <div style="flex:1;min-width:0">
