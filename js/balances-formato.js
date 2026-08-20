@@ -415,12 +415,13 @@ function suggestCategory(){
       return;
     }
   }
-  // No hubo match con el texto actual — se asume "Otro" por defecto en vez de dejar la categoría anterior
-  catSelect.value='Otro';
+  // Sin coincidencia: se respeta la categoría que haya, que normalmente es una que elegiste a mano.
+  // Antes se forzaba 'Otro' aquí, así que corregir una letra de la descripción después de elegir
+  // "Salud" la devolvía a "Otro" sin avisar.
   badge.style.display='none';
 }
-document.getElementById('inp-name')?.addEventListener('input',suggestCategory);
-document.getElementById('inp-name')?.addEventListener('keyup',suggestCategory);
+// El enganche vive en el atributo oninput de index.html. Antes había además un listener de 'input'
+// y otro de 'keyup' en este archivo: la función corría tres veces por cada tecla.
 
 function suggestCategoryPend(){
   const text=document.getElementById('pend-name').value.toLowerCase()
