@@ -58,20 +58,23 @@ function suggestCategoryExpress() {
     .toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
   if (text.length < 3) { document.getElementById('express-suggest').style.display = 'none'; return; }
   const cat = document.getElementById('express-category');
-  for (const rule of KEYWORD_MAP) {
-    if (rule.keywords.some(k => text.includes(k))) {
-      const catFinal = rule.special === 'comida'
-        ? ([0, 6].includes(new Date().getDay())
-          ? 'Alimentación · Comidas afuera · Fin de semana'
-          : 'Alimentación · Comidas afuera · Entre semana')
-        : rule.cat;
-      const opts = [...cat.options].map(o => o.value);
-      if (opts.includes(catFinal)) {
-        cat.value = catFinal;
-        document.getElementById('express-suggest').style.display = 'block';
-      }
-      return;
+  const rule = reglaSugerida(text); // misma lógica de coincidencia que el modal completo
+  if (rule) {
+    const catFinal = rule.special === 'comida'
+      ? ([0, 6].includes(new Date().getDay())
+        ? 'Alimentación · Comidas afuera · Fin de semana'
+        : 'Alimentación · Comidas afuera · Entre semana')
+      : rule.cat;
+    const opts = [...cat.options].map(o => o.value);
+    if (opts.includes(catFinal)) {
+      cat.value = catFinal;
+      // El <select> está oculto: lo que se ve es el botón con el punto de color y la
+      // etiqueta. Sin esto el valor cambiaba pero el botón seguía mostrando la categoría
+      // anterior — al abrir el picker aparecía la correcta marcada, pero la pantalla no.
+      actualizarBtnCat('express-category');
+      document.getElementById('express-suggest').style.display = 'block';
     }
+    return;
   }
   document.getElementById('express-suggest').style.display = 'none';
 }
@@ -87,6 +90,10 @@ function expandirAModalCompleto() {
   document.getElementById('inp-name').value    = name;
   document.getElementById('inp-account').value = acc;
   document.getElementById('inp-cat').value     = cat;
+  // abrirModalNuevoMovimiento() ya pintó el botón de categoría, pero con el valor anterior:
+  // la categoría que traemos del express se asigna aquí, después. Sin este refresco el modal
+  // se abría mostrando una categoría y guardaba otra.
+  actualizarBtnCat('inp-cat');
   setTipoMovimiento(tipo);
   onAccountChange(); // configura el tipo de input (number vs text) según la cuenta
   document.getElementById('inp-amount').value  = amount; // después de configurar el modo
