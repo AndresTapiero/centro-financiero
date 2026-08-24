@@ -399,6 +399,9 @@ function col(cat, name=''){
 }
 function scat(cat){return cat.includes('·')?cat.split('·').slice(1).join('·').trim():cat}
 
+// Las palabras clave van en minúscula y SIN TILDES: el texto que escribes se normaliza
+// (NFD + quitar diacríticos) antes de compararlo, así que una palabra con tilde aquí nunca
+// llega a coincidir. 'tónico' estuvo así, sin poder activarse nunca.
 const KEYWORD_MAP=[
   {keywords:['gas','luz','agua','acueducto','vanti','energia','electricidad','servicio publico'],cat:'Servicios'},
   {keywords:['mercado','super','supermercado','exito','carulla','olimpica','ara','d1','jumbo'],cat:'Alimentación · Mercado'},
@@ -415,9 +418,28 @@ const KEYWORD_MAP=[
   {keywords:['ciclismo','bicicleta','bici'],cat:'Deportes · Ciclismo'},
   {keywords:['cine','pelicula','concierto','fiesta','entretenimiento','salida'],cat:'Entretenimiento'},
   {keywords:['corte','peluqueria','barberia','manicure'],cat:'Cuidado personal'},
-  {keywords:['skin','serum','protector solar','hidratante','facial','tónico','retinol','colageno','limpiador','fotoprotector','contorno de ojos'],cat:'Cuidado personal · Skin Care'},
+  {keywords:['skin','serum','protector solar','hidratante','facial','tonico','retinol','colageno','limpiador','fotoprotector','contorno de ojos'],cat:'Cuidado personal · Skin Care'},
   {keywords:['pago tarjeta','pago tc','pago rappi card','pago davivienda'],cat:'Pago Deuda'},
 ];
+
+/**
+ * Devuelve la regla de KEYWORD_MAP cuya palabra clave COINCIDENTE MÁS LARGA aparece en el texto.
+ *
+ * Antes ganaba la primera regla del arreglo, y eso dejaba palabras enteras inalcanzables:
+ * "gasolina" contiene "gas" (Servicios) y "combustible" contiene "bus" (Transporte), así que
+ * escribir "Gasolina moto" se categorizaba como Servicios. Con la más larga gana siempre la
+ * más específica, sin depender del orden en que estén escritas las reglas.
+ */
+function reglaSugerida(text){
+  let mejor=null;
+  for(const rule of KEYWORD_MAP){
+    for(const k of rule.keywords){
+      if(!text.includes(k))continue;
+      if(!mejor||k.length>mejor.palabra.length)mejor={rule,palabra:k};
+    }
+  }
+  return mejor?mejor.rule:null;
+}
 
 function suggestCategory(){
   const raw=document.getElementById('inp-name').value;
@@ -434,20 +456,19 @@ function suggestCategory(){
     return;
   }
 
-  for(const rule of KEYWORD_MAP){
-    if(rule.keywords.some(k=>text.includes(k))){
-      let catFinal=rule.cat;
-      if(rule.special==='comida'){
-        const dow=new Date(document.getElementById('inp-date').value||todayStr()).getUTCDay();
-        catFinal=(dow===0||dow===6)?'Alimentación · Comidas afuera · Fin de semana':'Alimentación · Comidas afuera · Entre semana';
-      }
-      catSelect.value=catFinal;
-      catSelect.dispatchEvent(new Event('change'));
-      badge.style.display='block';
-      badge.textContent=`✨ Sugerido: ${scat(catFinal)} — cámbialo si no aplica`;
-      if(typeof actualizarBtnCat==='function') actualizarBtnCat('inp-cat');
-      return;
+  const rule=reglaSugerida(text);
+  if(rule){
+    let catFinal=rule.cat;
+    if(rule.special==='comida'){
+      const dow=new Date(document.getElementById('inp-date').value||todayStr()).getUTCDay();
+      catFinal=(dow===0||dow===6)?'Alimentación · Comidas afuera · Fin de semana':'Alimentación · Comidas afuera · Entre semana';
     }
+    catSelect.value=catFinal;
+    catSelect.dispatchEvent(new Event('change'));
+    badge.style.display='block';
+    badge.textContent=`✨ Sugerido: ${scat(catFinal)} — cámbialo si no aplica`;
+    if(typeof actualizarBtnCat==='function') actualizarBtnCat('inp-cat');
+    return;
   }
   // Sin coincidencia: se respeta la categoría que haya, que normalmente es una que elegiste a mano.
   // Antes se forzaba 'Otro' aquí, así que corregir una letra de la descripción después de elegir
@@ -463,17 +484,16 @@ function suggestCategoryPend(){
   const badgeEl=document.getElementById('pend-suggest');
   const catSelect=document.getElementById('pend-cat');
   if(text.length<3){ if(badgeEl) badgeEl.style.display='none'; return; }
-  for(const rule of KEYWORD_MAP){
-    if(rule.keywords.some(k=>text.includes(k))){
-      const opts=[...catSelect.options].map(o=>o.value);
-      const target=rule.special==='comida'?'Alimentación · Comidas afuera · Entre semana':rule.cat;
-      if(opts.includes(target)){
-        catSelect.value=target;
-        if(typeof actualizarBtnCat==='function') actualizarBtnCat('pend-cat');
-        if(badgeEl) badgeEl.style.display='block';
-      }
-      return;
+  const rule=reglaSugerida(text);
+  if(rule){
+    const opts=[...catSelect.options].map(o=>o.value);
+    const target=rule.special==='comida'?'Alimentación · Comidas afuera · Entre semana':rule.cat;
+    if(opts.includes(target)){
+      catSelect.value=target;
+      if(typeof actualizarBtnCat==='function') actualizarBtnCat('pend-cat');
+      if(badgeEl) badgeEl.style.display='block';
     }
+    return;
   }
   if(badgeEl) badgeEl.style.display='none';
 }
