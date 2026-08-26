@@ -158,6 +158,59 @@ test('un gasto pequeño de un solo mes tampoco entra (no es recurrente)', () => 
   set('entries', movs);
 });
 
+// ─── Sinónimos: el mismo gasto con nombres distintos ─────────────────────────
+console.log('\nSinónimos (lo reportado: "Gasolina" y "Fuel" salían como dos fugas distintas):');
+
+const claveHormiga = src.claveHormiga;
+
+test('"Fuel" y "Gasolina" dan la misma clave', () =>
+  assert(claveHormiga('Fuel'), claveHormiga('Gasolina')));
+test('funciona con palabras extra: "Fuel moto" = "Gasolina moto"', () =>
+  assert(claveHormiga('Fuel moto'), claveHormiga('Gasolina moto')));
+test('no le afectan mayúsculas ni tildes', () =>
+  assert(claveHormiga('GASOLÍNA'), claveHormiga('gasolina')));
+test('"Lunch" y "Almuerzo" también se agrupan', () =>
+  assert(claveHormiga('Lunch'), claveHormiga('Almuerzo')));
+test('gastos sin relación NO se agrupan', () =>
+  ok(claveHormiga('Spotify') !== claveHormiga('Google One')));
+
+// Reproduce el caso reportado: 3 compras como "Gasolina" y 2 como "Fuel"
+const GASOLINA_Y_FUEL = [
+  {id:'g1',date:'2026-06-08',name:'Gasolina',amount:47346,cat:'Vehículo · Gasolina',acc:'debito',txType:'gasto'},
+  {id:'g2',date:'2026-07-08',name:'Gasolina',amount:47346,cat:'Vehículo · Gasolina',acc:'debito',txType:'gasto'},
+  {id:'g3',date:'2026-07-18',name:'Gasolina',amount:47346,cat:'Vehículo · Gasolina',acc:'debito',txType:'gasto'},
+  {id:'f1',date:'2026-06-20',name:'Fuel',    amount:41988,cat:'Vehículo · Gasolina',acc:'debito',txType:'gasto'},
+  {id:'f2',date:'2026-08-20',name:'Fuel',    amount:41988,cat:'Vehículo · Gasolina',acc:'debito',txType:'gasto'},
+];
+const soloGasolina = () => {
+  set('entries', GASOLINA_Y_FUEL);
+  renderGastoHormiga();
+  return nodos['gasto-hormiga-list']._html;
+};
+
+test('las dos filas se convierten en una sola', () => {
+  const filas = (soloGasolina().match(/al año/g) || []).length;
+  assert(filas, 1, 'debería quedar una sola fila');
+  set('entries', movs);
+});
+
+test('esa fila suma las 5 compras de los dos nombres', () => {
+  ok(soloGasolina().includes('5 compras'), 'las 5 compras deben quedar juntas');
+  set('entries', movs);
+});
+
+test('cuenta los 3 meses distintos, sin duplicar', () => {
+  ok(soloGasolina().includes('3 meses'));
+  set('entries', movs);
+});
+
+test('se rotula con el nombre que más usaste, no con el último', () => {
+  // "Fuel" es el más reciente, pero "Gasolina" aparece 3 veces contra 2
+  const html = soloGasolina();
+  ok(html.includes('>Gasolina<'), 'debería rotularse "Gasolina"');
+  set('entries', movs);
+});
+
 console.log(`\n${'─'.repeat(46)}`);
 console.log(`  ${passed} passed  |  ${failed} failed`);
 if(failed > 0) process.exit(1);
