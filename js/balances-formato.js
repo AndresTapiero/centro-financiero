@@ -101,7 +101,7 @@ async function confirmAdjustment(){
   pendingAdjustment=null;
   fillAccountInputs();
   populateMonthSelector();
-  currentMonth=todayStr().slice(0,7);
+  currentMonth=cicloActual();
   document.getElementById('month-select').value=currentMonth;
   render();
   try{
@@ -124,7 +124,7 @@ function cancelAdjustment(){
  *  - ARQ/Ontop se convierten con la TRM de HOY, no la del mes reconstruido (no se guarda TRM histórica).
  */
 function calcularSaldoHistorico(mesSeleccionado){
-  const hoy=todayStr().slice(0,7);
+  const hoy=cicloActual();
   if(mesSeleccionado>=hoy||cargaConFallos){
     // Si el mes es el actual (o futuro), O si la carga de datos falló y "entries" podría ser
     // el seed de ejemplo (no tus movimientos reales), mostramos el saldo de hoy sin reconstruir —
@@ -135,7 +135,7 @@ function calcularSaldoHistorico(mesSeleccionado){
   const saldos={};
   cuentas.forEach(acc=>{ saldos[acc]=accounts[acc]; });
   entries.forEach(e=>{
-    if(e.date.slice(0,7)<=mesSeleccionado)return; // solo deshacemos lo que pasó DESPUÉS del mes seleccionado
+    if(cicloDe(e.date)<=mesSeleccionado)return; // solo deshacemos lo que pasó DESPUÉS del mes seleccionado
     if(!cuentas.includes(e.acc))return;
     const sign=e.txType==='gasto'?1:-1;
     saldos[e.acc]+=sign*e.amount; // reversa exacta de la operación que hizo addEntry/deleteEntry en su momento
@@ -153,7 +153,7 @@ function calcularSaldoHistorico(mesSeleccionado){
  * personalizadas), y ARQ/Ontop se convierten con la TRM de HOY, no la histórica.
  */
 function calcularPatrimonioMes(mesISO){
-  const hoy=todayStr().slice(0,7);
+  const hoy=cicloActual();
   if(mesISO>=hoy||cargaConFallos)return null; // mes actual/futuro, o datos no confiables: no reconstruir
   const liquidAccs=['nequi','debito','nu','lulo'];
   const usdAccs=['arq','ontop'];
@@ -161,7 +161,7 @@ function calcularPatrimonioMes(mesISO){
   const saldos={};
   [...liquidAccs,...usdAccs,...debtAccs].forEach(a=>{ saldos[a]=accounts[a]||0; });
   entries.forEach(e=>{
-    if(e.date.slice(0,7)<=mesISO)return; // solo deshacemos lo que pasó DESPUÉS del mes
+    if(cicloDe(e.date)<=mesISO)return; // solo deshacemos lo que pasó DESPUÉS del mes
     if(!(e.acc in saldos))return;
     if(debtAccs.includes(e.acc)){
       const sign=e.txType==='gasto'?-1:1; // gasto sube deuda, ingreso la baja — reversa es lo opuesto
@@ -232,7 +232,7 @@ function updateNetWorth(){
   nwEl.style.color=net>=0?'var(--safe)':'var(--danger)';
 
   // Desglose del mes: ingresos - gastos, sobre las cuentas de gasto diario
-  const monthEntries=entries.filter(e=>e.date.slice(0,7)===currentMonth);
+  const monthEntries=entries.filter(e=>cicloDe(e.date)===currentMonth);
   const ingresosMes=monthEntries.filter(esIngresoReal).reduce((s,e)=>s+entryCOP(e),0);
   const gastosMes=monthEntries.filter(esGastoReal).reduce((s,e)=>s+entryCOP(e),0);
   const saldoFinal=calcularSaldoDisponible();
@@ -240,7 +240,7 @@ function updateNetWorth(){
   const breakdownEl=document.getElementById('ats-breakdown');
   const simpleEl=document.getElementById('ats-simple');
 
-  const esMesActual=currentMonth===todayStr().slice(0,7);
+  const esMesActual=currentMonth===cicloActual();
   const saldoHist=calcularSaldoHistorico(currentMonth);
 
   // Si es mes actual: mostrar desglose directo. Si es mes pasado: mostrar saldo reconstruido simple.
@@ -310,18 +310,19 @@ function renderEstadoMes(){
   if(!body)return;
   if(!currentMonth){ body.innerHTML='<div style="color:var(--text3);font-size:12px">Cargando…</div>'; if(semaforoEl)semaforoEl.textContent=''; return; }
 
-  const monthEntries=entries.filter(e=>e.date.slice(0,7)===currentMonth);
+  const monthEntries=entries.filter(e=>cicloDe(e.date)===currentMonth);
   const ingresos=monthEntries.filter(esIngresoReal).reduce((s,e)=>s+entryCOP(e),0);
   const gastos=monthEntries.filter(esGastoReal).reduce((s,e)=>s+entryCOP(e),0);
   const balanceNeto=ingresos-gastos;
-  const pctComprometido=ingresos>0?Math.round(gastos/ingresos*100):0;
+  // Sin ingresos en el ciclo no se puede calcular la proporción: mostrar 0% diría "no has
+  // comprometido nada" justo cuando ya llevas gastos, que es lo contrario de la verdad.
+  const pctComprometido=ingresos>0?Math.round(gastos/ingresos*100):null;
 
-  // Ritmo de gasto: gasto/día actual vs gasto/día "ideal" según presupuesto variable
-  const [y,m]=currentMonth.split('-').map(Number);
-  const diasEnMes=new Date(y,m,0).getDate();
-  const hoy=new Date();
-  const esMesActual=currentMonth===todayStr().slice(0,7);
-  const diaActual=esMesActual?hoy.getDate():diasEnMes;
+  // Ritmo de gasto: gasto/día actual vs gasto/día "ideal" según presupuesto variable.
+  // Los días salen del ciclo de pago, no del mes de calendario: si el ciclo va del 26 al 25,
+  // el día 3 de septiembre es el día 9 del ciclo, no el día 3.
+  const diasEnMes=diasDelCiclo(currentMonth);
+  const diaActual=diasCorridosDelCiclo(currentMonth);
   // Misma lista de categorías controlables que usa "variable vs tope" en Métricas.
   const controlables=new Set(categoriasControlables());
   const gastoVariable=monthEntries.filter(e=>controlables.has(e.cat)&&esGastoReal(e)).reduce((s,e)=>s+entryCOP(e),0);
@@ -346,9 +347,9 @@ function renderEstadoMes(){
       </div>
     </div>
     <div class="networth-row"><span class="networth-label">Balance neto del mes</span><span class="networth-value" style="color:${balanceNeto>=0?'var(--safe)':'var(--danger)'}">${balanceNeto>=0?'+':''}${fmtCOP(balanceNeto)}</span></div>
-    <div class="networth-row"><span class="networth-label">% del ingreso ya comprometido</span><span class="networth-value">${pctComprometido}%</span></div>
+    <div class="networth-row"><span class="networth-label">% del ingreso ya comprometido</span><span class="networth-value"${pctComprometido===null?' style="color:var(--warn)"':''}>${pctComprometido===null?'— aún sin ingresos en este ciclo':pctComprometido+'%'}</span></div>
     <div class="networth-row"><span class="networth-label">Ritmo de gasto variable</span><span class="networth-value" style="color:${ritmoPct>130?'var(--danger)':ritmoPct>105?'var(--warn)':'var(--safe)'}">${ritmoPct}% del ritmo esperado</span></div>
-    <div style="font-size:10px;color:var(--text3);margin-top:6px">Día ${diaActual} de ${diasEnMes} del mes · ${fmtCOP(gastoVariable)} gastado en categorías variables</div>
+    <div style="font-size:10px;color:var(--text3);margin-top:6px">Día ${diaActual} de ${diasEnMes} del ciclo (${etiquetaCiclo(currentMonth).split(' · ')[1]}) · ${fmtCOP(gastoVariable)} gastado en categorías variables</div>
   `;
 }
 

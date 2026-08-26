@@ -333,7 +333,7 @@ function calcularRitmoMeta(goal){
   if(relevantes.length===0)return null;
   const porMes={};
   relevantes.forEach(e=>{
-    const m=e.date.slice(0,7);
+    const m=cicloDe(e.date);
     const monto=entryCOP(e);
     const delta=goal.type==='categoria'
       ?(e.txType==='gasto'?monto:-monto)

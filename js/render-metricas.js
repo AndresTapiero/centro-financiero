@@ -5,7 +5,7 @@
  * para que las tarjetas mostraran $0. Ahora se calculan aquí, a partir de los movimientos.
  */
 function calcularResumenMes(mes){
-  const delMes=entries.filter(e=>e.date.slice(0,7)===mes);
+  const delMes=entries.filter(e=>cicloDe(e.date)===mes);
   const gastos=delMes.filter(esGastoReal);
   const bycat={};
   gastos.forEach(e=>{ bycat[e.cat]=(bycat[e.cat]||0)+entryCOP(e); });
@@ -20,7 +20,7 @@ function calcularResumenMes(mes){
 }
 
 function render(){
-  const monthEntries=entries.filter(e=>e.date.slice(0,7)===currentMonth);
+  const monthEntries=entries.filter(e=>cicloDe(e.date)===currentMonth);
   const {gastos,bycat}=calcularResumenMes(currentMonth); // misma fuente que la pestaña Métricas
 
   let monthEntriesFiltradas=filterAccount==='todas'?monthEntries:monthEntries.filter(e=>e.acc===filterAccount);
@@ -246,7 +246,7 @@ function renderRegla503020(){
   }
 
   function calcularVentana(mesesVentana){
-    const ventEntries=entries.filter(e=>mesesVentana.includes(e.date.slice(0,7)));
+    const ventEntries=entries.filter(e=>mesesVentana.includes(cicloDe(e.date)));
     const ingresos=ventEntries.filter(esIngresoReal).reduce((s,e)=>s+entryCOP(e),0);
     const basicasEntries=ventEntries.filter(e=>esGastoReal(e)&&NECESIDADES_BASICAS.includes(e.cat));
     const basicas=basicasEntries.reduce((s,e)=>s+entryCOP(e),0);
@@ -354,7 +354,7 @@ function renderGastoTarjetasCategoria(){
     labelEl.textContent='· '+monthNames[parseInt(mo)-1]+' '+y;
   }
 
-  const monthEntries=entries.filter(e=>e.date.slice(0,7)===currentMonth);
+  const monthEntries=entries.filter(e=>cicloDe(e.date)===currentMonth);
   const cargos=monthEntries.filter(e=>e.txType==='gasto'&&['davtc','rappitc'].includes(e.acc)&&e.cat!=='Transferencia'&&e.cat!=='[Ajuste de saldo]'&&e.cat!=='Pago Deuda');
 
   if(cargos.length===0){
@@ -388,7 +388,7 @@ function renderCreditoVsLiquidoPorCategoria(){
   const el=document.getElementById('credit-vs-liquido-list');
   if(!el)return;
 
-  const monthEntries=entries.filter(e=>e.date.slice(0,7)===currentMonth);
+  const monthEntries=entries.filter(e=>cicloDe(e.date)===currentMonth);
   const gastos=monthEntries.filter(esGastoReal);
 
   if(gastos.length===0){
@@ -434,12 +434,17 @@ function renderCreditoVsLiquidoPorCategoria(){
   }).join('');
 }
 
-/** Últimos n meses en formato YYYY-MM, terminando en el mes actual (calendario, no depende de si hay datos) */
+/**
+ * Los últimos n ciclos de pago, terminando en el ciclo en curso.
+ *
+ * Iba anclada al mes de CALENDARIO, así que el 26 de agosto (que ya es el ciclo de septiembre)
+ * la serie terminaba en agosto y el ciclo en curso no salía en ninguna gráfica.
+ */
 function ultimosMeses(n){
+  const [y,m]=cicloActual().split('-').map(Number);
   const meses=[];
-  const hoy=new Date();
   for(let i=n-1;i>=0;i--){
-    const d=new Date(hoy.getFullYear(),hoy.getMonth()-i,1);
+    const d=new Date(y,m-1-i,1);
     meses.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);
   }
   return meses;
@@ -452,14 +457,14 @@ function renderPatrimonioHistorico(){
   if(!chart||!legend||!savingsList)return;
 
   const monthNames=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-  const hoy=todayStr().slice(0,7);
+  const hoy=cicloActual();
   const liquidCOPActual=calcularLiquidezTotal();
   const debtCOPActual=calcularDeudaTotal();
 
   // Solo desde tu primer movimiento. Reconstruir un mes anterior a que empezaras a registrar
   // da siempre el mismo número (no hay nada que deshacer), y la gráfica salía con media
   // docena de barras idénticas y planas antes de que empezara el historial de verdad.
-  const primerMes=entries.length?entries.reduce((min,e)=>e.date<min?e.date:min,entries[0].date).slice(0,7):hoy;
+  const primerMes=entries.length?cicloDe(entries.reduce((min,e)=>e.date<min?e.date:min,entries[0].date)):hoy;
 
   const datos=ultimosMeses(12).filter(m=>m>=primerMes).map(m=>{
     if(m===hoy)return {mes:m,neto:liquidCOPActual-debtCOPActual};
@@ -491,7 +496,7 @@ function renderPatrimonioHistorico(){
   // Tasa de ahorro: (ingresos − gastos) / ingresos, mismos filtros que usa el desglose del mes
   savingsList.innerHTML=datos.slice(-6).map(d=>{
     const [y,mo]=d.mes.split('-');
-    const monthEntries=entries.filter(e=>e.date.slice(0,7)===d.mes);
+    const monthEntries=entries.filter(e=>cicloDe(e.date)===d.mes);
     const ingresos=monthEntries.filter(esIngresoReal).reduce((s,e)=>s+entryCOP(e),0);
     const gastos=monthEntries.filter(esGastoReal).reduce((s,e)=>s+entryCOP(e),0);
     const tasa=ingresos>0?Math.round((ingresos-gastos)/ingresos*100):null;
@@ -573,7 +578,7 @@ function renderGastoHormiga(){
     if(!clave)return;
     if(!grupos[clave])grupos[clave]={meses:new Set(),total:0,compras:0,vecesPorNombre:{},vecesPorCat:{},ultimaFecha:e.date};
     const g=grupos[clave];
-    g.meses.add(e.date.slice(0,7));
+    g.meses.add(cicloDe(e.date)); // ciclo de pago, no mes de calendario
     g.total+=entryCOP(e);
     g.compras++;
     // Cuando varios nombres se agrupan (ej. "Gasolina" y "Fuel"), la fila se rotula con el
@@ -637,7 +642,7 @@ function renderDebtProjection(){
       :'Registra al menos un pago de deuda para calcular la proyección.';
     return;
   }
-  const mesesConPago=new Set(pagosDeuda.map(e=>e.date.slice(0,7))).size||1;
+  const mesesConPago=new Set(pagosDeuda.map(e=>cicloDe(e.date))).size||1;
   const totalPagado=pagosDeuda.reduce((s,e)=>s+entryCOP(e),0);
   const promedioMensual=totalPagado/mesesConPago;
   const mesesRestantes=Math.ceil(totalDeuda/promedioMensual);
@@ -654,7 +659,7 @@ function renderMonthComparison(){
   const byMonth={};
   // Ya no hay meses "archivados" — entries contiene todo el historial completo
   entries.filter(esGastoReal).forEach(e=>{
-    const m=e.date.slice(0,7);
+    const m=cicloDe(e.date);
     byMonth[m]=(byMonth[m]||0)+entryCOP(e);
   });
   const meses=Object.keys(byMonth).sort().slice(-6);
@@ -688,7 +693,7 @@ function renderCategoryTrend(){
   if(!el)return;
 
   const gastosReales=entries.filter(esGastoReal);
-  const todosLosMeses=[...new Set(gastosReales.map(e=>e.date.slice(0,7)))].sort();
+  const todosLosMeses=[...new Set(gastosReales.map(e=>cicloDe(e.date)))].sort();
   const meses=todosLosMeses.slice(-6);
   if(meses.length===0){
     el.innerHTML='<div style="color:var(--text3);font-size:12px">Sin datos suficientes aún</div>';
@@ -698,11 +703,11 @@ function renderCategoryTrend(){
   // Total gastado por categoría dentro de esos 6 meses, para elegir cuáles mostrar
   const totalPorCategoria={};
   const porCategoriaYMes={};
-  gastosReales.filter(e=>meses.includes(e.date.slice(0,7))).forEach(e=>{
+  gastosReales.filter(e=>meses.includes(cicloDe(e.date))).forEach(e=>{
     const monto=entryCOP(e);
     totalPorCategoria[e.cat]=(totalPorCategoria[e.cat]||0)+monto;
     if(!porCategoriaYMes[e.cat])porCategoriaYMes[e.cat]={};
-    const m=e.date.slice(0,7);
+    const m=cicloDe(e.date);
     porCategoriaYMes[e.cat][m]=(porCategoriaYMes[e.cat][m]||0)+monto;
   });
 
@@ -734,7 +739,7 @@ function renderEmergencyGrowth(){
   const monthNames=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
   const nuByMonth={};
   entries.filter(e=>e.acc==='nu').forEach(e=>{
-    const m=e.date.slice(0,7);
+    const m=cicloDe(e.date);
     const signo=e.txType==='ingreso'?1:-1;
     nuByMonth[m]=(nuByMonth[m]||0)+(signo*e.amount);
   });
