@@ -375,34 +375,61 @@ async function eliminarDesdeModalEdicion(){
   await deleteEntry(id);
 }
 
+/**
+ * La otra pata de una transferencia: mismo nombre y fecha, tipo opuesto (una es gasto en el
+ * origen, la otra ingreso en el destino). Las dos se insertan juntas en doTransfer(), así que
+ * comparten nombre exacto a propósito — es la única forma de encontrarlas de vuelta, porque no
+ * hay una columna que las vincule (el esquema no está versionado, ver sql/README.md).
+ * Transferencias de antes de este cambio solo tienen una pata y no encuentran pareja aquí.
+ */
+function parejaDeTransferencia(e){
+  if(e.cat!=='Transferencia')return null;
+  return entries.find(o=>o.id!==e.id&&o.cat==='Transferencia'&&o.date===e.date&&o.name===e.name&&o.txType!==e.txType)||null;
+}
+
+function _revertirSaldoDeEntry(e){
+  const meta=ACCOUNTS_META[e.acc];
+  const sign=e.txType==='gasto'?1:-1;
+  if(meta.type==='credito'){ accounts[e.acc]=redondear3(accounts[e.acc]-(sign*e.amount)); }
+  else{ accounts[e.acc]=redondear3(accounts[e.acc]+(sign*e.amount)); }
+}
+
 async function deleteEntry(id){
   const e=entries.find(x=>x.id===id);
   if(!e)return false;
   const meta=ACCOUNTS_META[e.acc];
   const montoStr=(e.currency||meta.currency)==='USD'?fmtUSD(e.amount):fmtCOP(e.amount);
-  const confirmado=await customConfirm(`¿Eliminar este movimiento?\n\n"${e.name}"\n${montoStr} — ${meta.label}\n${fmtDate(e.date)}\n\nEsto también revertirá el saldo de la cuenta afectada.`);
+
+  // Si es una transferencia con las dos patas registradas, hay que borrar y revertir ambas:
+  // borrar solo el origen dejaría el destino con un saldo que ya no tiene ningún movimiento
+  // detrás — plata duplicada de forma permanente.
+  const pareja=parejaDeTransferencia(e);
+  const metaPareja=pareja?ACCOUNTS_META[pareja.acc]:null;
+  const mensaje=pareja
+    ? `¿Eliminar esta transferencia?\n\n"${e.name}"\n${fmtDate(e.date)}\n\nSe revertirá el saldo de ${meta.label} Y de ${metaPareja.label} — las dos cuentas que participaron.`
+    : `¿Eliminar este movimiento?\n\n"${e.name}"\n${montoStr} — ${meta.label}\n${fmtDate(e.date)}\n\nEsto también revertirá el saldo de la cuenta afectada.`;
+  const confirmado=await customConfirm(mensaje);
   if(!confirmado)return false;
 
-  {
-    const sign=e.txType==='gasto'?1:-1;
-    if(meta.type==='credito'){ accounts[e.acc]=redondear3(accounts[e.acc]-(sign*e.amount)); }
-    else{ accounts[e.acc]=redondear3(accounts[e.acc]+(sign*e.amount)); }
+  _revertirSaldoDeEntry(e);
+  if(pareja)_revertirSaldoDeEntry(pareja);
 
-    const metaGoal=goals.find(g=>g.type==='categoria'&&g.cat===e.cat);
-    if(metaGoal){
-      const montoCOP=e.currency==='COP'?e.amount:(meta.currency==='USD'?e.amount*accounts.trm:e.amount);
-      metaGoal.accumulated=(metaGoal.accumulated||0)-(e.txType==='gasto'?montoCOP:-montoCOP);
-      await actualizarAcumuladoMeta(metaGoal);
-    }
+  const metaGoal=goals.find(g=>g.type==='categoria'&&g.cat===e.cat);
+  if(metaGoal){
+    const montoCOP=e.currency==='COP'?e.amount:(meta.currency==='USD'?e.amount*accounts.trm:e.amount);
+    metaGoal.accumulated=(metaGoal.accumulated||0)-(e.txType==='gasto'?montoCOP:-montoCOP);
+    await actualizarAcumuladoMeta(metaGoal);
   }
-  entries=entries.filter(x=>x.id!==id);
+
+  entries=entries.filter(x=>x.id!==id&&(!pareja||x.id!==pareja.id));
   fillAccountInputs();
   render();
   try{
-    const {error}=await sb.from('fin_movimientos').delete().eq('id',id);
+    const ids=pareja?[id,pareja.id]:[id];
+    const {error}=await sb.from('fin_movimientos').delete().in('id',ids);
     if(error)throw error;
     await saveAccountsData();
-  }catch(e){ registrarErrorDiagnostico('fin_movimientos (borrar)',e); }
+  }catch(err){ registrarErrorDiagnostico('fin_movimientos (borrar)',err); }
   return true;
 }
 

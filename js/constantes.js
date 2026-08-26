@@ -146,7 +146,9 @@ function esGastoReal(e){
 
 /** Ídem para ingresos: un ajuste de saldo hacia arriba no es plata que hayas recibido. */
 function esIngresoReal(e){
-  return e.txType==='ingreso' && e.cat!=='[Ajuste de saldo]';
+  // Una transferencia recibida (pata destino) es txType='ingreso' pero no es plata nueva —
+  // ya venía de otra cuenta tuya. Sin esta exclusión, cada transferencia inflaría "Ingresos".
+  return e.txType==='ingreso' && e.cat!=='[Ajuste de saldo]' && e.cat!=='Transferencia';
 }
 
 // ─── Ciclo de pago ──────────────────────────────────────────────────────────

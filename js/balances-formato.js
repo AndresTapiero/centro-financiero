@@ -236,17 +236,27 @@ function calcularLiquidezTotal(){
  */
 function apartadoAAhorro(ciclo){
   const ahorro=cuentasDeAhorro();
+  const delCiclo=entries.filter(e=>cicloDe(e.date)===ciclo);
+
+  // Desde que doTransfer() graba las dos patas de cada transferencia (origen y destino), cada
+  // pata se puede juzgar por su PROPIA cuenta: la de origen resta si sale de ahorro, la de
+  // destino suma si entra a ahorro. Si las dos son de ahorro (mover plata entre fondos) o
+  // las dos son de gasto diario, se cancelan solas — no hace falta saber qué es "la otra punta".
   const slugPorEtiqueta={};
   Object.keys(ACCOUNTS_META).forEach(k=>{ slugPorEtiqueta[ACCOUNTS_META[k].label]=k; });
 
-  return entries.filter(e=>cicloDe(e.date)===ciclo).reduce((suma,e)=>{
+  return delCiclo.reduce((suma,e)=>{
     if(e.cat==='Transferencia'){
+      if(ahorro.has(e.acc))return suma+(e.txType==='ingreso'?entryCOP(e):-entryCOP(e));
+      // Es la pata de origen (no-ahorro). Si tiene su pata de destino registrada (transferencias
+      // nuevas), esa otra entrada ya se contó por su cuenta — no hay que hacer nada más aquí.
+      if(e.txType!=='gasto')return suma;
+      const yaTienePareja=delCiclo.some(o=>o.cat==='Transferencia'&&o.txType==='ingreso'&&o.date===e.date&&o.name===e.name);
+      if(yaTienePareja)return suma;
+      // Transferencia vieja de una sola pata: se deduce el destino por el nombre, como antes.
       const destino=slugPorEtiqueta[(e.name.split('→')[1]||'').trim()];
-      if(!destino)return suma; // destino no identificable: mejor no contarlo que contarlo mal
-      const sale=ahorro.has(e.acc), entra=ahorro.has(destino);
-      if(entra&&!sale)return suma+entryCOP(e);
-      if(sale&&!entra)return suma-entryCOP(e); // sacaste ahorro para gastarlo
-      return suma;                             // entre dos cuentas del mismo tipo no cambia nada
+      if(destino&&ahorro.has(destino))return suma+entryCOP(e);
+      return suma;
     }
     if(esIngresoReal(e)&&ahorro.has(e.acc))return suma+entryCOP(e); // ingreso que cayó directo al ahorro
     return suma;
