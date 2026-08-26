@@ -256,10 +256,15 @@ async function doTransfer(){
   accounts[destino]=redondear3(accounts[destino]+recibido);
   accounts.trm=trm;
 
-  const filasNuevas=[{
-    fecha:todayStr(),nombre:`Transferencia ${metaO.label} → ${metaD.label}`,
-    monto,categoria:'Transferencia',acc:origen,txType:'gasto',
-  }];
+  // Las dos patas comparten el mismo nombre: es lo que permite encontrarlas como pareja después
+  // (por ejemplo al borrar una, para revertir también la otra). El monto de cada pata es el que
+  // realmente se movió en SU cuenta — origen pierde `monto`, destino recibe `recibido`, que
+  // puede ser distinto por la TRM o una comisión.
+  const nombreTransferencia=`Transferencia ${metaO.label} → ${metaD.label}`;
+  const filasNuevas=[
+    {fecha:todayStr(),nombre:nombreTransferencia,monto,categoria:'Transferencia',acc:origen,txType:'gasto'},
+    {fecha:todayStr(),nombre:nombreTransferencia,monto:recibido,categoria:'Transferencia',acc:destino,txType:'ingreso'},
+  ];
 
   // Comisión detectada: si lo recibido es menor a lo teórico, se registra como movimiento visible (sin volver a tocar saldos, solo para trazabilidad)
   const comision=recibidoTeorico-recibido;
@@ -300,10 +305,11 @@ async function doTransfer(){
       tx_type:f.txType,
     }))).select();
     if(error)throw error;
-    entries.unshift({id:filasGuardadas[0].id,date:filasNuevas[0].fecha,name:filasNuevas[0].nombre,amount:filasNuevas[0].monto,cat:filasNuevas[0].categoria,acc:filasNuevas[0].acc,txType:filasNuevas[0].txType});
-    if(huboComision){
-      entries.unshift({id:filasGuardadas[1].id,date:filasNuevas[1].fecha,name:filasNuevas[1].nombre,amount:filasNuevas[1].monto,cat:filasNuevas[1].categoria,acc:filasNuevas[1].acc,txType:filasNuevas[1].txType,currency:filasNuevas[1].currency});
-    }
+    // Genérico en vez de índices fijos [0]/[1]: filasNuevas ya no tiene un tamaño constante
+    // (origen + destino siempre, comisión solo a veces).
+    filasNuevas.forEach((f,i)=>{
+      entries.unshift({id:filasGuardadas[i].id,date:f.fecha,name:f.nombre,amount:f.monto,cat:f.categoria,acc:f.acc,txType:f.txType,...(f.currency?{currency:f.currency}:{})});
+    });
     okEntries=true;
     render();
   }catch(e){ registrarErrorDiagnostico('fin_movimientos (transferencia)',e); }

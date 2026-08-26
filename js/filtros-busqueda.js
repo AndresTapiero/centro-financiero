@@ -50,7 +50,7 @@ function actualizarBuscador(){
 }
 
 function buscarEnMes(q){
-  const monthEntries=entries.filter(e=>e.date.slice(0,7)===currentMonth);
+  const monthEntries=entries.filter(e=>cicloDe(e.date)===currentMonth);
   let matches=monthEntries;
   if(q.length>=2)matches=matches.filter(e=>e.name.toLowerCase().includes(q));
 
@@ -72,7 +72,9 @@ function renderQuickSearchResults(matches,q){
   // Sino, mostrar solo los matches
   const list=document.getElementById('entries-list');
   if(matches.length===0){
-    list.innerHTML=`<div class="empty">Sin resultados para "${q}" en ${MovimientoListRenderer.fechaLarga(currentMonth.split('-').map((x,i)=>i===2?'01':x).join('-')).replace(' 01','').split(' ').slice(1).join(' ')}</div>`;
+    // Antes esto le pasaba 'YYYY-MM' a fechaLarga(), que espera 'YYYY-MM-DD', y salía
+    // "undefined de septiembre de 2026" antes de recortarlo a mano.
+    list.innerHTML=`<div class="empty">Sin resultados para "${esc(q)}" en ${etiquetaCiclo(currentMonth)}</div>`;
     document.getElementById('entries-summary').style.display='none';
   }else{
     const sorted=[...matches].sort((a,b)=>b.date.localeCompare(a.date));
@@ -129,7 +131,7 @@ function renderSearchResults(matches,q){
       const meta=ACCOUNTS_META[e.acc]||{label:'Cuenta eliminada',currency:'COP'};
       const c=col(e.cat);
       const montoStr=(e.currency||meta.currency)==='USD'?fmtUSD(e.amount):fmtCOP(e.amount);
-      const mes=e.date.slice(0,7);
+      const mes=cicloDe(e.date);
       return `<div class="entry-row" style="cursor:pointer" onclick="irAMes('${mes}')">
         <div class="entry-row-top">
           <span class="entry-date">${fmtDate(e.date)}</span>
@@ -249,7 +251,7 @@ function updateEntriesSummary(){
   const summaryEl=document.getElementById('entries-summary');
   if(!summaryEl)return;
 
-  const monthEntries=entries.filter(e=>e.date.slice(0,7)===currentMonth&&e.cat!=='[Ajuste de saldo]');
+  const monthEntries=entries.filter(e=>cicloDe(e.date)===currentMonth&&e.cat!=='[Ajuste de saldo]');
   let filtroCuentas=filterAccount==='todas'?monthEntries:monthEntries.filter(e=>e.acc===filterAccount);
   let filtrado=filterType==='todos'?filtroCuentas:filtroCuentas.filter(e=>e.txType===filterType);
   if(filterCategory!=='todas')filtrado=filtrado.filter(e=>e.cat===filterCategory);

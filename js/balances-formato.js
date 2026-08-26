@@ -101,7 +101,7 @@ async function confirmAdjustment(){
   pendingAdjustment=null;
   fillAccountInputs();
   populateMonthSelector();
-  currentMonth=todayStr().slice(0,7);
+  currentMonth=cicloActual();
   document.getElementById('month-select').value=currentMonth;
   render();
   try{
@@ -124,18 +124,18 @@ function cancelAdjustment(){
  *  - ARQ/Ontop se convierten con la TRM de HOY, no la del mes reconstruido (no se guarda TRM histórica).
  */
 function calcularSaldoHistorico(mesSeleccionado){
-  const hoy=todayStr().slice(0,7);
+  const hoy=cicloActual();
   if(mesSeleccionado>=hoy||cargaConFallos){
     // Si el mes es el actual (o futuro), O si la carga de datos falló y "entries" podría ser
     // el seed de ejemplo (no tus movimientos reales), mostramos el saldo de hoy sin reconstruir —
     // reconstruir con datos que no son de fiar produciría un número sin sentido.
     return {nequi:accounts.nequi,debito:accounts.debito,arq:accounts.arq,ontop:accounts.ontop,esHistorico:false,fallo:cargaConFallos&&mesSeleccionado<hoy};
   }
-  const cuentas=CUENTAS_GASTO_DIARIO;
+  const cuentas=cuentasDeGastoDiario();
   const saldos={};
   cuentas.forEach(acc=>{ saldos[acc]=accounts[acc]; });
   entries.forEach(e=>{
-    if(e.date.slice(0,7)<=mesSeleccionado)return; // solo deshacemos lo que pasó DESPUÉS del mes seleccionado
+    if(cicloDe(e.date)<=mesSeleccionado)return; // solo deshacemos lo que pasó DESPUÉS del mes seleccionado
     if(!cuentas.includes(e.acc))return;
     const sign=e.txType==='gasto'?1:-1;
     saldos[e.acc]+=sign*e.amount; // reversa exacta de la operación que hizo addEntry/deleteEntry en su momento
@@ -153,7 +153,7 @@ function calcularSaldoHistorico(mesSeleccionado){
  * personalizadas), y ARQ/Ontop se convierten con la TRM de HOY, no la histórica.
  */
 function calcularPatrimonioMes(mesISO){
-  const hoy=todayStr().slice(0,7);
+  const hoy=cicloActual();
   if(mesISO>=hoy||cargaConFallos)return null; // mes actual/futuro, o datos no confiables: no reconstruir
   const liquidAccs=['nequi','debito','nu','lulo'];
   const usdAccs=['arq','ontop'];
@@ -161,7 +161,7 @@ function calcularPatrimonioMes(mesISO){
   const saldos={};
   [...liquidAccs,...usdAccs,...debtAccs].forEach(a=>{ saldos[a]=accounts[a]||0; });
   entries.forEach(e=>{
-    if(e.date.slice(0,7)<=mesISO)return; // solo deshacemos lo que pasó DESPUÉS del mes
+    if(cicloDe(e.date)<=mesISO)return; // solo deshacemos lo que pasó DESPUÉS del mes
     if(!(e.acc in saldos))return;
     if(debtAccs.includes(e.acc)){
       const sign=e.txType==='gasto'?-1:1; // gasto sube deuda, ingreso la baja — reversa es lo opuesto
@@ -176,10 +176,29 @@ function calcularPatrimonioMes(mesISO){
   return {liquido,deuda,neto:liquido-deuda};
 }
 
-// Cuentas de las que se gasta en el día a día. Nu (fondo de emergencia), Lulo (ahorro vivienda)
-// y las cuentas dinámicas quedan fuera a propósito: son ahorro, y contarlas como "libre para
-// gastar" haría creer que hay más plata disponible de la que realmente hay.
-const CUENTAS_GASTO_DIARIO=['nequi','debito','arq','ontop'];
+// Cuentas de ahorro "de fábrica": el fondo de emergencia y el ahorro de vivienda.
+const CUENTAS_AHORRO_BASE=['nu','lulo'];
+
+/**
+ * Cuentas donde guardas plata que NO es para gastar: las dos de arriba, las que creaste tú
+ * (el botón las llama "bolsillo de ahorro") y cualquiera vinculada a una meta.
+ *
+ * Antes esto era una lista fija al revés — cuatro slugs marcados como "de gasto" — así que
+ * una cuenta de ahorro nueva quedaba bien por casualidad, pero vincular una meta a una cuenta
+ * existente no la sacaba del disponible.
+ */
+function cuentasDeAhorro(){
+  const ahorro=new Set(CUENTAS_AHORRO_BASE);
+  Object.keys(typeof dynamicAccounts!=='undefined'?dynamicAccounts:{}).forEach(k=>ahorro.add(k));
+  (typeof goals!=='undefined'?goals:[]).forEach(g=>{ if(g.type==='cuenta'&&g.acc)ahorro.add(g.acc); });
+  return ahorro;
+}
+
+/** Cuentas líquidas de las que sí puedes gastar: todo lo que no es crédito ni ahorro. */
+function cuentasDeGastoDiario(){
+  const ahorro=cuentasDeAhorro();
+  return Object.keys(ACCOUNTS_META).filter(k=>ACCOUNTS_META[k].type!=='credito'&&!ahorro.has(k));
+}
 
 /** Suma en COP de un grupo de cuentas, convirtiendo las que están en dólares. */
 function sumarEnCOP(slugs){
@@ -193,7 +212,7 @@ function sumarEnCOP(slugs){
 
 /** Plata disponible para gastar este mes (sin tocar los ahorros). Es lo que muestra el hero. */
 function calcularSaldoDisponible(){
-  return sumarEnCOP(CUENTAS_GASTO_DIARIO);
+  return sumarEnCOP(cuentasDeGastoDiario());
 }
 
 /** Todo el dinero líquido, ahorros y cuentas creadas por ti incluidos. Es la base del patrimonio. */
@@ -202,10 +221,52 @@ function calcularLiquidezTotal(){
   return sumarEnCOP(slugs);
 }
 
+/**
+ * Cuánta plata de este ciclo quedó apartada en ahorro: lo que moviste hacia cuentas de ahorro,
+ * menos lo que sacaste de ellas, más los ingresos que entraron directo al ahorro.
+ *
+ * Sirve para que el desglose cuadre. El hero dice "Ingresos − Gastos = Saldo actual", pero si
+ * moviste un millón a Lulo esa resta no daba: la plata ni se gastó ni sigue disponible, y el
+ * millón simplemente desaparecía de la cuenta sin aparecer en ningún renglón.
+ *
+ * Limitación: una transferencia solo deja registro en la cuenta de ORIGEN, así que el destino
+ * se deduce del nombre que la app misma genera ("Transferencia X → Y"). Si renombras una
+ * cuenta, sus transferencias viejas dejan de reconocerse: el número se queda corto, nunca se
+ * pasa de largo.
+ */
+function apartadoAAhorro(ciclo){
+  const ahorro=cuentasDeAhorro();
+  const delCiclo=entries.filter(e=>cicloDe(e.date)===ciclo);
+
+  // Desde que doTransfer() graba las dos patas de cada transferencia (origen y destino), cada
+  // pata se puede juzgar por su PROPIA cuenta: la de origen resta si sale de ahorro, la de
+  // destino suma si entra a ahorro. Si las dos son de ahorro (mover plata entre fondos) o
+  // las dos son de gasto diario, se cancelan solas — no hace falta saber qué es "la otra punta".
+  const slugPorEtiqueta={};
+  Object.keys(ACCOUNTS_META).forEach(k=>{ slugPorEtiqueta[ACCOUNTS_META[k].label]=k; });
+
+  return delCiclo.reduce((suma,e)=>{
+    if(e.cat==='Transferencia'){
+      if(ahorro.has(e.acc))return suma+(e.txType==='ingreso'?entryCOP(e):-entryCOP(e));
+      // Es la pata de origen (no-ahorro). Si tiene su pata de destino registrada (transferencias
+      // nuevas), esa otra entrada ya se contó por su cuenta — no hay que hacer nada más aquí.
+      if(e.txType!=='gasto')return suma;
+      const yaTienePareja=delCiclo.some(o=>o.cat==='Transferencia'&&o.txType==='ingreso'&&o.date===e.date&&o.name===e.name);
+      if(yaTienePareja)return suma;
+      // Transferencia vieja de una sola pata: se deduce el destino por el nombre, como antes.
+      const destino=slugPorEtiqueta[(e.name.split('→')[1]||'').trim()];
+      if(destino&&ahorro.has(destino))return suma+entryCOP(e);
+      return suma;
+    }
+    if(esIngresoReal(e)&&ahorro.has(e.acc))return suma+entryCOP(e); // ingreso que cayó directo al ahorro
+    return suma;
+  },0);
+}
+
 /** Pendientes por pagar que saldrán de las cuentas de gasto diario, en COP. */
 function sumarPendientesDeGastoDiario(){
   return pendientes
-    .filter(p=>!p.isIncome&&CUENTAS_GASTO_DIARIO.includes(p.acc))
+    .filter(p=>!p.isIncome&&cuentasDeGastoDiario().includes(p.acc))
     .reduce((s,p)=>{
       const meta=ACCOUNTS_META[p.acc];
       if(!meta)return s; // cuenta eliminada
@@ -232,7 +293,7 @@ function updateNetWorth(){
   nwEl.style.color=net>=0?'var(--safe)':'var(--danger)';
 
   // Desglose del mes: ingresos - gastos, sobre las cuentas de gasto diario
-  const monthEntries=entries.filter(e=>e.date.slice(0,7)===currentMonth);
+  const monthEntries=entries.filter(e=>cicloDe(e.date)===currentMonth);
   const ingresosMes=monthEntries.filter(esIngresoReal).reduce((s,e)=>s+entryCOP(e),0);
   const gastosMes=monthEntries.filter(esGastoReal).reduce((s,e)=>s+entryCOP(e),0);
   const saldoFinal=calcularSaldoDisponible();
@@ -240,7 +301,7 @@ function updateNetWorth(){
   const breakdownEl=document.getElementById('ats-breakdown');
   const simpleEl=document.getElementById('ats-simple');
 
-  const esMesActual=currentMonth===todayStr().slice(0,7);
+  const esMesActual=currentMonth===cicloActual();
   const saldoHist=calcularSaldoHistorico(currentMonth);
 
   // Si es mes actual: mostrar desglose directo. Si es mes pasado: mostrar saldo reconstruido simple.
@@ -249,6 +310,7 @@ function updateNetWorth(){
     simpleEl.style.display='none';
     const pendCOP=sumarPendientesDeGastoDiario();
     const libreReal=saldoFinal-pendCOP;
+    const ahorroApartado=apartadoAAhorro(currentMonth);
 
     const ingresosEl=document.getElementById('ats-ingresos');
     const gastosEl=document.getElementById('ats-gastos');
@@ -268,8 +330,21 @@ function updateNetWorth(){
       libreEl.style.color=libreReal>500000?'var(--safe)':libreReal>0?'var(--warn)':'var(--danger)';
     }
 
+    // La fila de ahorro solo aparece si de verdad apartaste algo: si no, sería un renglón en
+    // cero que estorba. Cuando aparece, el desglose sí cuadra — antes "Ingresos − Gastos"
+    // no daba el saldo actual y la diferencia (lo que moviste a ahorro) no salía por ningún lado.
+    const ahorroRow=document.getElementById('ats-ahorro-row');
+    const ahorroEl=document.getElementById('ats-ahorro');
+    if(ahorroRow&&ahorroEl){
+      const hay=Math.abs(ahorroApartado)>=1;
+      ahorroRow.style.display=hay?'block':'none';
+      if(hay)ahorroEl.textContent=fmtCOP(ahorroApartado);
+    }
+
     const subEl=document.getElementById('ats-sub');
-    if(subEl)subEl.innerHTML='Ingresos − Gastos = Saldo actual · Menos pendientes = Libre real para gastar';
+    if(subEl)subEl.innerHTML=Math.abs(ahorroApartado)>=1
+      ? 'Ingresos − Gastos − Apartado a ahorro = Saldo actual · Menos pendientes = Libre real para gastar'
+      : 'Ingresos − Gastos = Saldo actual · Menos pendientes = Libre real para gastar';
   }else{
     breakdownEl.style.display='none';
     simpleEl.style.display='block';
@@ -310,18 +385,19 @@ function renderEstadoMes(){
   if(!body)return;
   if(!currentMonth){ body.innerHTML='<div style="color:var(--text3);font-size:12px">Cargando…</div>'; if(semaforoEl)semaforoEl.textContent=''; return; }
 
-  const monthEntries=entries.filter(e=>e.date.slice(0,7)===currentMonth);
+  const monthEntries=entries.filter(e=>cicloDe(e.date)===currentMonth);
   const ingresos=monthEntries.filter(esIngresoReal).reduce((s,e)=>s+entryCOP(e),0);
   const gastos=monthEntries.filter(esGastoReal).reduce((s,e)=>s+entryCOP(e),0);
   const balanceNeto=ingresos-gastos;
-  const pctComprometido=ingresos>0?Math.round(gastos/ingresos*100):0;
+  // Sin ingresos en el ciclo no se puede calcular la proporción: mostrar 0% diría "no has
+  // comprometido nada" justo cuando ya llevas gastos, que es lo contrario de la verdad.
+  const pctComprometido=ingresos>0?Math.round(gastos/ingresos*100):null;
 
-  // Ritmo de gasto: gasto/día actual vs gasto/día "ideal" según presupuesto variable
-  const [y,m]=currentMonth.split('-').map(Number);
-  const diasEnMes=new Date(y,m,0).getDate();
-  const hoy=new Date();
-  const esMesActual=currentMonth===todayStr().slice(0,7);
-  const diaActual=esMesActual?hoy.getDate():diasEnMes;
+  // Ritmo de gasto: gasto/día actual vs gasto/día "ideal" según presupuesto variable.
+  // Los días salen del ciclo de pago, no del mes de calendario: si el ciclo va del 26 al 25,
+  // el día 3 de septiembre es el día 9 del ciclo, no el día 3.
+  const diasEnMes=diasDelCiclo(currentMonth);
+  const diaActual=diasCorridosDelCiclo(currentMonth);
   // Misma lista de categorías controlables que usa "variable vs tope" en Métricas.
   const controlables=new Set(categoriasControlables());
   const gastoVariable=monthEntries.filter(e=>controlables.has(e.cat)&&esGastoReal(e)).reduce((s,e)=>s+entryCOP(e),0);
@@ -346,9 +422,9 @@ function renderEstadoMes(){
       </div>
     </div>
     <div class="networth-row"><span class="networth-label">Balance neto del mes</span><span class="networth-value" style="color:${balanceNeto>=0?'var(--safe)':'var(--danger)'}">${balanceNeto>=0?'+':''}${fmtCOP(balanceNeto)}</span></div>
-    <div class="networth-row"><span class="networth-label">% del ingreso ya comprometido</span><span class="networth-value">${pctComprometido}%</span></div>
+    <div class="networth-row"><span class="networth-label">% del ingreso ya comprometido</span><span class="networth-value"${pctComprometido===null?' style="color:var(--warn)"':''}>${pctComprometido===null?'— aún sin ingresos en este ciclo':pctComprometido+'%'}</span></div>
     <div class="networth-row"><span class="networth-label">Ritmo de gasto variable</span><span class="networth-value" style="color:${ritmoPct>130?'var(--danger)':ritmoPct>105?'var(--warn)':'var(--safe)'}">${ritmoPct}% del ritmo esperado</span></div>
-    <div style="font-size:10px;color:var(--text3);margin-top:6px">Día ${diaActual} de ${diasEnMes} del mes · ${fmtCOP(gastoVariable)} gastado en categorías variables</div>
+    <div style="font-size:10px;color:var(--text3);margin-top:6px">Día ${diaActual} de ${diasEnMes} del ciclo (${etiquetaCiclo(currentMonth).split(' · ')[1]}) · ${fmtCOP(gastoVariable)} gastado en categorías variables</div>
   `;
 }
 

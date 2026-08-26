@@ -132,7 +132,7 @@ async function autoSeedRecurrentes(){
     }
     return;
   }
-  const mesActual=todayStr().slice(0,7);
+  const mesActual=cicloActual();
   let seeded=[];
   try{
     const {data,error}=await sb.from('fin_configuracion').select('seeded_months').maybeSingle();
@@ -141,13 +141,14 @@ async function autoSeedRecurrentes(){
   }catch(e){ registrarErrorDiagnostico('fin_configuracion (lectura seeded_months)',e); }
   if(seeded.includes(mesActual))return;
 
-  const yaExisten=new Set(pendientes.filter(p=>p.date&&p.date.slice(0,7)===mesActual).map(p=>p.name));
-  const yaGastados=new Set(entries.filter(e=>e.date.slice(0,7)===mesActual).map(e=>e.name));
+  const yaExisten=new Set(pendientes.filter(p=>p.date&&cicloDe(p.date)===mesActual).map(p=>p.name));
+  const yaGastados=new Set(entries.filter(e=>cicloDe(e.date)===mesActual).map(e=>e.name));
   const nuevos=[];
   RECURRENTES.forEach(r=>{
     if(yaExisten.has(r.name)||yaGastados.has(r.name))return;
-    const dd=String(r.day).padStart(2,'0');
-    nuevos.push({name:r.name,amount:r.amount,date:`${mesActual}-${dd}`,acc:r.acc,cat:r.cat,isIncome:r.isIncome||false});
+    // fechaEnCiclo, no `${mesActual}-${dd}`: un recurrente del día 26 pertenece al mes
+    // ANTERIOR al que da nombre al ciclo.
+    nuevos.push({name:r.name,amount:r.amount,date:fechaEnCiclo(mesActual,r.day),acc:r.acc,cat:r.cat,isIncome:r.isIncome||false});
   });
   seeded.push(mesActual);
   let agregados=0;
@@ -182,17 +183,15 @@ async function autoSeedRecurrentes(){
 }
 
 function populateMonthSelector(){
-  const months=new Set(entries.map(e=>e.date.slice(0,7)));
-  months.add(todayStr().slice(0,7));
+  const months=new Set(entries.map(e=>cicloDe(e.date)));
+  months.add(cicloActual());
   const sortedMonths=[...months].sort().reverse();
   const sel=document.getElementById('month-select');
-  const monthNames=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-  sel.innerHTML=sortedMonths.map(m=>{
-    const [y,mo]=m.split('-');
-    return `<option value="${m}">${monthNames[parseInt(mo)-1]} ${y}</option>`;
-  }).join('');
+  // Se etiqueta con el rango real del ciclo para que no se confunda con el mes de calendario:
+  // "Sep 2026 · 26 ago – 25 sep" deja claro de dónde a dónde va la plata de ese período.
+  sel.innerHTML=sortedMonths.map(m=>`<option value="${m}">${etiquetaCiclo(m)}</option>`).join('');
   if(!currentMonth||!sortedMonths.includes(currentMonth)){
-    currentMonth=todayStr().slice(0,7);
+    currentMonth=cicloActual();
   }
   sel.value=currentMonth;
 }
@@ -244,9 +243,9 @@ function updateDueDates(){
   const diaVencimiento=10; // Davivienda TC y Rappi Card vencen el día 10 de cada mes
 
   // Detectar si ya se pagó este mes
-  const mesActual=todayStr().slice(0,7);
+  const mesActual=cicloActual();
   const pagosDavtcEste={davtc:0,rappitc:0};
-  entries.filter(e=>e.date.slice(0,7)===mesActual&&e.cat==='Pago Deuda').forEach(e=>{
+  entries.filter(e=>cicloDe(e.date)===mesActual&&e.cat==='Pago Deuda').forEach(e=>{
     if(e.acc==='davtc'||e.acc==='rappitc') pagosDavtcEste[e.acc]+=entryCOP(e);
   });
 
