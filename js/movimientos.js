@@ -158,7 +158,7 @@ async function addEntry(seguirAgregando){
   document.getElementById('inp-name').value='';
   document.getElementById('inp-amount').value='';
   populateMonthSelector();
-  currentMonth=date.slice(0,7);
+  currentMonth=cicloDe(date);
   document.getElementById('month-select').value=currentMonth;
   fillAccountInputs();
   render();

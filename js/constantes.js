@@ -149,6 +149,76 @@ function esIngresoReal(e){
   return e.txType==='ingreso' && e.cat!=='[Ajuste de saldo]';
 }
 
+// ─── Ciclo de pago ──────────────────────────────────────────────────────────
+// El sueldo cae unos días ANTES de que empiece el mes, y esa plata es la que financia el mes
+// siguiente. Con meses de calendario, el 1 de septiembre los ingresos del mes arrancaban en
+// cero (el pago había entrado el 26 de agosto) mientras los gastos ya corrían: el "%
+// comprometido" mostraba 0% con dos millones gastados, y la tasa de ahorro decía "sin
+// ingresos". Por eso el mes de la app no es el del calendario, sino el ciclo entre pagos.
+//
+// Un ciclo se identifica con el mes que financia: el que va del 26 de agosto al 25 de
+// septiembre se llama '2026-09'. Así "septiembre" contiene el sueldo con el que pagas
+// septiembre, y los dos lados de cada métrica hablan del mismo período.
+const DIA_CORTE_MES=26; // día en que te pagan. TODO: mover a fin_configuracion cuando se versione el esquema (ver sql/README.md)
+
+/** Ciclo ('YYYY-MM') al que pertenece una fecha ISO. */
+function cicloDe(fechaISO){
+  const [y,m,d]=fechaISO.split('-').map(Number);
+  if(d<DIA_CORTE_MES)return `${y}-${String(m).padStart(2,'0')}`;
+  return m===12?`${y+1}-01`:`${y}-${String(m+1).padStart(2,'0')}`; // del 26 en adelante ya financia el mes que viene
+}
+
+/** El ciclo en el que estamos hoy. */
+function cicloActual(){ return cicloDe(todayStr()); }
+
+/** Primer y último día (ISO) de un ciclo, para mostrarlo y para contar cuánto lleva corrido. */
+function rangoDelCiclo(ciclo){
+  const [y,m]=ciclo.split('-').map(Number);
+  const inicio=m===1?new Date(y-1,11,DIA_CORTE_MES):new Date(y,m-2,DIA_CORTE_MES);
+  const fin=new Date(y,m-1,DIA_CORTE_MES-1);
+  const iso=dt=>`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+  return {desde:iso(inicio),hasta:iso(fin)};
+}
+
+/**
+ * Fecha real (ISO) del día `dia` dentro de un ciclo. Un ciclo cruza dos meses de calendario:
+ * los días >= DIA_CORTE_MES caen en el primero y los < DIA_CORTE_MES en el segundo. Sin esto,
+ * un recurrente del día 26 en el ciclo '2026-09' se guardaba como 2026-09-26, que ya pertenece
+ * al ciclo siguiente — el sueldo se sembraba en el ciclo equivocado.
+ */
+function fechaEnCiclo(ciclo,dia){
+  const [y,m]=ciclo.split('-').map(Number);
+  const dd=String(dia).padStart(2,'0');
+  if(dia>=DIA_CORTE_MES){ // primer mes del ciclo: el anterior al que le da nombre
+    return m===1?`${y-1}-12-${dd}`:`${y}-${String(m-1).padStart(2,'0')}-${dd}`;
+  }
+  return `${y}-${String(m).padStart(2,'0')}-${dd}`;
+}
+
+/** Cuántos días dura un ciclo (varía: 28 a 31 según los meses que cruza). */
+function diasDelCiclo(ciclo){
+  const {desde,hasta}=rangoDelCiclo(ciclo);
+  return Math.round((new Date(hasta+'T00:00:00')-new Date(desde+'T00:00:00'))/86400000)+1;
+}
+
+/** Cuántos días lleva corridos el ciclo. Si ya terminó, devuelve su duración completa. */
+function diasCorridosDelCiclo(ciclo){
+  const {desde}=rangoDelCiclo(ciclo);
+  const total=diasDelCiclo(ciclo);
+  if(ciclo!==cicloActual())return total;
+  const corridos=Math.round((new Date(todayStr()+'T00:00:00')-new Date(desde+'T00:00:00'))/86400000)+1;
+  return Math.max(1,Math.min(total,corridos));
+}
+
+/** Etiqueta corta del ciclo, ej. "Sep 2026 · 26 ago – 25 sep". */
+function etiquetaCiclo(ciclo){
+  const meses=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const [y,m]=ciclo.split('-').map(Number);
+  const {desde,hasta}=rangoDelCiclo(ciclo);
+  const dia=iso=>{ const [,mm,dd]=iso.split('-').map(Number); return `${dd} ${meses[mm-1].toLowerCase()}`; };
+  return `${meses[m-1]} ${y} · ${dia(desde)} – ${dia(hasta)}`;
+}
+
 /** Color y mensaje de aliento según el % de avance de una meta o fondo de ahorro — mismo criterio en todos lados */
 function colorYMensajeProgreso(pct){
   if(pct>=100)return{color:'#0E9F6E',mensaje:'🎉 ¡Meta cumplida!'};

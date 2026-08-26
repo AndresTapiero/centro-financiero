@@ -14,8 +14,16 @@ async function sendSummary(){
   }
 }
 
+// La píldora de arriba muestra el CICLO en curso, no el mes de calendario: el 26 de agosto
+// ya estás en el ciclo de septiembre, y decir "Agosto" contradecía todo lo de abajo.
 const months=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-document.getElementById('nav-month').textContent=months[new Date().getMonth()]+' '+new Date().getFullYear();
+(function pintarCicloEnNav(){
+  const [y,m]=cicloActual().split('-').map(Number);
+  const el=document.getElementById('nav-month');
+  if(!el)return;
+  el.textContent=months[m-1]+' '+y;
+  el.title=etiquetaCiclo(cicloActual());
+})();
 document.getElementById('inp-date').value=todayStr();
 document.getElementById('pend-date').value=todayStr();
 document.getElementById('inp-type').addEventListener('change',onAccountChange);
