@@ -33,7 +33,27 @@ const SUBSCRIPTION_COLORS={
   'disney':'#113CCF',
   'hbo':'#542DBF',
 };
-const BUDGET_TOTAL=800000+200000+300000+400000+150000+450000;
+// Obligaciones fijas y ahorro: tienen tope para poder seguirlas, pero no son gasto que
+// puedas recortar este mes, así que no entran en "variable vs tope".
+const CATEGORIAS_NO_CONTROLABLES=new Set(['Arriendo','Salud','Inversiones']);
+
+/** Categorías con tope que sí dependen de tus decisiones del mes. */
+function categoriasControlables(){
+  return Object.keys(CAPS).filter(c=>!CATEGORIAS_NO_CONTROLABLES.has(c)&&!CATEGORIAS_IRREGULARES.has(c));
+}
+
+/**
+ * Suma de los topes controlables — el denominador de "variable vs tope".
+ *
+ * Antes esto era BUDGET_TOTAL, una constante de $2.300.000 escrita a mano que cubría unas 6
+ * categorías, mientras el numerador sumaba el gasto de las 20 que tienen tope. Comparar 20
+ * contra 6 dejaba la métrica clavada en 100% casi siempre. Además, al ser constante, ignoraba
+ * los topes que tú editaras. Ahora sale de CAPS, en el momento, y de la misma lista que el
+ * numerador.
+ */
+function topeControlable(){
+  return categoriasControlables().reduce((s,c)=>s+(CAPS[c]||0),0);
+}
 // Categorías irregulares: no ocurren cada mes (taller, seguros anuales) — se excluyen del "ritmo de gasto"
 // para no distorsionar el semáforo cuando aparecen de forma puntual, pero siguen teniendo su propio tope visible.
 const CATEGORIAS_IRREGULARES=new Set(['Vehículo · Taller','Vehículo · Seguros']);
@@ -110,6 +130,24 @@ const CREDIT_LIMITS={davtc:18019994,rappitc:10379999}; // cupo aprobado de cada 
 const NECESIDADES_BASICAS=['Arriendo','Servicios','Alimentación · Mercado','Salud','Vehículo · Gasolina','Transporte'];
 let pendientes=[];
 let currentMonth=null;
+
+/**
+ * ¿Este movimiento es plata que realmente saliste a gastar?
+ *
+ * Quedan fuera dos cosas que NO son gasto: las transferencias (mueven plata entre cuentas
+ * tuyas, no la gastan) y los ajustes de saldo (correcciones contables cuando cuadras una
+ * cuenta a mano). Antes cada métrica repetía este filtro por su cuenta y dos se quedaron sin
+ * excluir los ajustes: un ajuste de $2.000.000 aparecía como un mes carísimo en la
+ * comparativa y como una "categoría" propia en la tendencia.
+ */
+function esGastoReal(e){
+  return e.txType!=='ingreso' && e.cat!=='Transferencia' && e.cat!=='[Ajuste de saldo]';
+}
+
+/** Ídem para ingresos: un ajuste de saldo hacia arriba no es plata que hayas recibido. */
+function esIngresoReal(e){
+  return e.txType==='ingreso' && e.cat!=='[Ajuste de saldo]';
+}
 
 /** Color y mensaje de aliento según el % de avance de una meta o fondo de ahorro — mismo criterio en todos lados */
 function colorYMensajeProgreso(pct){

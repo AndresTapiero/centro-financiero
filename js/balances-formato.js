@@ -233,8 +233,8 @@ function updateNetWorth(){
 
   // Desglose del mes: ingresos - gastos, sobre las cuentas de gasto diario
   const monthEntries=entries.filter(e=>e.date.slice(0,7)===currentMonth);
-  const ingresosMes=monthEntries.filter(e=>e.txType==='ingreso'&&e.cat!=='[Ajuste de saldo]').reduce((s,e)=>s+entryCOP(e),0);
-  const gastosMes=monthEntries.filter(e=>e.txType!=='ingreso'&&e.cat!=='Transferencia'&&e.cat!=='[Ajuste de saldo]').reduce((s,e)=>s+entryCOP(e),0);
+  const ingresosMes=monthEntries.filter(esIngresoReal).reduce((s,e)=>s+entryCOP(e),0);
+  const gastosMes=monthEntries.filter(esGastoReal).reduce((s,e)=>s+entryCOP(e),0);
   const saldoFinal=calcularSaldoDisponible();
 
   const breakdownEl=document.getElementById('ats-breakdown');
@@ -311,8 +311,8 @@ function renderEstadoMes(){
   if(!currentMonth){ body.innerHTML='<div style="color:var(--text3);font-size:12px">Cargando…</div>'; if(semaforoEl)semaforoEl.textContent=''; return; }
 
   const monthEntries=entries.filter(e=>e.date.slice(0,7)===currentMonth);
-  const ingresos=monthEntries.filter(e=>e.txType==='ingreso'&&e.cat!=='[Ajuste de saldo]').reduce((s,e)=>s+entryCOP(e),0);
-  const gastos=monthEntries.filter(e=>e.txType!=='ingreso'&&e.cat!=='Transferencia'&&e.cat!=='[Ajuste de saldo]').reduce((s,e)=>s+entryCOP(e),0);
+  const ingresos=monthEntries.filter(esIngresoReal).reduce((s,e)=>s+entryCOP(e),0);
+  const gastos=monthEntries.filter(esGastoReal).reduce((s,e)=>s+entryCOP(e),0);
   const balanceNeto=ingresos-gastos;
   const pctComprometido=ingresos>0?Math.round(gastos/ingresos*100):0;
 
@@ -322,8 +322,10 @@ function renderEstadoMes(){
   const hoy=new Date();
   const esMesActual=currentMonth===todayStr().slice(0,7);
   const diaActual=esMesActual?hoy.getDate():diasEnMes;
-  const gastoVariable=monthEntries.filter(e=>CAPS[e.cat]&&!CATEGORIAS_IRREGULARES.has(e.cat)&&e.txType!=='ingreso').reduce((s,e)=>s+entryCOP(e),0);
-  const ritmoIdeal=(BUDGET_TOTAL/diasEnMes)*diaActual;
+  // Misma lista de categorías controlables que usa "variable vs tope" en Métricas.
+  const controlables=new Set(categoriasControlables());
+  const gastoVariable=monthEntries.filter(e=>controlables.has(e.cat)&&esGastoReal(e)).reduce((s,e)=>s+entryCOP(e),0);
+  const ritmoIdeal=(topeControlable()/diasEnMes)*diaActual;
   const ritmoPct=ritmoIdeal>0?Math.round(gastoVariable/ritmoIdeal*100):0;
 
   // Semáforo único: combina ritmo de gasto variable vs avance del mes

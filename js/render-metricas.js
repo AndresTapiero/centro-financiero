@@ -1,8 +1,27 @@
-function render(){
-  const monthEntries=entries.filter(e=>e.date.slice(0,7)===currentMonth);
-  const gastos=monthEntries.filter(e=>e.txType!=='ingreso'&&e.cat!=='Transferencia'&&e.cat!=='[Ajuste de saldo]');
+/**
+ * Totales del mes seleccionado. Antes cada tarjeta de Métricas los leía de window._total,
+ * window._bycat, etc., que solo existían si render() había corrido antes: la pestaña
+ * dependía de que otra pantalla la hubiera preparado, y bastaba con que ese orden cambiara
+ * para que las tarjetas mostraran $0. Ahora se calculan aquí, a partir de los movimientos.
+ */
+function calcularResumenMes(mes){
+  const delMes=entries.filter(e=>e.date.slice(0,7)===mes);
+  const gastos=delMes.filter(esGastoReal);
+  const bycat={};
+  gastos.forEach(e=>{ bycat[e.cat]=(bycat[e.cat]||0)+entryCOP(e); });
   const total=gastos.reduce((s,e)=>s+entryCOP(e),0);
   const today=gastos.filter(e=>e.date===todayStr()).reduce((s,e)=>s+entryCOP(e),0);
+  // Numerador y denominador salen de la MISMA lista de categorías controlables.
+  const controlables=new Set(categoriasControlables());
+  const varSpent=gastos.reduce((s,e)=>controlables.has(e.cat)?s+entryCOP(e):s,0);
+  const topeVar=topeControlable();
+  const pct=topeVar>0?Math.min(Math.round(varSpent/topeVar*100),100):0;
+  return {gastos,bycat,total,today,pct,conteo:gastos.length};
+}
+
+function render(){
+  const monthEntries=entries.filter(e=>e.date.slice(0,7)===currentMonth);
+  const {gastos,bycat}=calcularResumenMes(currentMonth); // misma fuente que la pestaña Métricas
 
   let monthEntriesFiltradas=filterAccount==='todas'?monthEntries:monthEntries.filter(e=>e.acc===filterAccount);
   if(filterType!=='todos')monthEntriesFiltradas=monthEntriesFiltradas.filter(e=>e.txType===filterType);
@@ -32,10 +51,6 @@ function render(){
   document.getElementById('entries-list').innerHTML=
     new MovimientoListRenderer(sorted, sortMode==='cuenta'?'cuenta':'fecha').render();
 
-  const bycat={};
-  gastos.forEach(e=>bycat[e.cat]=(bycat[e.cat]||0)+entryCOP(e));
-  const varSpent=gastos.reduce((s,e)=>CAPS[e.cat]?s+entryCOP(e):s,0);
-  const pct=Math.min(Math.round(varSpent/BUDGET_TOTAL*100),100);
 
   const CAPS_TOTAL=Object.values(CAPS).reduce((s,v)=>s+v,0);
   const totalConsumidoCaps=Object.keys(CAPS).reduce((s,cat)=>s+(bycat[cat]||0),0);
@@ -147,7 +162,6 @@ function render(){
   document.getElementById('budget-list').innerHTML=resumenHTML+listaActivaHTML+sinConsumoHTML;
 
 
-  window._bycat=bycat; window._total=total; window._today=today; window._pct=pct;
   const monthNames=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   if(currentMonth){
     const [y,mo]=currentMonth.split('-');
@@ -159,16 +173,12 @@ function render(){
 }
 
 function renderMetrics(){
-  const bycat=window._bycat||{};
-  const total=window._total||0;
+  const {bycat,total,today,pct,conteo}=calcularResumenMes(currentMonth);
   document.getElementById('m-total').textContent=fmtCOP(total);
-  // El total de arriba es del mes seleccionado: el conteo tiene que serlo también.
-  // Antes contaba entries completo, así que el total decía "agosto" y el conteo "desde siempre".
-  const gastosDelMes=entries.filter(e=>e.date.slice(0,7)===currentMonth&&e.txType!=='ingreso'&&e.cat!=='Transferencia'&&e.cat!=='[Ajuste de saldo]');
-  document.getElementById('m-total-sub').textContent=`en ${gastosDelMes.length} movimientos`;
-  document.getElementById('m-today').textContent=fmtCOP(window._today||0);
-  document.getElementById('m-pct').textContent=(window._pct||0)+'%';
-  document.getElementById('m-pct').style.color=(window._pct||0)>85?'var(--danger)':(window._pct||0)>65?'var(--warn)':'var(--accent)';
+  document.getElementById('m-total-sub').textContent=`en ${conteo} movimientos`;
+  document.getElementById('m-today').textContent=fmtCOP(today);
+  document.getElementById('m-pct').textContent=pct+'%';
+  document.getElementById('m-pct').style.color=pct>85?'var(--danger)':pct>65?'var(--warn)':'var(--accent)';
   const debtTotal=calcularDeudaTotal();
   document.getElementById('m-debt').textContent=fmtCOP(debtTotal);
 
@@ -237,8 +247,8 @@ function renderRegla503020(){
 
   function calcularVentana(mesesVentana){
     const ventEntries=entries.filter(e=>mesesVentana.includes(e.date.slice(0,7)));
-    const ingresos=ventEntries.filter(e=>e.txType==='ingreso'&&e.cat!=='[Ajuste de saldo]').reduce((s,e)=>s+entryCOP(e),0);
-    const basicasEntries=ventEntries.filter(e=>e.txType!=='ingreso'&&NECESIDADES_BASICAS.includes(e.cat));
+    const ingresos=ventEntries.filter(esIngresoReal).reduce((s,e)=>s+entryCOP(e),0);
+    const basicasEntries=ventEntries.filter(e=>esGastoReal(e)&&NECESIDADES_BASICAS.includes(e.cat));
     const basicas=basicasEntries.reduce((s,e)=>s+entryCOP(e),0);
     const pct=ingresos>0?Math.round(basicas/ingresos*100):null;
     return {ingresos,basicas,basicasEntries,pct};
@@ -379,7 +389,7 @@ function renderCreditoVsLiquidoPorCategoria(){
   if(!el)return;
 
   const monthEntries=entries.filter(e=>e.date.slice(0,7)===currentMonth);
-  const gastos=monthEntries.filter(e=>e.txType!=='ingreso'&&e.cat!=='Transferencia'&&e.cat!=='[Ajuste de saldo]');
+  const gastos=monthEntries.filter(esGastoReal);
 
   if(gastos.length===0){
     el.innerHTML='<div class="empty" style="padding:1.5rem">Sin gastos registrados este mes.</div>';
@@ -446,7 +456,12 @@ function renderPatrimonioHistorico(){
   const liquidCOPActual=calcularLiquidezTotal();
   const debtCOPActual=calcularDeudaTotal();
 
-  const datos=ultimosMeses(12).map(m=>{
+  // Solo desde tu primer movimiento. Reconstruir un mes anterior a que empezaras a registrar
+  // da siempre el mismo número (no hay nada que deshacer), y la gráfica salía con media
+  // docena de barras idénticas y planas antes de que empezara el historial de verdad.
+  const primerMes=entries.length?entries.reduce((min,e)=>e.date<min?e.date:min,entries[0].date).slice(0,7):hoy;
+
+  const datos=ultimosMeses(12).filter(m=>m>=primerMes).map(m=>{
     if(m===hoy)return {mes:m,neto:liquidCOPActual-debtCOPActual};
     const p=calcularPatrimonioMes(m);
     return p?{mes:m,neto:p.neto}:null;
@@ -477,8 +492,8 @@ function renderPatrimonioHistorico(){
   savingsList.innerHTML=datos.slice(-6).map(d=>{
     const [y,mo]=d.mes.split('-');
     const monthEntries=entries.filter(e=>e.date.slice(0,7)===d.mes);
-    const ingresos=monthEntries.filter(e=>e.txType==='ingreso'&&e.cat!=='[Ajuste de saldo]').reduce((s,e)=>s+entryCOP(e),0);
-    const gastos=monthEntries.filter(e=>e.txType!=='ingreso'&&e.cat!=='Transferencia'&&e.cat!=='[Ajuste de saldo]').reduce((s,e)=>s+entryCOP(e),0);
+    const ingresos=monthEntries.filter(esIngresoReal).reduce((s,e)=>s+entryCOP(e),0);
+    const gastos=monthEntries.filter(esGastoReal).reduce((s,e)=>s+entryCOP(e),0);
     const tasa=ingresos>0?Math.round((ingresos-gastos)/ingresos*100):null;
     const color=tasa===null?'var(--text3)':tasa>=20?'var(--safe)':tasa>=0?'var(--warn)':'var(--danger)';
     const texto=tasa===null?'sin ingresos registrados':`${tasa>=0?'+':''}${tasa}%`;
@@ -486,13 +501,34 @@ function renderPatrimonioHistorico(){
   }).join('');
 }
 
-/** Agrupa gastos por nombre normalizado; si el mismo nombre aparece en ≥2 meses distintos,
- *  se considera recurrente y se proyecta su costo anual (promedio mensual × 12). */
-// Categorías que, aunque se repitan mes a mes, no son "gasto hormiga" — son compromisos
-// grandes e intencionales (pago de deuda, salud, aportes/donaciones), no fugas silenciosas.
-const CATS_EXCLUIDAS_HORMIGA=['Pago Deuda','Salud'];
-// Nombres que tampoco cuentan como hormiga aunque su categoría sea genérica (ej. "Otro").
-const NOMBRES_EXCLUIDOS_HORMIGA=/donaci|aporte/i;
+/**
+ * Un gasto hormiga es una FUGA: pequeña, repetida y evitable — el almuerzo de todos los días,
+ * la suscripción que nadie usa, el parqueadero. Lo que la define no es que se repita, sino que
+ * cada compra sea tan pequeña que no duele, y que al año sume una cifra que sí duele.
+ *
+ * Antes esta métrica solo pedía "el mismo nombre en 2+ meses", así que listaba el arriendo, la
+ * EPS, el aporte a inversión y los intereses de la tarjeta como si fueran fugas. Son justo lo
+ * contrario: decisiones grandes y deliberadas, que además dominaban la lista por monto y
+ * tapaban las fugas de verdad.
+ *
+ * Ahora se piden las tres cosas a la vez:
+ *   1. cada compra por debajo de TOPE_HORMIGA_UNITARIO
+ *   2. el mismo gasto en 2 o más meses distintos
+ *   3. que no sea una obligación fija, una necesidad básica ni ahorro/inversión
+ */
+const TOPE_HORMIGA_UNITARIO=120000; // COP por compra — súbelo o bájalo según lo que consideres "pequeño"
+
+// Obligaciones fijas, necesidades básicas y movimientos de ahorro/deuda: se repiten cada mes,
+// pero recortarlos no es "dejar de gastar de más", así que no son fugas.
+const CATS_EXCLUIDAS_HORMIGA=new Set([
+  'Arriendo','Salud','Servicios',            // obligaciones y necesidades
+  'Alimentación · Mercado',                  // comida de casa, no gasto discrecional
+  'Pago Deuda','Intereses','Comisión',       // costo financiero
+  'Inversiones',                             // es ahorro, no gasto
+  'Vehículo · Seguros','Vehículo · Taller',  // irregulares y obligatorios
+]);
+// Nombres que tampoco son fuga aunque caigan en una categoría genérica como "Otro".
+const NOMBRES_EXCLUIDOS_HORMIGA=/donaci|aporte|diezmo|ofrenda|ahorro|arriendo|inversi/i;
 // Sinónimos que deben agruparse como el mismo gasto (ej. Rent = Arriendo).
 const SINONIMOS_HORMIGA={rent:'arriendo'};
 
@@ -500,20 +536,20 @@ function renderGastoHormiga(){
   const el=document.getElementById('gasto-hormiga-list');
   if(!el)return;
   const gastos=entries.filter(e=>
-    e.txType!=='ingreso'
-    &&e.cat!=='Transferencia'
-    &&e.cat!=='[Ajuste de saldo]'
-    &&!CATS_EXCLUIDAS_HORMIGA.includes(e.cat)
+    esGastoReal(e)
+    &&!CATS_EXCLUIDAS_HORMIGA.has(e.cat)
     &&!NOMBRES_EXCLUIDOS_HORMIGA.test(e.name)
+    &&entryCOP(e)<=TOPE_HORMIGA_UNITARIO // una compra grande nunca es hormiga, se repita o no
   );
   const grupos={};
   gastos.forEach(e=>{
     let clave=e.name.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' ');
     if(!clave)return;
     if(SINONIMOS_HORMIGA[clave])clave=SINONIMOS_HORMIGA[clave];
-    if(!grupos[clave])grupos[clave]={nombre:e.name,meses:new Set(),total:0,cat:e.cat,ultimaFecha:e.date};
+    if(!grupos[clave])grupos[clave]={nombre:e.name,meses:new Set(),total:0,compras:0,cat:e.cat,ultimaFecha:e.date};
     grupos[clave].meses.add(e.date.slice(0,7));
     grupos[clave].total+=entryCOP(e);
+    grupos[clave].compras++;
     if(e.date>grupos[clave].ultimaFecha){ grupos[clave].ultimaFecha=e.date; grupos[clave].nombre=e.name; }
   });
   const recurrentes=Object.values(grupos)
@@ -521,13 +557,14 @@ function renderGastoHormiga(){
     .map(g=>{
       const mesesCount=g.meses.size;
       const promedioMensual=g.total/mesesCount;
-      return {...g,mesesCount,promedioMensual,anual:promedioMensual*12};
+      return {...g,mesesCount,promedioMensual,anual:promedioMensual*12,
+              promedioPorCompra:g.total/g.compras};
     })
     .sort((a,b)=>b.anual-a.anual)
     .slice(0,10);
 
   if(recurrentes.length===0){
-    el.innerHTML='<div style="color:var(--text3);font-size:12px;padding:8px 0">Todavía no hay suficiente historial para detectar patrones recurrentes — necesitas el mismo gasto registrado en al menos 2 meses distintos.</div>';
+    el.innerHTML=`<div style="color:var(--text3);font-size:12px;padding:8px 0">Sin fugas detectadas. Se cuentan compras de menos de ${fmtCOP(TOPE_HORMIGA_UNITARIO)} que repites en 2 o más meses — el arriendo, la EPS o los aportes no cuentan, porque no son gastos que se te escapen.</div>`;
     return;
   }
 
@@ -536,7 +573,7 @@ function renderGastoHormiga(){
     return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
       <div style="min-width:0">
         <div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(g.nombre)}</div>
-        <div style="font-size:9px;color:var(--text3)"><span style="color:${c}">${scat(g.cat)}</span> · ${g.mesesCount} meses · ~${fmtCOP(g.promedioMensual)}/mes</div>
+        <div style="font-size:9px;color:var(--text3)"><span style="color:${c}">${scat(g.cat)}</span> · ${g.compras} compras de ~${fmtCOP(g.promedioPorCompra)} · ${g.mesesCount} meses · ~${fmtCOP(g.promedioMensual)}/mes</div>
       </div>
       <div style="text-align:right;flex-shrink:0;padding-left:10px">
         <div style="font-family:var(--mono);font-weight:700;font-size:13px">${fmtCOP(g.anual)}</div>
@@ -574,7 +611,7 @@ function renderMonthComparison(){
   const monthNames=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
   const byMonth={};
   // Ya no hay meses "archivados" — entries contiene todo el historial completo
-  entries.filter(e=>e.txType!=='ingreso'&&e.cat!=='Transferencia').forEach(e=>{
+  entries.filter(esGastoReal).forEach(e=>{
     const m=e.date.slice(0,7);
     byMonth[m]=(byMonth[m]||0)+entryCOP(e);
   });
@@ -608,7 +645,7 @@ function renderCategoryTrend(){
   const el=document.getElementById('category-trend-chart');
   if(!el)return;
 
-  const gastosReales=entries.filter(e=>e.txType!=='ingreso'&&e.cat!=='Transferencia');
+  const gastosReales=entries.filter(esGastoReal);
   const todosLosMeses=[...new Set(gastosReales.map(e=>e.date.slice(0,7)))].sort();
   const meses=todosLosMeses.slice(-6);
   if(meses.length===0){
