@@ -131,7 +131,7 @@ function calcularSaldoHistorico(mesSeleccionado){
     // reconstruir con datos que no son de fiar produciría un número sin sentido.
     return {nequi:accounts.nequi,debito:accounts.debito,arq:accounts.arq,ontop:accounts.ontop,esHistorico:false,fallo:cargaConFallos&&mesSeleccionado<hoy};
   }
-  const cuentas=CUENTAS_GASTO_DIARIO;
+  const cuentas=cuentasDeGastoDiario();
   const saldos={};
   cuentas.forEach(acc=>{ saldos[acc]=accounts[acc]; });
   entries.forEach(e=>{
@@ -176,10 +176,29 @@ function calcularPatrimonioMes(mesISO){
   return {liquido,deuda,neto:liquido-deuda};
 }
 
-// Cuentas de las que se gasta en el día a día. Nu (fondo de emergencia), Lulo (ahorro vivienda)
-// y las cuentas dinámicas quedan fuera a propósito: son ahorro, y contarlas como "libre para
-// gastar" haría creer que hay más plata disponible de la que realmente hay.
-const CUENTAS_GASTO_DIARIO=['nequi','debito','arq','ontop'];
+// Cuentas de ahorro "de fábrica": el fondo de emergencia y el ahorro de vivienda.
+const CUENTAS_AHORRO_BASE=['nu','lulo'];
+
+/**
+ * Cuentas donde guardas plata que NO es para gastar: las dos de arriba, las que creaste tú
+ * (el botón las llama "bolsillo de ahorro") y cualquiera vinculada a una meta.
+ *
+ * Antes esto era una lista fija al revés — cuatro slugs marcados como "de gasto" — así que
+ * una cuenta de ahorro nueva quedaba bien por casualidad, pero vincular una meta a una cuenta
+ * existente no la sacaba del disponible.
+ */
+function cuentasDeAhorro(){
+  const ahorro=new Set(CUENTAS_AHORRO_BASE);
+  Object.keys(typeof dynamicAccounts!=='undefined'?dynamicAccounts:{}).forEach(k=>ahorro.add(k));
+  (typeof goals!=='undefined'?goals:[]).forEach(g=>{ if(g.type==='cuenta'&&g.acc)ahorro.add(g.acc); });
+  return ahorro;
+}
+
+/** Cuentas líquidas de las que sí puedes gastar: todo lo que no es crédito ni ahorro. */
+function cuentasDeGastoDiario(){
+  const ahorro=cuentasDeAhorro();
+  return Object.keys(ACCOUNTS_META).filter(k=>ACCOUNTS_META[k].type!=='credito'&&!ahorro.has(k));
+}
 
 /** Suma en COP de un grupo de cuentas, convirtiendo las que están en dólares. */
 function sumarEnCOP(slugs){
@@ -193,7 +212,7 @@ function sumarEnCOP(slugs){
 
 /** Plata disponible para gastar este mes (sin tocar los ahorros). Es lo que muestra el hero. */
 function calcularSaldoDisponible(){
-  return sumarEnCOP(CUENTAS_GASTO_DIARIO);
+  return sumarEnCOP(cuentasDeGastoDiario());
 }
 
 /** Todo el dinero líquido, ahorros y cuentas creadas por ti incluidos. Es la base del patrimonio. */
@@ -202,10 +221,42 @@ function calcularLiquidezTotal(){
   return sumarEnCOP(slugs);
 }
 
+/**
+ * Cuánta plata de este ciclo quedó apartada en ahorro: lo que moviste hacia cuentas de ahorro,
+ * menos lo que sacaste de ellas, más los ingresos que entraron directo al ahorro.
+ *
+ * Sirve para que el desglose cuadre. El hero dice "Ingresos − Gastos = Saldo actual", pero si
+ * moviste un millón a Lulo esa resta no daba: la plata ni se gastó ni sigue disponible, y el
+ * millón simplemente desaparecía de la cuenta sin aparecer en ningún renglón.
+ *
+ * Limitación: una transferencia solo deja registro en la cuenta de ORIGEN, así que el destino
+ * se deduce del nombre que la app misma genera ("Transferencia X → Y"). Si renombras una
+ * cuenta, sus transferencias viejas dejan de reconocerse: el número se queda corto, nunca se
+ * pasa de largo.
+ */
+function apartadoAAhorro(ciclo){
+  const ahorro=cuentasDeAhorro();
+  const slugPorEtiqueta={};
+  Object.keys(ACCOUNTS_META).forEach(k=>{ slugPorEtiqueta[ACCOUNTS_META[k].label]=k; });
+
+  return entries.filter(e=>cicloDe(e.date)===ciclo).reduce((suma,e)=>{
+    if(e.cat==='Transferencia'){
+      const destino=slugPorEtiqueta[(e.name.split('→')[1]||'').trim()];
+      if(!destino)return suma; // destino no identificable: mejor no contarlo que contarlo mal
+      const sale=ahorro.has(e.acc), entra=ahorro.has(destino);
+      if(entra&&!sale)return suma+entryCOP(e);
+      if(sale&&!entra)return suma-entryCOP(e); // sacaste ahorro para gastarlo
+      return suma;                             // entre dos cuentas del mismo tipo no cambia nada
+    }
+    if(esIngresoReal(e)&&ahorro.has(e.acc))return suma+entryCOP(e); // ingreso que cayó directo al ahorro
+    return suma;
+  },0);
+}
+
 /** Pendientes por pagar que saldrán de las cuentas de gasto diario, en COP. */
 function sumarPendientesDeGastoDiario(){
   return pendientes
-    .filter(p=>!p.isIncome&&CUENTAS_GASTO_DIARIO.includes(p.acc))
+    .filter(p=>!p.isIncome&&cuentasDeGastoDiario().includes(p.acc))
     .reduce((s,p)=>{
       const meta=ACCOUNTS_META[p.acc];
       if(!meta)return s; // cuenta eliminada
@@ -249,6 +300,7 @@ function updateNetWorth(){
     simpleEl.style.display='none';
     const pendCOP=sumarPendientesDeGastoDiario();
     const libreReal=saldoFinal-pendCOP;
+    const ahorroApartado=apartadoAAhorro(currentMonth);
 
     const ingresosEl=document.getElementById('ats-ingresos');
     const gastosEl=document.getElementById('ats-gastos');
@@ -268,8 +320,21 @@ function updateNetWorth(){
       libreEl.style.color=libreReal>500000?'var(--safe)':libreReal>0?'var(--warn)':'var(--danger)';
     }
 
+    // La fila de ahorro solo aparece si de verdad apartaste algo: si no, sería un renglón en
+    // cero que estorba. Cuando aparece, el desglose sí cuadra — antes "Ingresos − Gastos"
+    // no daba el saldo actual y la diferencia (lo que moviste a ahorro) no salía por ningún lado.
+    const ahorroRow=document.getElementById('ats-ahorro-row');
+    const ahorroEl=document.getElementById('ats-ahorro');
+    if(ahorroRow&&ahorroEl){
+      const hay=Math.abs(ahorroApartado)>=1;
+      ahorroRow.style.display=hay?'block':'none';
+      if(hay)ahorroEl.textContent=fmtCOP(ahorroApartado);
+    }
+
     const subEl=document.getElementById('ats-sub');
-    if(subEl)subEl.innerHTML='Ingresos − Gastos = Saldo actual · Menos pendientes = Libre real para gastar';
+    if(subEl)subEl.innerHTML=Math.abs(ahorroApartado)>=1
+      ? 'Ingresos − Gastos − Apartado a ahorro = Saldo actual · Menos pendientes = Libre real para gastar'
+      : 'Ingresos − Gastos = Saldo actual · Menos pendientes = Libre real para gastar';
   }else{
     breakdownEl.style.display='none';
     simpleEl.style.display='block';

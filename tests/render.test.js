@@ -10,6 +10,7 @@ const src = cargarFuente([
   'js/movimientos.js',
   'js/cuentas-carga.js',
   'js/balances-formato.js',
+  'js/metas.js',
   'js/movimiento-list-renderer.js',
   'js/pendiente-list-renderer.js',
 ]);
