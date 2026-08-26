@@ -529,8 +529,34 @@ const CATS_EXCLUIDAS_HORMIGA=new Set([
 ]);
 // Nombres que tampoco son fuga aunque caigan en una categoría genérica como "Otro".
 const NOMBRES_EXCLUIDOS_HORMIGA=/donaci|aporte|diezmo|ofrenda|ahorro|arriendo|inversi/i;
-// Sinónimos que deben agruparse como el mismo gasto (ej. Rent = Arriendo).
-const SINONIMOS_HORMIGA={rent:'arriendo'};
+/**
+ * Alias para agrupar un mismo gasto que registras con nombres distintos.
+ *
+ * Registrar a veces en español y a veces en inglés partía una sola fuga en dos filas
+ * ("Gasolina" y "Fuel" salían por separado, cada una con su proyección anual), lo que además
+ * subestima el costo real de cada una. Se resuelven palabra por palabra sobre el nombre ya
+ * normalizado, así que funciona tanto con "Fuel" como con "Fuel moto" — antes solo se
+ * comparaba el nombre completo y bastaba una palabra extra para que no agrupara.
+ */
+const SINONIMOS_HORMIGA={
+  fuel:'gasolina', combustible:'gasolina', tanqueada:'gasolina', tanqueo:'gasolina',
+  groceries:'mercado', supermarket:'mercado', market:'mercado',
+  lunch:'almuerzo', dinner:'cena', breakfast:'desayuno', food:'comida',
+  parking:'parqueadero',
+  coffee:'cafe',
+  gym:'gimnasio',
+  rent:'arriendo',
+};
+
+/** Nombre normalizado y con los alias ya resueltos — es la clave con la que se agrupa. */
+function claveHormiga(nombre){
+  return String(nombre).trim().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/\s+/g,' ')
+    .split(' ')
+    .map(palabra=>SINONIMOS_HORMIGA[palabra]||palabra)
+    .join(' ');
+}
 
 function renderGastoHormiga(){
   const el=document.getElementById('gasto-hormiga-list');
@@ -543,18 +569,34 @@ function renderGastoHormiga(){
   );
   const grupos={};
   gastos.forEach(e=>{
-    let clave=e.name.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' ');
+    const clave=claveHormiga(e.name);
     if(!clave)return;
-    if(SINONIMOS_HORMIGA[clave])clave=SINONIMOS_HORMIGA[clave];
-    if(!grupos[clave])grupos[clave]={nombre:e.name,meses:new Set(),total:0,compras:0,cat:e.cat,ultimaFecha:e.date};
-    grupos[clave].meses.add(e.date.slice(0,7));
-    grupos[clave].total+=entryCOP(e);
-    grupos[clave].compras++;
-    if(e.date>grupos[clave].ultimaFecha){ grupos[clave].ultimaFecha=e.date; grupos[clave].nombre=e.name; }
+    if(!grupos[clave])grupos[clave]={meses:new Set(),total:0,compras:0,vecesPorNombre:{},vecesPorCat:{},ultimaFecha:e.date};
+    const g=grupos[clave];
+    g.meses.add(e.date.slice(0,7));
+    g.total+=entryCOP(e);
+    g.compras++;
+    // Cuando varios nombres se agrupan (ej. "Gasolina" y "Fuel"), la fila se rotula con el
+    // que más veces usaste, no con el último: un nombre suelto no debería renombrar el grupo.
+    // En empate gana el más reciente.
+    g.vecesPorNombre[e.name]=(g.vecesPorNombre[e.name]||0)+1;
+    g.vecesPorCat[e.cat]=(g.vecesPorCat[e.cat]||0)+1;
+    if(e.date>=g.ultimaFecha){ g.ultimaFecha=e.date; g.nombreReciente=e.name; g.catReciente=e.cat; }
   });
+  /** El valor más usado; si hay empate, el del movimiento más reciente. */
+  const masFrecuente=(conteo,recientePorDefecto)=>{
+    let mejor=recientePorDefecto,max=0;
+    for(const [valor,veces] of Object.entries(conteo)){
+      if(veces>max||(veces===max&&valor===recientePorDefecto)){ max=veces; mejor=valor; }
+    }
+    return mejor;
+  };
+
   const recurrentes=Object.values(grupos)
     .filter(g=>g.meses.size>=2)
     .map(g=>{
+      g.nombre=masFrecuente(g.vecesPorNombre,g.nombreReciente);
+      g.cat=masFrecuente(g.vecesPorCat,g.catReciente);
       const mesesCount=g.meses.size;
       const promedioMensual=g.total/mesesCount;
       return {...g,mesesCount,promedioMensual,anual:promedioMensual*12,
