@@ -11,12 +11,22 @@ function formatearInputMonto(el){
 }
 
 // Actualiza la moneda activa (variable global + atributo DOM) y el placeholder.
-// Limpia el valor si la moneda cambia.
+// Si cambia de moneda y ya había un monto escrito, lo CONVIERTE con la TRM en vez de borrarlo
+// — cambiar de cuenta a mitad de escribir un gasto no debería obligar a escribirlo de nuevo.
 function setAmountInputMode(inp, isUSD, placeholderCOP){
   if(!inp) return;
   const next=isUSD?'USD':'COP';
   const prev=_monedaInput[inp.id]||inp.getAttribute('data-currency')||'COP';
-  if(prev!==next) inp.value='';
+  if(prev!==next){
+    const valorPrevio=prev==='USD'?(parseFloat(inp.value)||0):parseMontoFormateado(inp.value);
+    const trm=(typeof accounts!=='undefined'&&accounts.trm>0)?accounts.trm:0;
+    if(valorPrevio>0&&trm>0){
+      const convertido=next==='USD'?redondear3(valorPrevio/trm):redondear3(valorPrevio*trm);
+      inp.value=next==='USD'?String(convertido):Math.round(convertido).toLocaleString('es-CO');
+    }else{
+      inp.value='';
+    }
+  }
   _monedaInput[inp.id]=next;
   inp.setAttribute('data-currency',next);
   inp.placeholder=isUSD?'0.00':(placeholderCOP||'Monto');
