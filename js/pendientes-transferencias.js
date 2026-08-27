@@ -227,30 +227,72 @@ function onTransferAccChange(){
   }
 }
 
+/**
+ * Toda la aritmética de una transferencia, sin tocar cuentas ni DOM — para poder mostrar la
+ * confirmación con los números ya calculados, y para probarla sin simular la pantalla.
+ * Devuelve {error} si algo no es válido, o el desglose completo si es válida.
+ */
+function calcularTransferencia({origen,destino,monto,trm,recibidoManual}){
+  if(!monto||monto<=0)return{error:'monto'};
+  if(origen===destino)return{error:'mismaCuenta'};
+  const metaO=ACCOUNTS_META[origen],metaD=ACCOUNTS_META[destino];
+  const mismaMoneda=metaO.currency===metaD.currency;
+  // Entre monedas distintas se divide o multiplica por la TRM: sin este control, una TRM de 0
+  // convertiría el saldo destino en Infinity.
+  if(!mismaMoneda&&(!trm||trm<=0||isNaN(trm)))return{error:'trm'};
+
+  let recibidoTeorico;
+  if(mismaMoneda){ recibidoTeorico=monto; }
+  else if(metaO.currency==='USD'){ recibidoTeorico=redondear3(monto*trm); }
+  else{ recibidoTeorico=redondear3(monto/trm); }
+
+  const huboMontoManual=!isNaN(recibidoManual);
+  const recibido=huboMontoManual?recibidoManual:recibidoTeorico;
+  const comision=redondear3(recibidoTeorico-recibido);
+  const huboComision=huboMontoManual&&comision>0.009;
+
+  return{error:null,origen,destino,metaO,metaD,mismaMoneda,monto,trm,recibidoTeorico,recibido,comision,huboComision};
+}
+
+/** El texto de confirmación antes de ejecutar — con la conversión ya hecha, no solo la TRM. */
+function mensajeConfirmacionTransferencia(c){
+  const fmt=(monto,moneda)=>moneda==='USD'?fmtUSD(monto):fmtCOP(monto);
+  if(c.mismaMoneda){
+    return`¿Transferir ${fmt(c.monto,c.metaO.currency)} de ${c.metaO.label} a ${c.metaD.label}?`;
+  }
+  const direccion=c.metaO.currency==='USD'?'Dólares → Pesos':'Pesos → Dólares';
+  let msg=`💱 ${direccion}\n\nEnvías ${fmt(c.monto,c.metaO.currency)} desde ${c.metaO.label}\n`+
+    `Llegan ${fmt(c.recibidoTeorico,c.metaD.currency)} a ${c.metaD.label}\n\nTRM usada: $${c.trm.toLocaleString('es-CO')}`;
+  if(c.huboComision){
+    msg+=`\n\n⚠ Con el monto recibido que escribiste, en realidad llegan ${fmt(c.recibido,c.metaD.currency)} — `+
+      `${fmt(c.comision,c.metaD.currency)} menos por comisión.`;
+  }
+  return msg;
+}
+
 async function doTransfer(){
   const origen=document.getElementById('tr-origen').value;
   const destino=document.getElementById('tr-destino').value;
   const monto=redondear3(parseFloat(document.getElementById('tr-monto').value));
   const trm=parseFloat(document.getElementById('tr-trm').value)||accounts.trm;
-  let recibido=redondear3(parseFloat(document.getElementById('tr-recibido').value));
-  if(!monto||monto<=0){ toastError('⚠ El monto a transferir debe ser mayor a 0'); marcarInvalido(document.getElementById('tr-monto')); return; }
-  if(origen===destino){ toastError('⚠ La cuenta de origen y destino deben ser distintas'); return; }
+  const recibidoManual=redondear3(parseFloat(document.getElementById('tr-recibido').value));
 
-  const metaO=ACCOUNTS_META[origen], metaD=ACCOUNTS_META[destino];
-  // Entre monedas distintas se divide o multiplica por la TRM: sin este control, una TRM de 0
-  // convertiría el saldo destino en Infinity.
-  if(metaO.currency!==metaD.currency&&(!trm||trm<=0||isNaN(trm))){
+  const calc=calcularTransferencia({origen,destino,monto,trm,recibidoManual});
+  if(calc.error==='monto'){ toastError('⚠ El monto a transferir debe ser mayor a 0'); marcarInvalido(document.getElementById('tr-monto')); return; }
+  if(calc.error==='mismaCuenta'){ toastError('⚠ La cuenta de origen y destino deben ser distintas'); return; }
+  if(calc.error==='trm'){
     toastError('⚠ Necesitas una TRM mayor a 0 para transferir entre monedas distintas');
     marcarInvalido(document.getElementById('tr-trm'));
     return;
   }
-  let recibidoTeorico;
-  if(metaO.currency===metaD.currency){ recibidoTeorico=monto; }
-  else if(metaO.currency==='USD'&&metaD.currency==='COP'){ recibidoTeorico=redondear3(monto*trm); }
-  else if(metaO.currency==='COP'&&metaD.currency==='USD'){ recibidoTeorico=redondear3(monto/trm); }
 
-  const huboMontoManual=!isNaN(recibido);
-  if(!huboMontoManual)recibido=recibidoTeorico;
+  // Antes de mover nada: mostrar exactamente cuánto sale, cuánto llega y con qué TRM, sobre
+  // todo cuando hay conversión de moneda — para que no sea una sorpresa después de guardado.
+  const confirmado=await customConfirm(mensajeConfirmacionTransferencia(calc),{textoSi:'Sí, transferir'});
+  if(!confirmado)return;
+
+  const{metaO,metaD,recibidoTeorico,huboComision,comision}=calc;
+  let recibido=calc.recibido;
 
   accounts[origen]=redondear3(accounts[origen]-monto);
   accounts[destino]=redondear3(accounts[destino]+recibido);
@@ -267,8 +309,6 @@ async function doTransfer(){
   ];
 
   // Comisión detectada: si lo recibido es menor a lo teórico, se registra como movimiento visible (sin volver a tocar saldos, solo para trazabilidad)
-  const comision=recibidoTeorico-recibido;
-  const huboComision=huboMontoManual&&comision>0.009;
   if(huboComision){
     filasNuevas.push({
       fecha:todayStr(),nombre:`Comisión transferencia ${metaO.label} → ${metaD.label}`,
