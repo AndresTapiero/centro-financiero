@@ -41,6 +41,14 @@ function resetMoneda() {
   _monedaInput['pend-amount']    = 'COP';
 }
 
+// 'accounts' es un `let` de nivel superior: asignar src.accounts=... no lo actualiza (el
+// binding real vive en el entorno léxico del script, no como propiedad del objeto global).
+// Hay que reasignarlo con __eval, igual que con pendingSaves en otros archivos de test.
+function fijarAccounts(obj) {
+  src.__fijarTmp = obj;
+  src.__eval('accounts = globalThis.__fijarTmp');
+}
+
 // ─── Tests: formatearInputMonto (COP) ─────────────────────────────────────────
 console.log('\nformatearInputMonto (COP, variable global):');
 
@@ -204,6 +212,54 @@ for (const v of [3039260, 605254, 3000, 1187348, 999, 0]) {
 for (const v of [231.28, 73.75, 0.99]) {
   test(`fmtUSD(${v}) → parseNum → ${v}`, () => assertClose(parseNum(fmtUSD(v)), v));
 }
+
+// ─── setAmountInputMode — conversión al cambiar de moneda ────────────────────
+// Reportado: escribir un monto y luego cambiar de cuenta (COP a USD o viceversa) lo dejaba en
+// cero. La idea es que el monto siga siendo "el mismo dinero", convertido con la TRM, en vez
+// de forzar a escribirlo de nuevo.
+console.log('\nsetAmountInputMode — convierte con la TRM en vez de borrar:');
+
+test('COP → USD: convierte con la TRM en vez de vaciar', () => {
+  resetMoneda();
+  fijarAccounts({ trm: 4000 });
+  const el = mockInput('inp-amount', '400.000', 'COP');
+  setAmountInputMode(el, true, '0');
+  assert(el.value, '100'); // 400.000 / 4000
+});
+
+test('USD → COP: convierte con la TRM en vez de vaciar', () => {
+  resetMoneda();
+  fijarAccounts({ trm: 4000 });
+  const el = mockInput('inp-amount', '', 'COP');
+  setAmountInputMode(el, true, '0'); // primero a USD, sin monto
+  el.value = '10.5';
+  setAmountInputMode(el, false, 'Monto'); // vuelve a COP
+  assert(el.value, '42.000'); // 10.5 * 4000, formateado con puntos de miles
+});
+
+test('sin TRM disponible, sigue limpiando como antes (no puede convertir)', () => {
+  resetMoneda();
+  fijarAccounts({}); // sin trm
+  const el = mockInput('inp-amount', '400.000', 'COP');
+  setAmountInputMode(el, true, '0');
+  assert(el.value, '');
+});
+
+test('campo vacío al cambiar de moneda: sigue vacío, no aparece un $0', () => {
+  resetMoneda();
+  fijarAccounts({ trm: 4000 });
+  const el = mockInput('inp-amount', '', 'COP');
+  setAmountInputMode(el, true, '0');
+  assert(el.value, '');
+});
+
+test('misma moneda no convierte ni toca el valor (regresión)', () => {
+  resetMoneda();
+  fijarAccounts({ trm: 4000 });
+  const el = mockInput('inp-amount', '15.000', 'COP');
+  setAmountInputMode(el, false, 'Monto');
+  assert(el.value, '15.000');
+});
 
 console.log(`\n${'─'.repeat(46)}`);
 console.log(`  ${passed} passed  |  ${failed} failed`);
