@@ -531,6 +531,7 @@ const CATS_EXCLUIDAS_HORMIGA=new Set([
   'Pago Deuda','Intereses','Comisión',       // costo financiero
   'Inversiones',                             // es ahorro, no gasto
   'Vehículo · Seguros','Vehículo · Taller',  // irregulares y obligatorios
+  'Donación',                                // decisión deliberada, no una fuga
 ]);
 // Nombres que tampoco son fuga aunque caigan en una categoría genérica como "Otro".
 const NOMBRES_EXCLUIDOS_HORMIGA=/donaci|aporte|diezmo|ofrenda|ahorro|arriendo|inversi/i;
