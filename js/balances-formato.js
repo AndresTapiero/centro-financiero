@@ -498,6 +498,7 @@ const KEYWORD_MAP=[
   {keywords:['corte','peluqueria','barberia','manicure'],cat:'Cuidado personal'},
   {keywords:['skin','serum','protector solar','hidratante','facial','tonico','retinol','colageno','limpiador','fotoprotector','contorno de ojos'],cat:'Cuidado personal · Skin Care'},
   {keywords:['pago tarjeta','pago tc','pago rappi card','pago davivienda'],cat:'Pago Deuda'},
+  {keywords:['donacion','diezmo','ofrenda','caridad'],cat:'Donación'},
 ];
 
 /**
