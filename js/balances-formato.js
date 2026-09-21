@@ -499,6 +499,10 @@ const KEYWORD_MAP=[
   {keywords:['skin','serum','protector solar','hidratante','facial','tonico','retinol','colageno','limpiador','fotoprotector','contorno de ojos'],cat:'Cuidado personal · Skin Care'},
   {keywords:['pago tarjeta','pago tc','pago rappi card','pago davivienda'],cat:'Pago Deuda'},
   {keywords:['donacion','diezmo','ofrenda','caridad'],cat:'Donación'},
+  {keywords:['hotel','hostal','airbnb','hospedaje'],cat:'Turismo · Alojamiento'},
+  {keywords:['vuelo','avion','aerolinea','tiquete aereo'],cat:'Turismo · Transporte'},
+  {keywords:['tour','excursion','entrada museo','paseo turistico'],cat:'Turismo · Actividades'},
+  {keywords:['souvenir','recuerdo de viaje','artesania'],cat:'Turismo · Compras'},
 ];
 
 /**

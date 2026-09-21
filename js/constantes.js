@@ -1,5 +1,5 @@
 
-const CAPS_DEFAULT={'Alimentación · Mercado':800000,'Alimentación · Comidas afuera · Entre semana':200000,'Alimentación · Comidas afuera · Fin de semana':300000,'Deportes · Ciclismo':150000,'Servicios':400000,'Salud':1000000,'Vehículo · Seguros':615500,'Vehículo · Gasolina':150000,'Vehículo · Taller':200000,'Vehículo · Lavada':50000,'Vehículo · Parqueadero':80000,'Entretenimiento':450000,'Suscripciones':150000,'Ropa':200000,'Tecnología':200000,'Hogar':200000,'Transporte':150000,'Regalos':100000,'Arriendo':1630000,'Inversiones':300000,'Donación':900000};
+const CAPS_DEFAULT={'Alimentación · Mercado':800000,'Alimentación · Comidas afuera · Entre semana':200000,'Alimentación · Comidas afuera · Fin de semana':300000,'Deportes · Ciclismo':150000,'Servicios':400000,'Salud':1000000,'Vehículo · Seguros':615500,'Vehículo · Gasolina':150000,'Vehículo · Taller':200000,'Vehículo · Lavada':50000,'Vehículo · Parqueadero':80000,'Entretenimiento':450000,'Suscripciones':150000,'Ropa':200000,'Tecnología':200000,'Hogar':200000,'Transporte':150000,'Regalos':100000,'Arriendo':1630000,'Inversiones':300000,'Donación':900000,'Turismo · Alojamiento':300000,'Turismo · Transporte':200000,'Turismo · Actividades':150000,'Turismo · Alimentación':150000,'Turismo · Compras':100000};
 let CAPS=Object.assign({},CAPS_DEFAULT);
 const COLORS={
   // Alimentación e Ingresos comparten familia esmeralda (dinero que entra / sustento) — 3 tonos
@@ -8,6 +8,9 @@ const COLORS={
   // Vehículo y Hogar: familia ámbar (combustible/mantenimiento) — 5 tonos progresivos
   'Vehículo · Gasolina':'#F59E0B','Vehículo · Taller':'#D97706','Vehículo · Lavada':'#FBBF24','Vehículo · Seguros':'#B45309','Vehículo · Parqueadero':'#92400E',
   'Regalos':'#FCD34D','Arriendo':'#C2410C','Inversiones':'#0EA5E9','Donación':'#F97316',
+  // Turismo: familia turquesa (viaje/descanso) — 5 tonos progresivos, mismo patrón que Vehículo
+  'Turismo · Alojamiento':'#2DD4BF','Turismo · Transporte':'#14B8A6','Turismo · Actividades':'#0D9488',
+  'Turismo · Alimentación':'#0F766E','Turismo · Compras':'#115E59',
   // Salud y Deportes: familia cian (bienestar)
   'Deportes · Ciclismo':'#06B6D4','Salud':'#0891B2',
   // Transporte y Tecnología: familia azul/violeta
@@ -56,7 +59,9 @@ function topeControlable(){
 }
 // Categorías irregulares: no ocurren cada mes (taller, seguros anuales) — se excluyen del "ritmo de gasto"
 // para no distorsionar el semáforo cuando aparecen de forma puntual, pero siguen teniendo su propio tope visible.
-const CATEGORIAS_IRREGULARES=new Set(['Vehículo · Taller','Vehículo · Seguros']);
+// Turismo entra aquí también: un viaje no ocurre cada mes, así que no debe distorsionar
+// el ritmo de gasto diario cuando aparece de forma puntual.
+const CATEGORIAS_IRREGULARES=new Set(['Vehículo · Taller','Vehículo · Seguros','Turismo · Alojamiento','Turismo · Transporte','Turismo · Actividades','Turismo · Alimentación','Turismo · Compras']);
 const ACCOUNTS_META={
   nequi:{label:'Nequi',currency:'COP',type:'debito'},
   debito:{label:'Davivienda',currency:'COP',type:'debito'},
