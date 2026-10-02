@@ -45,10 +45,19 @@ test('las tarjetas de crédito nunca son "disponible"', () => {
   limpiar();
   for (const tc of ['davtc','rappitc']) ok(!cuentasDeGastoDiario().includes(tc));
 });
-test('un bolsillo que creaste cuenta como ahorro', () => {
+test('una cuenta que creaste es de GASTO por defecto (ej. donde cae un segundo salario)', () => {
   limpiar();
   ev("ACCOUNTS_META['acc_viaje']={label:'Viaje',currency:'COP',type:'debito'}");
   set('dynamicAccounts', {acc_viaje:{label:'Viaje',currency:'COP'}});
+  ok(!cuentasDeAhorro().has('acc_viaje'));
+  ok(cuentasDeGastoDiario().includes('acc_viaje'));
+  limpiar();
+});
+test('una cuenta que creaste pasa a ahorro al vincularla a una meta', () => {
+  limpiar();
+  ev("ACCOUNTS_META['acc_viaje']={label:'Viaje',currency:'COP',type:'debito'}");
+  set('dynamicAccounts', {acc_viaje:{label:'Viaje',currency:'COP'}});
+  set('goals', [{id:'g',name:'Viaje',type:'cuenta',acc:'acc_viaje',target:5000000}]);
   ok(cuentasDeAhorro().has('acc_viaje'));
   ok(!cuentasDeGastoDiario().includes('acc_viaje'));
   limpiar();

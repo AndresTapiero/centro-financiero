@@ -129,7 +129,7 @@ function calcularSaldoHistorico(mesSeleccionado){
     // Si el mes es el actual (o futuro), O si la carga de datos falló y "entries" podría ser
     // el seed de ejemplo (no tus movimientos reales), mostramos el saldo de hoy sin reconstruir —
     // reconstruir con datos que no son de fiar produciría un número sin sentido.
-    return {nequi:accounts.nequi,debito:accounts.debito,arq:accounts.arq,ontop:accounts.ontop,esHistorico:false,fallo:cargaConFallos&&mesSeleccionado<hoy};
+    return {bruto:calcularSaldoDisponible(),esHistorico:false,fallo:cargaConFallos&&mesSeleccionado<hoy};
   }
   const cuentas=cuentasDeGastoDiario();
   const saldos={};
@@ -140,7 +140,9 @@ function calcularSaldoHistorico(mesSeleccionado){
     const sign=e.txType==='gasto'?1:-1;
     saldos[e.acc]+=sign*e.amount; // reversa exacta de la operación que hizo addEntry/deleteEntry en su momento
   });
-  return {...saldos,esHistorico:true,fallo:false};
+  // Suma sobre las cuentas de gasto reales (no cuatro slugs fijos), convirtiendo las de dólares
+  const bruto=cuentas.reduce((t,a)=>t+(ACCOUNTS_META[a].currency==='USD'?saldos[a]*accounts.trm:saldos[a]),0);
+  return {bruto,esHistorico:true,fallo:false};
 }
 
 /**
@@ -149,15 +151,18 @@ function calcularSaldoHistorico(mesSeleccionado){
  * posteriores. A diferencia de calcularSaldoHistorico (solo nequi/debito/arq/ontop,
  * pensada para el hero de Cuentas), esta también reconstruye nu, lulo y las tarjetas
  * de crédito, para poder graficar la serie completa de patrimonio en Métricas.
- * Limitaciones: no incluye cuentas dinámicas creadas por el usuario (metas de ahorro
- * personalizadas), y ARQ/Ontop se convierten con la TRM de HOY, no la histórica.
+ * Incluye las cuentas creadas por el usuario (en pesos o dólares). Limitación: las cuentas en
+ * dólares se convierten con la TRM de HOY, no la histórica.
  */
 function calcularPatrimonioMes(mesISO){
   const hoy=cicloActual();
   if(mesISO>=hoy||cargaConFallos)return null; // mes actual/futuro, o datos no confiables: no reconstruir
-  const liquidAccs=['nequi','debito','nu','lulo'];
-  const usdAccs=['arq','ontop'];
-  const debtAccs=['davtc','rappitc'];
+  // Salen de ACCOUNTS_META en vez de listas fijas: con listas fijas, el dinero de una cuenta
+  // nueva (ej. "Lulo X" en dólares) no aparecía en ningún mes pasado del patrimonio.
+  const todas=Object.keys(ACCOUNTS_META);
+  const debtAccs=todas.filter(k=>ACCOUNTS_META[k].type==='credito');
+  const liquidAccs=todas.filter(k=>ACCOUNTS_META[k].type!=='credito'&&ACCOUNTS_META[k].currency!=='USD');
+  const usdAccs=todas.filter(k=>ACCOUNTS_META[k].type!=='credito'&&ACCOUNTS_META[k].currency==='USD');
   const saldos={};
   [...liquidAccs,...usdAccs,...debtAccs].forEach(a=>{ saldos[a]=accounts[a]||0; });
   entries.forEach(e=>{
@@ -180,16 +185,16 @@ function calcularPatrimonioMes(mesISO){
 const CUENTAS_AHORRO_BASE=['nu','lulo'];
 
 /**
- * Cuentas donde guardas plata que NO es para gastar: las dos de arriba, las que creaste tú
- * (el botón las llama "bolsillo de ahorro") y cualquiera vinculada a una meta.
+ * Cuentas donde guardas plata que NO es para gastar: Nu, Lulo y cualquiera vinculada a una
+ * meta de ahorro.
  *
- * Antes esto era una lista fija al revés — cuatro slugs marcados como "de gasto" — así que
- * una cuenta de ahorro nueva quedaba bien por casualidad, pero vincular una meta a una cuenta
- * existente no la sacaba del disponible.
+ * Una cuenta creada con el botón "Crear cuenta nueva" ya NO cuenta como ahorro por defecto:
+ * puede ser perfectamente una cuenta de gasto (ej. donde cae un segundo salario). Antes toda
+ * cuenta nueva se trataba como ahorro, y su saldo e ingresos quedaban fuera del "Libre real".
+ * Si es un bolsillo de ahorro, se vincula a una meta y desde ahí se reconoce como tal.
  */
 function cuentasDeAhorro(){
   const ahorro=new Set(CUENTAS_AHORRO_BASE);
-  Object.keys(typeof dynamicAccounts!=='undefined'?dynamicAccounts:{}).forEach(k=>ahorro.add(k));
   (typeof goals!=='undefined'?goals:[]).forEach(g=>{ if(g.type==='cuenta'&&g.acc)ahorro.add(g.acc); });
   return ahorro;
 }
@@ -348,7 +353,7 @@ function updateNetWorth(){
   }else{
     breakdownEl.style.display='none';
     simpleEl.style.display='block';
-    const bruto=saldoHist.nequi+saldoHist.debito+(saldoHist.arq*accounts.trm)+(saldoHist.ontop*accounts.trm);
+    const bruto=saldoHist.bruto;
     const pendCOP=saldoHist.esHistorico?0:sumarPendientesDeGastoDiario();
     const libre=bruto-pendCOP;
     document.getElementById('ats-bruto').textContent=fmtCOP(bruto);
