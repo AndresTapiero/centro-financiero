@@ -149,15 +149,18 @@ function calcularSaldoHistorico(mesSeleccionado){
  * posteriores. A diferencia de calcularSaldoHistorico (solo nequi/debito/arq/ontop,
  * pensada para el hero de Cuentas), esta también reconstruye nu, lulo y las tarjetas
  * de crédito, para poder graficar la serie completa de patrimonio en Métricas.
- * Limitaciones: no incluye cuentas dinámicas creadas por el usuario (metas de ahorro
- * personalizadas), y ARQ/Ontop se convierten con la TRM de HOY, no la histórica.
+ * Incluye las cuentas creadas por el usuario (en pesos o dólares). Limitación: las cuentas en
+ * dólares se convierten con la TRM de HOY, no la histórica.
  */
 function calcularPatrimonioMes(mesISO){
   const hoy=cicloActual();
   if(mesISO>=hoy||cargaConFallos)return null; // mes actual/futuro, o datos no confiables: no reconstruir
-  const liquidAccs=['nequi','debito','nu','lulo'];
-  const usdAccs=['arq','ontop'];
-  const debtAccs=['davtc','rappitc'];
+  // Salen de ACCOUNTS_META en vez de listas fijas: con listas fijas, el dinero de una cuenta
+  // nueva (ej. "Lulo X" en dólares) no aparecía en ningún mes pasado del patrimonio.
+  const todas=Object.keys(ACCOUNTS_META);
+  const debtAccs=todas.filter(k=>ACCOUNTS_META[k].type==='credito');
+  const liquidAccs=todas.filter(k=>ACCOUNTS_META[k].type!=='credito'&&ACCOUNTS_META[k].currency!=='USD');
+  const usdAccs=todas.filter(k=>ACCOUNTS_META[k].type!=='credito'&&ACCOUNTS_META[k].currency==='USD');
   const saldos={};
   [...liquidAccs,...usdAccs,...debtAccs].forEach(a=>{ saldos[a]=accounts[a]||0; });
   entries.forEach(e=>{
