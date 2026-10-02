@@ -1,4 +1,5 @@
-// Tests: una cuenta creada por el usuario en dólares ("Lulo X") participa en TODA la lógica
+// Tests: una cuenta creada por el usuario en dólares ("Lulo X", donde cae un segundo salario)
+// participa en TODA la lógica como cuenta de GASTO
 // node tests/cuenta-usd-dinamica.test.js
 
 import { cargarFuente } from './helpers/cargar-fuente.js';
@@ -23,52 +24,63 @@ function assert(a, b, msg) {
 function ok(c, m) { if(!c) throw new Error(m||'falló'); }
 
 const K = 'acc_lulo_x_ab12';
-const montar = (movs, saldoLuloX) => {
+const montar = (movs, saldoLuloX, metaDeAhorro=false) => {
   ev(`ACCOUNTS_META['${K}']={label:'Lulo X',currency:'USD',type:'debito'}`);
   set('dynamicAccounts', {[K]:{label:'Lulo X',currency:'USD'}});
-  set('goals', []); set('pendientes', []);
+  set('goals', metaDeAhorro?[{id:'g',name:'Ahorro USD',type:'cuenta',acc:K,target:1}]:[]); set('pendientes', []);
   set('accounts', {nequi:500000,debito:2000000,nu:0,lulo:0,arq:0,ontop:0,trm:4000,davtc:0,rappitc:0,[K]:saldoLuloX});
   set('entries', movs);
 };
 
-console.log('\nLulo X (USD) frente a la lógica de ahorro/disponible:');
+console.log('\nLulo X (USD) como cuenta de gasto (segundo salario):');
 
-test('cuenta como ahorro, no como gasto diario', () => {
+test('es cuenta de gasto diario, no de ahorro', () => {
   montar([], 0);
-  ok(cuentasDeAhorro().has(K));
-  ok(!cuentasDeGastoDiario().includes(K));
+  ok(!cuentasDeAhorro().has(K));
+  ok(cuentasDeGastoDiario().includes(K));
 });
-test('su saldo NO entra en el disponible para gastar', () => {
+test('su saldo SÍ entra en el disponible para gastar, convertido con la TRM', () => {
   montar([], 100);
-  assert(calcularSaldoDisponible(), 2500000, 'solo Nequi + Davivienda');
+  assert(calcularSaldoDisponible(), 2500000 + 100*4000);
 });
-test('su saldo SÍ entra en el patrimonio, convertido con la TRM', () => {
+test('su saldo entra también en el patrimonio', () => {
   montar([], 100);
   assert(calcularLiquidezTotal(), 2500000 + 100*4000);
 });
 
-console.log('\nUn ingreso directo a Lulo X:');
+console.log('\nUn segundo salario que cae en Lulo X:');
 
-const INGRESO = {id:'i1',date:'2026-10-02',name:'Depósito',amount:150,cat:'Ingreso · Otro',acc:K,txType:'ingreso'};
-test('cuenta como ingreso del ciclo (convertido a COP)', () => {
-  montar([INGRESO], 150);
+const SALARIO2 = {id:'i1',date:'2026-10-02',name:'Segundo salario',amount:1500,cat:'Ingreso · Salario',acc:K,txType:'ingreso'};
+test('cuenta como ingreso real del ciclo (convertido a COP)', () => {
+  montar([SALARIO2], 1500);
   const ing = src.__eval('entries').filter(e=>esIngresoReal(e)).reduce((s,e)=>s+src.entryCOP(e),0);
-  assert(ing, 150*4000);
+  assert(ing, 1500*4000);
 });
-test('se contabiliza como apartado a ahorro, no como plata para gastar', () => {
-  montar([INGRESO], 150);
-  assert(apartadoAAhorro(cicloDe('2026-10-02')), 150*4000);
+test('NO se aparta a ahorro: queda disponible para gastar', () => {
+  montar([SALARIO2], 1500);
+  assert(apartadoAAhorro(cicloDe('2026-10-02')), 0);
 });
 test('el desglose cuadra: Ingresos − Gastos − Apartado = Disponible', () => {
-  const salario = {id:'s',date:'2026-10-01',name:'Salario',amount:1000000,cat:'Ingreso · Salario',acc:'debito',txType:'ingreso'};
-  montar([salario, INGRESO], 150);
-  set('accounts', {nequi:500000,debito:3000000,nu:0,lulo:0,arq:0,ontop:0,trm:4000,davtc:0,rappitc:0,[K]:150});
+  montar([SALARIO2], 1500);
+  set('accounts', {nequi:0,debito:0,nu:0,lulo:0,arq:0,ontop:0,trm:4000,davtc:0,rappitc:0,[K]:1500});
   const c = cicloDe('2026-10-02');
   const e = src.__eval('entries').filter(x=>cicloDe(x.date)===c);
   const ing = e.filter(esIngresoReal).reduce((s,x)=>s+src.entryCOP(x),0);
   const gas = e.filter(esGastoReal).reduce((s,x)=>s+src.entryCOP(x),0);
-  // el salario entró a una cuenta de gasto: el disponible sube solo por él; lo de Lulo X queda apartado
-  assert(ing - gas - apartadoAAhorro(c), 1000000);
+  assert(ing - gas - apartadoAAhorro(c), calcularSaldoDisponible());
+});
+test('un gasto hecho desde Lulo X descuenta del disponible', () => {
+  montar([SALARIO2,{id:'g1',date:'2026-10-03',name:'Compra',amount:100,cat:'Tecnología',acc:K,txType:'gasto'}], 1400);
+  assert(calcularSaldoDisponible(), 2500000 + 1400*4000);
+});
+
+console.log('\nSi la vinculas a una meta, pasa a ser ahorro:');
+
+test('con meta vinculada: sale del disponible y su ingreso queda apartado', () => {
+  montar([SALARIO2], 1500, true);
+  ok(cuentasDeAhorro().has(K));
+  assert(calcularSaldoDisponible(), 2500000);
+  assert(apartadoAAhorro(cicloDe('2026-10-02')), 1500*4000);
 });
 
 console.log('\nPatrimonio histórico (antes ignoraba las cuentas nuevas):');
@@ -80,9 +92,20 @@ test('el dinero de Lulo X aparece en el patrimonio de un mes pasado', () => {
   assert(p.liquido, 2500000 + 100*4000);
 });
 test('si el ingreso fue DESPUÉS de ese mes, se deshace en la reconstrucción', () => {
-  montar([{...INGRESO, date:'2026-10-02'}], 150);
+  montar([SALARIO2], 1500);
+  set('accounts', {nequi:500000,debito:2000000,nu:0,lulo:0,arq:0,ontop:0,trm:4000,davtc:0,rappitc:0,[K]:1500});
   const p = calcularPatrimonioMes('2026-08');
-  assert(p.liquido, 2500000, 'en agosto Lulo X todavía no tenía los 150 USD');
+  assert(p.liquido, 2500000, 'en agosto Lulo X todavía no tenía los 1.500 USD');
+});
+
+console.log('\nSaldo disponible histórico (antes tenía 4 cuentas fijas):');
+test('un mes pasado incluye el saldo de Lulo X en el disponible', () => {
+  montar([], 100);
+  assert(src.calcularSaldoHistorico('2020-01').bruto, 2500000 + 100*4000);
+});
+test('el mes actual devuelve el disponible de hoy, con Lulo X incluida', () => {
+  montar([], 100);
+  assert(src.calcularSaldoHistorico(src.cicloActual()).bruto, 2500000 + 100*4000);
 });
 
 console.log(`\n${'─'.repeat(46)}`);
