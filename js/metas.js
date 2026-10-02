@@ -63,14 +63,19 @@ async function createDynamicAccount(name,currency){
 function refreshAllAccountSelectors(){
   populateGoalAccountOptions();
   poblarFiltroCuentaBusqueda();
-  // Movimientos, transferencias y pendientes: agregar cuentas dinámicas si no están
-  ['inp-account','tr-origen','tr-destino','pend-account'].forEach(id=>{
+  // Movimientos, modal rápido, transferencias y pendientes: agregar cuentas dinámicas si no están.
+  // 'express-account' (el modal del botón +) faltaba en esta lista: la cuenta nueva aparecía en
+  // "Nuevo movimiento" pero no al registrar un ingreso o gasto desde el modal rápido.
+  ['inp-account','express-account','tr-origen','tr-destino','pend-account','filter-account'].forEach(id=>{
     const sel=document.getElementById(id);
     if(!sel)return;
     Object.keys(dynamicAccounts).forEach(key=>{
       if(sel.querySelector(`option[value="${key}"]`))return;
       const meta=dynamicAccounts[key];
-      let group=sel.querySelector(meta.currency==='USD'?'optgroup[label*="Dólares"]':'optgroup[label*="líquidas"]');
+      // Los grupos se llaman distinto según el selector ("Dólares (USD)" en unos, "USD" en el
+      // modal rápido): se busca por cualquiera de las dos palabras.
+      const claves=meta.currency==='USD'?['Dólares','USD']:['líquidas','COP'];
+      const group=[...sel.querySelectorAll('optgroup')].find(g=>claves.some(c=>g.label.includes(c)));
       const opt=document.createElement('option');
       opt.value=key;
       opt.textContent=meta.label;
