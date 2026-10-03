@@ -56,3 +56,9 @@
 .fseg{display:flex;background:var(--surface3);border-radius:10px;padding:3px;gap:3px}
 .fseg button{flex:1;min-height:34px;border:0;border-radius:8px;background:transparent;color:var(--text2);font:600 12px var(--sans);cursor:pointer;transition:background .15s,color .15s}
 .fseg button.active{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.fperiodo{font:600 11px var(--mono);color:var(--text2);background:var(--surface3);border-radius:8px;padding:6px 10px;align-self:flex-start}
+.fchip-mas{border-style:dashed;color:var(--text3)}
+.fchip-alerta{border-color:#DC2626;color:#DC2626;background:#FEF2F2}
+.fchip-alerta.active{background:#DC2626;color:#fff}
+.fvacio{font-size:11px;color:var(--text3);padding:8px 0}
+.filtro-sheet-lista{display:flex;flex-wrap:wrap;gap:8px;overflow-y:auto;padding-bottom:4px}

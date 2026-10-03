@@ -262,16 +262,67 @@ function renderAlertaMontos(){
   const sospechosos=entries.filter(montoSospechoso).sort((a,b)=>b.date.localeCompare(a.date));
   if(!sospechosos.length){ el.style.display='none'; el.innerHTML=''; return; }
   el.style.display='block';
+  const enUSD=sospechosos.filter(e=>(e.currency||ACCOUNTS_META[e.acc].currency)==='USD');
   el.innerHTML=`<div class="alerta-montos-titulo">⚠ ${sospechosos.length===1?'Hay un movimiento':'Hay '+sospechosos.length+' movimientos'} con un monto que no cuadra — por eso los totales salen gigantes</div>`+
-    sospechosos.slice(0,6).map(e=>{
+    `<div class="alerta-montos-acciones">`+
+      (enUSD.length>1?`<button class="alerta-montos-btn is-solid" onclick="fixCurrencyTodos()">💱 Todos eran pesos (${enUSD.length})</button>`:'')+
+      `<button class="alerta-montos-btn" onclick="verMontosSospechosos()">🔍 Verlos en Movimientos</button>`+
+    `</div><div class="alerta-montos-lista">`+
+    sospechosos.map(e=>{
       const meta=ACCOUNTS_META[e.acc];
-      const enUSD=(e.currency||meta.currency)==='USD';
-      const monto=enUSD?fmtUSD(e.amount):fmtCOP(e.amount);
-      const accion=enUSD
+      const usd=(e.currency||meta.currency)==='USD';
+      const monto=usd?fmtUSD(e.amount):fmtCOP(e.amount);
+      const accion=usd
         ?`<button class="alerta-montos-btn" onclick="fixCurrency('${e.id}')">💱 Eran pesos</button>`
         :`<button class="alerta-montos-btn" onclick="openEditEntryModal('${e.id}')">✏️ Revisar</button>`;
-      return `<div class="alerta-montos-fila"><div><strong>${esc(e.name)}</strong> · ${monto}${enUSD?` <span class="alerta-montos-cop">(≈ ${fmtCOP(entryCOP(e))})</span>`:''}<div class="alerta-montos-sub">${fmtDate(e.date)} · ${esc(meta.label)}</div></div>${accion}</div>`;
-    }).join('');
+      return `<div class="alerta-montos-fila"><div><strong>${esc(e.name)}</strong> · ${monto}${usd?` <span class="alerta-montos-cop">(≈ ${fmtCOP(entryCOP(e))})</span>`:''}<div class="alerta-montos-sub">${fmtDate(e.date)} · ${esc(meta.label)}</div></div>${accion}</div>`;
+    }).join('')+`</div>`;
+}
+
+/**
+ * Corrige de una vez todos los movimientos en dólares de monto absurdo (los marca como pesos).
+ * Igual que fixCurrency, el saldo se corrige solo si confirmas, mostrando cómo queda cada cuenta.
+ */
+async function fixCurrencyTodos(){
+  const lista=entries.filter(e=>montoSospechoso(e)&&(e.currency||ACCOUNTS_META[e.acc].currency)==='USD');
+  if(!lista.length)return;
+  const ok=await customConfirm(`Se van a marcar ${lista.length} movimientos como pesos:\n\n`+
+    lista.slice(0,8).map(e=>`• ${e.name}: ${fmtCOP(e.amount)}`).join('\n')+(lista.length>8?`\n… y ${lista.length-8} más`:''),
+    {textoSi:'Sí, eran pesos',textoNo:'Cancelar'});
+  if(!ok)return;
+
+  // Cuánto hay que devolverle a cada cuenta: lo que se descontó en USD menos lo que debió descontarse
+  const deltas={};
+  lista.forEach(e=>{
+    const meta=ACCOUNTS_META[e.acc];
+    const antes=montoNativo(e,meta);
+    e.currency='COP';
+    const despues=montoNativo(e,meta);
+    const sign=e.txType==='gasto'?1:-1;
+    deltas[e.acc]=(deltas[e.acc]||0)+sign*(despues-antes);
+  });
+  const nuevos={};
+  Object.keys(deltas).forEach(acc=>{
+    const meta=ACCOUNTS_META[acc];
+    nuevos[acc]=redondear3(meta.type==='credito'?accounts[acc]+deltas[acc]:accounts[acc]-deltas[acc]);
+  });
+  const fmtAcc=(acc,n)=>ACCOUNTS_META[acc].currency==='USD'?fmtUSD(n):fmtCOP(n);
+  const corregirSaldo=await customConfirm('¿Corregir también los saldos?\n\n'+
+    Object.keys(nuevos).map(acc=>`${ACCOUNTS_META[acc].label}: ${fmtAcc(acc,accounts[acc])} → ${fmtAcc(acc,nuevos[acc])}`).join('\n')+
+    '\n\nSi ya ajustaste esos saldos a mano, elige "Solo los movimientos".',
+    {textoSi:'Sí, corregir saldos',textoNo:'Solo los movimientos'});
+  if(corregirSaldo)Object.assign(accounts,nuevos);
+
+  fillAccountInputs();
+  render();
+  try{
+    const {error}=await sb.from('fin_movimientos').update({moneda_override:'COP'}).in('id',lista.map(e=>e.id));
+    if(error)throw error;
+  }catch(err){
+    registrarErrorDiagnostico('fin_movimientos (corregir moneda en lote)',err);
+    toastError('⚠ No se pudieron guardar todas las correcciones — revisa 🔧 Diagnóstico');
+  }
+  if(corregirSaldo){ try{ await saveAccountsData(); }catch(err){} }
 }
 
 let _editEntryId=null;

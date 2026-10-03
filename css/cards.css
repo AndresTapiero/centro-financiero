@@ -46,3 +46,6 @@
 :root.dark .alerta-montos{background:#3B1414;border-color:#7F1D1D;color:#FECACA}
 :root.dark .alerta-montos-fila{border-color:#7F1D1D}
 :root.dark .alerta-montos-btn{background:transparent}
+.alerta-montos-acciones{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+.alerta-montos-btn.is-solid{background:#DC2626;color:#fff}
+.alerta-montos-lista{max-height:260px;overflow-y:auto}
