@@ -123,7 +123,41 @@ function reubicarTarjetasDinamicas(){
     const card=document.getElementById('card-'+key);
     const grid=gridDeTarjeta(key);
     if(card&&grid&&card.parentElement!==grid)grid.appendChild(card);
+    actualizarBotonMover(key);
   });
+}
+
+function actualizarBotonMover(key){
+  const btn=document.getElementById('move-'+key);
+  if(btn)btn.textContent=cuentasDeAhorro().has(key)?'💧 Mover a cuentas líquidas':'🎯 Mover a ahorro para metas';
+}
+
+/**
+ * Cambia una cuenta creada por ti entre "líquidas" y "ahorro para metas". Ahorro = estar vinculada
+ * a una meta, así que moverla a ahorro crea esa meta (sin monto objetivo) y moverla de vuelta la borra.
+ */
+async function moverCuentaDeSeccion(key){
+  const meta=ACCOUNTS_META[key];
+  if(!meta)return;
+  if(!cuentasDeAhorro().has(key)){
+    await crearMetaVinculada(meta.label,key);
+    return;
+  }
+  const vinculadas=goals.filter(g=>g.type==='cuenta'&&g.acc===key);
+  if(vinculadas.some(g=>g.target>0)){
+    toastError('Esta cuenta tiene una meta con monto objetivo: elimínala en 🏆 Metas para devolverla a líquidas');
+    return;
+  }
+  for(const g of vinculadas){
+    goals=goals.filter(x=>x.id!==g.id);
+    try{
+      const {error}=await sb.from('fin_metas').delete().eq('id',g.id);
+      if(error)throw error;
+    }catch(e){ registrarErrorDiagnostico('fin_metas (borrar)',e); }
+  }
+  reubicarTarjetasDinamicas();
+  renderGoals();
+  fillAccountInputs();
 }
 
 function renderDynamicAccountCard(key){
@@ -140,8 +174,9 @@ function renderDynamicAccountCard(key){
   const inicial=meta.label.charAt(0).toUpperCase();
   const monedaTexto=meta.currency==='USD'?'Dólares':'Pesos';
   // meta.label lo escribes tú al crear la cuenta, así que va escapado antes de entrar a innerHTML.
-  card.innerHTML=`<div class="acc-label"><span class="avatar-square" style="background:#2563EB">${esc(inicial)}</span><span>${esc(meta.label)}</span><span class="currency-badge">${monedaTexto}</span></div><input class="acc-value" id="acc-${key}" onblur="handleAccountFieldBlur('${key}')">`;
+  card.innerHTML=`<div class="acc-label"><span class="avatar-square" style="background:#2563EB">${esc(inicial)}</span><span>${esc(meta.label)}</span><span class="currency-badge">${monedaTexto}</span></div><input class="acc-value" id="acc-${key}" onblur="handleAccountFieldBlur('${key}')"><button type="button" class="move-acc-btn" id="move-${key}" onclick="moverCuentaDeSeccion('${key}')"></button>`;
   grid.appendChild(card);
+  actualizarBotonMover(key);
   document.getElementById('acc-'+key).value=meta.currency==='USD'?'$'+accounts[key]+' USD':fmtCOP(accounts[key]);
 }
 
