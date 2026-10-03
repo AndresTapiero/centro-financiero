@@ -93,7 +93,7 @@ function refreshAllAccountSelectors(){
   // Movimientos, modal rápido, transferencias y pendientes: agregar cuentas dinámicas si no están.
   // 'express-account' (el modal del botón +) faltaba en esta lista: la cuenta nueva aparecía en
   // "Nuevo movimiento" pero no al registrar un ingreso o gasto desde el modal rápido.
-  ['inp-account','express-account','tr-origen','tr-destino','pend-account','filter-account'].forEach(id=>{
+  ['inp-account','express-account','tr-origen','tr-destino','pend-account'].forEach(id=>{
     const sel=document.getElementById(id);
     if(!sel)return;
     Object.keys(dynamicAccounts).forEach(key=>{

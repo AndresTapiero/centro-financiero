@@ -26,7 +26,7 @@ function render(){
   let monthEntriesFiltradas=filterAccount==='todas'?monthEntries:monthEntries.filter(e=>e.acc===filterAccount);
   if(filterType!=='todos')monthEntriesFiltradas=monthEntriesFiltradas.filter(e=>e.txType===filterType);
   if(filterCategory!=='todas')monthEntriesFiltradas=monthEntriesFiltradas.filter(e=>e.cat===filterCategory);
-  poblarFiltroCategoria(monthEntries);
+  renderFiltrosChips(monthEntries);
   updateEntriesSummary();
   // El orden por cuenta sale de ACCOUNTS_META, no de una lista fija de 7 slugs: con una lista
   // fija, cualquier cuenta creada por el usuario daba undefined, la resta daba NaN y el

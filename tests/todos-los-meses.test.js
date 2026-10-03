@@ -12,4 +12,11 @@ test('por defecto solo el ciclo seleccionado', ()=>{set('filterAllMonths',false)
 test('con "Todos los meses" trae todo el historial', ()=>{set('filterAllMonths',true); eq(src.movimientosVisibles().length,4)});
 test('cambiar de ciclo no altera el modo "todos"', ()=>{set('currentMonth','2026-08'); eq(src.movimientosVisibles().length,4)});
 set('filterAllMonths',false);
+console.log('\nperiodos rápidos:');
+set('currentMonth','2026-09');
+test('ciclo anterior', ()=>{set('filterRange','anterior'); eq(src.movimientosVisibles().length,1)});
+test('últimos 3 ciclos incluye julio, agosto y septiembre', ()=>{set('filterRange','3m'); eq(src.movimientosVisibles().length,4)});
+test('este año', ()=>{set('filterRange','anio'); eq(src.movimientosVisibles().length,4)});
+test('restarCiclos cruza el año', ()=>eq(src.restarCiclos('2026-01',2),'2025-11'));
+set('filterRange','ciclo');
 console.log(`\n  ${p} passed  |  ${f} failed`); if(f)process.exit(1);

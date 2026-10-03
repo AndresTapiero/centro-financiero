@@ -12,24 +12,93 @@ let filterAccount='todas';
 let filterType='todos'; // 'todos' | 'gasto' | 'ingreso'
 let filterCategory='todas';
 let filterAllMonths=false; // true: la lista y el resumen de Movimientos ignoran el ciclo seleccionado
+let filterRange='ciclo'; // 'ciclo' | 'anterior' | '3m' | 'anio' | 'todo' (relativo al ciclo seleccionado)
 
-/** Movimientos que alimentan la lista y su resumen: el ciclo seleccionado, o todo el historial. */
+/** Ciclo "YYYY-MM" que queda n ciclos antes del dado. */
+function restarCiclos(ciclo,n){
+  const [y,m]=ciclo.split('-').map(Number);
+  const d=new Date(y,m-1-n,1);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+
+/** Movimientos que alimentan la lista y su resumen, según el periodo elegido. */
 function movimientosVisibles(){
-  return filterAllMonths?entries:entries.filter(e=>cicloDe(e.date)===currentMonth);
+  if(filterAllMonths)return entries;
+  let dentro;
+  if(filterRange==='anterior'){ const ant=restarCiclos(currentMonth,1); dentro=c=>c===ant; }
+  else if(filterRange==='3m'){ const desde=restarCiclos(currentMonth,2); dentro=c=>c>=desde&&c<=currentMonth; }
+  else if(filterRange==='anio'){ const y=currentMonth.slice(0,4); dentro=c=>c.slice(0,4)===y; }
+  else dentro=c=>c===currentMonth;
+  return entries.filter(e=>dentro(cicloDe(e.date)));
 }
 
 function toggleTodosLosMeses(){
-  filterAllMonths=!filterAllMonths;
+  setRango(filterAllMonths?'ciclo':'todo');
+}
+
+function setRango(r){
+  filterRange=r;
+  filterAllMonths=r==='todo';
   actualizarBotonTodosLosMeses();
   actualizarBotonLimpiarFiltros();
   render();
 }
 
+const TITULOS_RANGO={ciclo:'Movimientos del mes',anterior:'Movimientos · ciclo anterior','3m':'Movimientos · últimos 3 ciclos',anio:'Movimientos · este año',todo:'Movimientos · todos los meses'};
 function actualizarBotonTodosLosMeses(){
-  const btn=document.getElementById('all-months-btn');
-  if(btn)btn.classList.toggle('active',filterAllMonths);
+  if(filterAllMonths)filterRange='todo';
+  else if(filterRange==='todo')filterRange='ciclo';
+  marcarChips('fchips-rango',filterRange);
   const titulo=document.getElementById('entries-title');
-  if(titulo)titulo.textContent=filterAllMonths?'Movimientos · todos los meses':'Movimientos del mes';
+  if(titulo)titulo.textContent=TITULOS_RANGO[filterRange];
+}
+
+function marcarChips(id,valor){
+  const cont=document.getElementById(id);
+  if(!cont)return;
+  cont.querySelectorAll('[data-v]').forEach(b=>b.classList.toggle('active',b.dataset.v===valor));
+}
+
+/** Un solo manejador para todos los chips de la barra de filtros. Tocar el activo lo desactiva. */
+function clickChipFiltro(ev,grupo){
+  const b=ev.target.closest('[data-v]');
+  if(!b)return;
+  const v=b.dataset.v;
+  if(grupo==='rango')return setRango(v);
+  if(grupo==='tipo')filterType=v;
+  else if(grupo==='cuenta')filterAccount=filterAccount===v?'todas':v;
+  else if(grupo==='cat')filterCategory=filterCategory===v?'todas':v;
+  if(grupo==='cuenta')updateFilterBalanceBanner();
+  actualizarBotonLimpiarFiltros();
+  render();
+}
+
+const COLOR_CUENTA={nequi:'#C147E9',debito:'#EF4444',nu:'#8A05BE',lulo:'#0E9F6E',arq:'#1B7A4D',ontop:'#14B8A6',davtc:'#DC2626',rappitc:'#FF8C42'};
+
+/** Dibuja los chips de cuenta y categoría; los de categoría muestran cuántos movimientos tiene cada una. */
+function renderFiltrosChips(visibles){
+  const cuentas=document.getElementById('fchips-cuenta');
+  if(cuentas){
+    cuentas.innerHTML=Object.keys(ACCOUNTS_META).map(slug=>{
+      const m=ACCOUNTS_META[slug];
+      const act=filterAccount===slug?' active':'';
+      return `<button class="fchip${act}" data-v="${esc(slug)}"><span class="fdot" style="background:${COLOR_CUENTA[slug]||'#6B7280'}">${esc(m.label.charAt(0).toUpperCase())}</span>${esc(m.label)}</button>`;
+    }).join('');
+  }
+  const cats=document.getElementById('fchips-cat');
+  if(cats){
+    const base=visibles.filter(e=>(filterAccount==='todas'||e.acc===filterAccount)&&(filterType==='todos'||e.txType===filterType));
+    const cuenta={};
+    base.forEach(e=>{ cuenta[e.cat]=(cuenta[e.cat]||0)+1; });
+    const lista=Object.keys(cuenta).sort((a,b)=>cuenta[b]-cuenta[a]||a.localeCompare(b));
+    cats.innerHTML=lista.length?lista.map(c=>{
+      const act=filterCategory===c?' active':'';
+      return `<button class="fchip${act}" data-v="${esc(c)}">${esc(scat(c))} <span class="fcount">${cuenta[c]}</span></button>`;
+    }).join(''):'<span style="font-size:11px;color:var(--text3)">Sin categorías en este periodo</span>';
+    if(filterCategory!=='todas'&&!cuenta[filterCategory])filterCategory='todas'; // ya no hay de esa categoría con estos filtros
+  }
+  marcarChips('fchips-tipo',filterType);
+  actualizarBotonTodosLosMeses();
 }
 function setSortMode(mode){
   sortMode=mode;
@@ -202,31 +271,9 @@ async function updateCap(el){
   render();
 }
 
-function setFilterAccount(){
-  filterAccount=document.getElementById('filter-account').value;
-  updateFilterBalanceBanner();
-  actualizarBotonLimpiarFiltros();
-  render();
-}
-
-function setFilterType(){
-  filterType=document.getElementById('filter-type').value;
-  actualizarBotonLimpiarFiltros();
-  render();
-}
-
-function setFilterCategory(){
-  filterCategory=document.getElementById('filter-category').value;
-  actualizarBotonLimpiarFiltros();
-  render();
-}
-
 function limpiarFiltros(){
-  filterAccount='todas'; filterType='todos'; filterCategory='todas'; filterAllMonths=false;
+  filterAccount='todas'; filterType='todos'; filterCategory='todas'; filterAllMonths=false; filterRange='ciclo';
   actualizarBotonTodosLosMeses();
-  document.getElementById('filter-account').value='todas';
-  document.getElementById('filter-type').value='todos';
-  document.getElementById('filter-category').value='todas';
   updateFilterBalanceBanner();
   actualizarBotonLimpiarFiltros();
   render();
@@ -235,19 +282,8 @@ function limpiarFiltros(){
 function actualizarBotonLimpiarFiltros(){
   const btn=document.getElementById('clear-filters-btn');
   if(!btn)return;
-  const hayFiltros=filterAccount!=='todas'||filterType!=='todos'||filterCategory!=='todas'||filterAllMonths;
+  const hayFiltros=filterAccount!=='todas'||filterType!=='todos'||filterCategory!=='todas'||filterAllMonths||filterRange!=='ciclo';
   btn.style.display=hayFiltros?'block':'none';
-}
-
-function poblarFiltroCategoria(monthEntries){
-  const sel=document.getElementById('filter-category');
-  if(!sel)return;
-  const categoriasPresentes=[...new Set(monthEntries.map(e=>e.cat))].sort();
-  const valorActual=sel.value||filterCategory;
-  const opciones='<option value="todas">Toda categoría</option>'+categoriasPresentes.map(cat=>`<option value="${cat.replace(/"/g,'&quot;')}">${scat(cat)}</option>`).join('');
-  if(sel.innerHTML!==opciones)sel.innerHTML=opciones;
-  if(categoriasPresentes.includes(valorActual)||valorActual==='todas'){ sel.value=valorActual; }
-  else{ sel.value='todas'; filterCategory='todas'; }
 }
 
 function updateFilterBalanceBanner(){
