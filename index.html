@@ -533,7 +533,7 @@
     <div class="entries-wrap">
       <div class="entries-header" style="flex-direction:column;align-items:stretch;gap:10px">
         <div style="display:flex;justify-content:space-between;align-items:center">
-          <span class="entries-title">Movimientos del mes</span>
+          <span class="entries-title" id="entries-title">Movimientos del mes</span>
           <button class="btn-analyze" onclick="sendSummary()">📋 Copiar resumen para Claude</button>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
@@ -564,6 +564,7 @@
         <div style="display:flex;gap:6px;align-items:center">
           <button class="tab" id="sort-fecha" style="padding:4px 10px;font-size:10px" onclick="setSortMode('fecha')">📅 Fecha</button>
           <button class="tab" id="sort-cuenta" style="padding:4px 10px;font-size:10px" onclick="setSortMode('cuenta')">🏦 Cuenta</button>
+          <button class="tab" id="all-months-btn" style="padding:4px 10px;font-size:10px" onclick="toggleTodosLosMeses()" title="Ver los movimientos de todos los ciclos, no solo el seleccionado">🗓️ Todos los meses</button>
           <button id="clear-filters-btn" style="display:none;background:none;border:none;color:var(--text3);font-size:10px;cursor:pointer;text-decoration:underline;margin-left:auto" onclick="limpiarFiltros()">Limpiar filtros</button>
         </div>
       </div>

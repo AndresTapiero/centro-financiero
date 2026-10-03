@@ -20,7 +20,7 @@ function calcularResumenMes(mes){
 }
 
 function render(){
-  const monthEntries=entries.filter(e=>cicloDe(e.date)===currentMonth);
+  const monthEntries=movimientosVisibles(); // el ciclo seleccionado, o todo si "Todos los meses" está activo
   const {gastos,bycat}=calcularResumenMes(currentMonth); // misma fuente que la pestaña Métricas
 
   let monthEntriesFiltradas=filterAccount==='todas'?monthEntries:monthEntries.filter(e=>e.acc===filterAccount);
