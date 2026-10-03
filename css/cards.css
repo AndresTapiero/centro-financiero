@@ -33,3 +33,5 @@
 @media(max-width:640px){
   .card-title{flex-wrap:wrap;gap:6px}
 }
+
+.move-acc-btn{display:block;margin-top:8px;background:none;border:0;padding:4px 0;color:var(--text3);font:600 11px var(--sans);text-decoration:underline;cursor:pointer;min-height:28px}
