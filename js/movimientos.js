@@ -224,7 +224,7 @@ function openEditEntryModal(id){
   const dinamicas=Object.keys(dynamicAccounts);
   const opt=k=>`<option value="${k}">${ACCOUNTS_META[k].label}</option>`;
   accSel.innerHTML=
-    (liquidas.length?`<optgroup label="🏦 Cuentas líquidas (COP)">${liquidas.map(opt).join('')}</optgroup>`:'')+
+    (liquidas.length?`<optgroup label="🏦 Cuentas en pesos (COP)">${liquidas.map(opt).join('')}</optgroup>`:'')+
     (tarjetas.length?`<optgroup label="💳 Tarjetas de crédito">${tarjetas.map(opt).join('')}</optgroup>`:'')+
     (dolares.length?`<optgroup label="🌎 Dólares (USD)">${dolares.map(opt).join('')}</optgroup>`:'')+
     (dinamicas.length?`<optgroup label="✨ Otras cuentas">${dinamicas.map(opt).join('')}</optgroup>`:'');
