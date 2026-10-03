@@ -11,6 +11,26 @@ let sortMode='fecha'; // 'fecha' o 'cuenta'
 let filterAccount='todas';
 let filterType='todos'; // 'todos' | 'gasto' | 'ingreso'
 let filterCategory='todas';
+let filterAllMonths=false; // true: la lista y el resumen de Movimientos ignoran el ciclo seleccionado
+
+/** Movimientos que alimentan la lista y su resumen: el ciclo seleccionado, o todo el historial. */
+function movimientosVisibles(){
+  return filterAllMonths?entries:entries.filter(e=>cicloDe(e.date)===currentMonth);
+}
+
+function toggleTodosLosMeses(){
+  filterAllMonths=!filterAllMonths;
+  actualizarBotonTodosLosMeses();
+  actualizarBotonLimpiarFiltros();
+  render();
+}
+
+function actualizarBotonTodosLosMeses(){
+  const btn=document.getElementById('all-months-btn');
+  if(btn)btn.classList.toggle('active',filterAllMonths);
+  const titulo=document.getElementById('entries-title');
+  if(titulo)titulo.textContent=filterAllMonths?'Movimientos · todos los meses':'Movimientos del mes';
+}
 function setSortMode(mode){
   sortMode=mode;
   document.getElementById('sort-fecha').classList.toggle('active',mode==='fecha');
@@ -50,7 +70,7 @@ function actualizarBuscador(){
 }
 
 function buscarEnMes(q){
-  const monthEntries=entries.filter(e=>cicloDe(e.date)===currentMonth);
+  const monthEntries=movimientosVisibles();
   let matches=monthEntries;
   if(q.length>=2)matches=matches.filter(e=>e.name.toLowerCase().includes(q));
 
@@ -202,7 +222,8 @@ function setFilterCategory(){
 }
 
 function limpiarFiltros(){
-  filterAccount='todas'; filterType='todos'; filterCategory='todas';
+  filterAccount='todas'; filterType='todos'; filterCategory='todas'; filterAllMonths=false;
+  actualizarBotonTodosLosMeses();
   document.getElementById('filter-account').value='todas';
   document.getElementById('filter-type').value='todos';
   document.getElementById('filter-category').value='todas';
@@ -214,7 +235,7 @@ function limpiarFiltros(){
 function actualizarBotonLimpiarFiltros(){
   const btn=document.getElementById('clear-filters-btn');
   if(!btn)return;
-  const hayFiltros=filterAccount!=='todas'||filterType!=='todos'||filterCategory!=='todas';
+  const hayFiltros=filterAccount!=='todas'||filterType!=='todos'||filterCategory!=='todas'||filterAllMonths;
   btn.style.display=hayFiltros?'block':'none';
 }
 
@@ -251,7 +272,7 @@ function updateEntriesSummary(){
   const summaryEl=document.getElementById('entries-summary');
   if(!summaryEl)return;
 
-  const monthEntries=entries.filter(e=>cicloDe(e.date)===currentMonth&&e.cat!=='[Ajuste de saldo]');
+  const monthEntries=movimientosVisibles().filter(e=>e.cat!=='[Ajuste de saldo]');
   let filtroCuentas=filterAccount==='todas'?monthEntries:monthEntries.filter(e=>e.acc===filterAccount);
   let filtrado=filterType==='todos'?filtroCuentas:filtroCuentas.filter(e=>e.txType===filterType);
   if(filterCategory!=='todas')filtrado=filtrado.filter(e=>e.cat===filterCategory);
