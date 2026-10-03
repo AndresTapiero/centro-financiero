@@ -21,8 +21,11 @@ function restarCiclos(ciclo,n){
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
 }
 
+let filterSospechosos=false; // true: solo los movimientos de monto absurdo, de todo el historial
+
 /** Movimientos que alimentan la lista y su resumen, según el periodo elegido. */
 function movimientosVisibles(){
+  if(filterSospechosos)return entries.filter(montoSospechoso);
   if(filterAllMonths)return entries;
   let dentro;
   if(filterRange==='anterior'){ const ant=restarCiclos(currentMonth,1); dentro=c=>c===ant; }
@@ -37,6 +40,7 @@ function toggleTodosLosMeses(){
 }
 
 function setRango(r){
+  filterSospechosos=false;
   filterRange=r;
   filterAllMonths=r==='todo';
   actualizarBotonTodosLosMeses();
@@ -44,13 +48,45 @@ function setRango(r){
   render();
 }
 
+/** Texto que dice exactamente qué periodo se está mirando (ej. "Oct 2026 · 26 sep – 25 oct"). */
+function etiquetaPeriodo(){
+  if(filterSospechosos)return 'Todo el historial · solo montos que no cuadran';
+  if(filterAllMonths)return 'Todo el historial';
+  if(!currentMonth)return '';
+  if(filterRange==='anterior')return etiquetaCiclo(restarCiclos(currentMonth,1));
+  if(filterRange==='3m')return `${etiquetaCiclo(restarCiclos(currentMonth,2)).split(' · ')[0]} → ${etiquetaCiclo(currentMonth).split(' · ')[0]}`;
+  if(filterRange==='anio')return `Año ${currentMonth.slice(0,4)}`;
+  return etiquetaCiclo(currentMonth);
+}
+
+/** Muestra solo los movimientos de monto absurdo (para corregirlos sin hacer scroll por todo el historial). */
+function verMontosSospechosos(){
+  filterSospechosos=true;
+  filterAccount='todas'; filterType='todos'; filterCategory='todas';
+  const btn=[...document.querySelectorAll('.nav-item')].find(b=>b.textContent.includes('Movimientos'));
+  switchTab('movimientos',btn);
+  actualizarBotonLimpiarFiltros();
+  render();
+  document.querySelector('.fbar')?.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
 const TITULOS_RANGO={ciclo:'Movimientos del mes',anterior:'Movimientos · ciclo anterior','3m':'Movimientos · últimos 3 ciclos',anio:'Movimientos · este año',todo:'Movimientos · todos los meses'};
 function actualizarBotonTodosLosMeses(){
   if(filterAllMonths)filterRange='todo';
   else if(filterRange==='todo')filterRange='ciclo';
   marcarChips('fchips-rango',filterRange);
+  if(filterSospechosos)document.querySelectorAll('#fchips-rango [data-v]').forEach(b=>b.classList.remove('active'));
   const titulo=document.getElementById('entries-title');
-  if(titulo)titulo.textContent=TITULOS_RANGO[filterRange];
+  if(titulo)titulo.textContent=filterSospechosos?'Movimientos · montos que no cuadran':TITULOS_RANGO[filterRange];
+  const periodo=document.getElementById('fperiodo-texto');
+  if(periodo)periodo.textContent='📅 '+etiquetaPeriodo();
+  const alto=document.getElementById('fchip-sospechosos');
+  if(alto){
+    const n=entries.filter(montoSospechoso).length;
+    alto.style.display=n?'inline-flex':'none';
+    alto.textContent=`⚠ Montos que no cuadran (${n})`;
+    alto.classList.toggle('active',filterSospechosos);
+  }
 }
 
 function marcarChips(id,valor){
@@ -61,10 +97,13 @@ function marcarChips(id,valor){
 
 /** Un solo manejador para todos los chips de la barra de filtros. Tocar el activo lo desactiva. */
 function clickChipFiltro(ev,grupo){
+  const mas=ev.target.closest('[data-mas]');
+  if(mas)return abrirHojaFiltro(mas.dataset.mas);
   const b=ev.target.closest('[data-v]');
   if(!b)return;
   const v=b.dataset.v;
   if(grupo==='rango')return setRango(v);
+  if(grupo==='sospechosos'){ filterSospechosos=!filterSospechosos; if(!filterSospechosos){ actualizarBotonLimpiarFiltros(); return render(); } return verMontosSospechosos(); }
   if(grupo==='tipo')filterType=v;
   else if(grupo==='cuenta')filterAccount=filterAccount===v?'todas':v;
   else if(grupo==='cat')filterCategory=filterCategory===v?'todas':v;
@@ -74,32 +113,103 @@ function clickChipFiltro(ev,grupo){
 }
 
 const COLOR_CUENTA={nequi:'#C147E9',debito:'#EF4444',nu:'#8A05BE',lulo:'#0E9F6E',arq:'#1B7A4D',ontop:'#14B8A6',davtc:'#DC2626',rappitc:'#FF8C42'};
+const CHIPS_VISIBLES=5; // el resto se elige desde la hoja "Ver todas", con buscador
 
-/** Dibuja los chips de cuenta y categoría; los de categoría muestran cuántos movimientos tiene cada una. */
+function chipCuenta(slug,conteo){
+  const m=ACCOUNTS_META[slug];
+  const act=filterAccount===slug?' active':'';
+  return `<button class="fchip${act}" data-v="${esc(slug)}"><span class="fdot" style="background:${COLOR_CUENTA[slug]||'#6B7280'}">${esc(m.label.charAt(0).toUpperCase())}</span>${esc(m.label)}${conteo?` <span class="fcount">${conteo}</span>`:''}</button>`;
+}
+function chipCategoria(cat,conteo){
+  const act=filterCategory===cat?' active':'';
+  return `<button class="fchip${act}" data-v="${esc(cat)}">${esc(scat(cat))} <span class="fcount">${conteo}</span></button>`;
+}
+
+/**
+ * Las opciones ordenadas por uso en el periodo, recortadas a las CHIPS_VISIBLES más usadas.
+ * La elegida siempre se ve aunque no esté en el top, y el resto queda detrás de "Ver todas".
+ */
+function topConSeleccion(lista,elegida){
+  const top=lista.slice(0,CHIPS_VISIBLES);
+  if(elegida!=='todas'&&!top.includes(elegida)&&lista.includes(elegida))top.push(elegida);
+  return top;
+}
+
+let _conteoCuentas={}, _conteoCats={};
+
+/** Dibuja los chips de cuenta y categoría (los más usados del periodo) con su conteo. */
 function renderFiltrosChips(visibles){
   const cuentas=document.getElementById('fchips-cuenta');
   if(cuentas){
-    cuentas.innerHTML=Object.keys(ACCOUNTS_META).map(slug=>{
-      const m=ACCOUNTS_META[slug];
-      const act=filterAccount===slug?' active':'';
-      return `<button class="fchip${act}" data-v="${esc(slug)}"><span class="fdot" style="background:${COLOR_CUENTA[slug]||'#6B7280'}">${esc(m.label.charAt(0).toUpperCase())}</span>${esc(m.label)}</button>`;
-    }).join('');
+    const base=visibles.filter(e=>(filterType==='todos'||e.txType===filterType)&&(filterCategory==='todas'||e.cat===filterCategory));
+    _conteoCuentas={};
+    Object.keys(ACCOUNTS_META).forEach(s=>{ _conteoCuentas[s]=0; });
+    base.forEach(e=>{ if(e.acc in _conteoCuentas)_conteoCuentas[e.acc]++; });
+    const lista=Object.keys(_conteoCuentas).sort((a,b)=>_conteoCuentas[b]-_conteoCuentas[a]);
+    const top=topConSeleccion(lista.filter(s=>_conteoCuentas[s]>0||s===filterAccount),filterAccount);
+    const resto=lista.length-top.length;
+    cuentas.innerHTML=(top.length?top.map(s=>chipCuenta(s,_conteoCuentas[s])).join(''):'<span class="fvacio">Sin movimientos en este periodo</span>')+
+      (resto>0?`<button class="fchip fchip-mas" data-mas="cuenta">Todas las cuentas (${lista.length}) ▾</button>`:'');
   }
   const cats=document.getElementById('fchips-cat');
   if(cats){
     const base=visibles.filter(e=>(filterAccount==='todas'||e.acc===filterAccount)&&(filterType==='todos'||e.txType===filterType));
-    const cuenta={};
-    base.forEach(e=>{ cuenta[e.cat]=(cuenta[e.cat]||0)+1; });
-    const lista=Object.keys(cuenta).sort((a,b)=>cuenta[b]-cuenta[a]||a.localeCompare(b));
-    cats.innerHTML=lista.length?lista.map(c=>{
-      const act=filterCategory===c?' active':'';
-      return `<button class="fchip${act}" data-v="${esc(c)}">${esc(scat(c))} <span class="fcount">${cuenta[c]}</span></button>`;
-    }).join(''):'<span style="font-size:11px;color:var(--text3)">Sin categorías en este periodo</span>';
-    if(filterCategory!=='todas'&&!cuenta[filterCategory])filterCategory='todas'; // ya no hay de esa categoría con estos filtros
+    _conteoCats={};
+    base.forEach(e=>{ _conteoCats[e.cat]=(_conteoCats[e.cat]||0)+1; });
+    const lista=Object.keys(_conteoCats).sort((a,b)=>_conteoCats[b]-_conteoCats[a]||a.localeCompare(b));
+    if(filterCategory!=='todas'&&!_conteoCats[filterCategory])filterCategory='todas'; // ya no hay de esa categoría con estos filtros
+    const top=topConSeleccion(lista,filterCategory);
+    cats.innerHTML=lista.length
+      ?top.map(c=>chipCategoria(c,_conteoCats[c])).join('')+(lista.length>top.length?`<button class="fchip fchip-mas" data-mas="cat">Todas (${lista.length}) ▾</button>`:'')
+      :'<span class="fvacio">Sin categorías en este periodo</span>';
   }
   marcarChips('fchips-tipo',filterType);
   actualizarBotonTodosLosMeses();
 }
+
+// ─── Hoja "Ver todas" (cuentas o categorías), con buscador ──────────────────
+let _hojaFiltro=null;
+
+function abrirHojaFiltro(grupo){
+  _hojaFiltro=grupo;
+  document.getElementById('filtro-sheet-titulo').textContent=(grupo==='cuenta'?'Cuentas':'Categorías')+' · '+etiquetaPeriodo();
+  const buscar=document.getElementById('filtro-sheet-buscar');
+  buscar.value='';
+  renderHojaFiltro();
+  document.getElementById('filtro-sheet').style.display='flex';
+  setTimeout(()=>buscar.focus(),80);
+}
+function cerrarHojaFiltro(){
+  document.getElementById('filtro-sheet').style.display='none';
+  _hojaFiltro=null;
+}
+function renderHojaFiltro(){
+  const q=document.getElementById('filtro-sheet-buscar').value.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const norm=t=>t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const cont=document.getElementById('filtro-sheet-lista');
+  if(_hojaFiltro==='cuenta'){
+    const lista=Object.keys(_conteoCuentas).filter(s=>!q||norm(ACCOUNTS_META[s].label).includes(q)).sort((a,b)=>_conteoCuentas[b]-_conteoCuentas[a]);
+    cont.innerHTML=lista.map(s=>chipCuenta(s,_conteoCuentas[s])).join('')||'<span class="fvacio">Nada coincide</span>';
+    return;
+  }
+  // Categorías agrupadas por su categoría principal ("Alimentación · Mercado" → Alimentación)
+  const grupos={};
+  Object.keys(_conteoCats).filter(c=>!q||norm(c).includes(q)).forEach(c=>{
+    const g=c.includes('·')?c.split('·')[0].trim():'Otras';
+    (grupos[g]=grupos[g]||[]).push(c);
+  });
+  const nombres=Object.keys(grupos).sort((a,b)=>a==='Otras'?1:b==='Otras'?-1:a.localeCompare(b));
+  cont.innerHTML=nombres.map(g=>`<div class="fgroup-label" style="width:100%">${esc(g)}</div>`+
+    grupos[g].sort((a,b)=>_conteoCats[b]-_conteoCats[a]).map(c=>chipCategoria(c,_conteoCats[c])).join('')).join('')||'<span class="fvacio">Nada coincide</span>';
+}
+function clickHojaFiltro(ev){
+  const b=ev.target.closest('[data-v]');
+  if(!b)return;
+  const grupo=_hojaFiltro==='cuenta'?'cuenta':'cat';
+  cerrarHojaFiltro();
+  clickChipFiltro({target:b},grupo);
+}
+
 function setSortMode(mode){
   sortMode=mode;
   document.getElementById('sort-fecha').classList.toggle('active',mode==='fecha');
@@ -272,7 +382,7 @@ async function updateCap(el){
 }
 
 function limpiarFiltros(){
-  filterAccount='todas'; filterType='todos'; filterCategory='todas'; filterAllMonths=false; filterRange='ciclo';
+  filterAccount='todas'; filterType='todos'; filterCategory='todas'; filterAllMonths=false; filterRange='ciclo'; filterSospechosos=false;
   actualizarBotonTodosLosMeses();
   updateFilterBalanceBanner();
   actualizarBotonLimpiarFiltros();
@@ -282,7 +392,7 @@ function limpiarFiltros(){
 function actualizarBotonLimpiarFiltros(){
   const btn=document.getElementById('clear-filters-btn');
   if(!btn)return;
-  const hayFiltros=filterAccount!=='todas'||filterType!=='todos'||filterCategory!=='todas'||filterAllMonths||filterRange!=='ciclo';
+  const hayFiltros=filterAccount!=='todas'||filterType!=='todos'||filterCategory!=='todas'||filterAllMonths||filterRange!=='ciclo'||filterSospechosos;
   btn.style.display=hayFiltros?'block':'none';
 }
 

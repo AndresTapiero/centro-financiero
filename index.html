@@ -47,7 +47,7 @@
   </div>
 </div>
 <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
-<div id="confirm-modal" role="alertdialog" aria-modal="true" aria-describedby="confirm-modal-text" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
+<div id="confirm-modal" role="alertdialog" aria-modal="true" aria-describedby="confirm-modal-text" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1400;align-items:center;justify-content:center">
   <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:340px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.5)">
     <div id="confirm-modal-text" style="font-size:13px;line-height:1.6;margin-bottom:16px;white-space:pre-line"></div>
     <div style="display:flex;gap:8px">
@@ -102,6 +102,15 @@
     <div style="width:40px;height:4px;background:var(--border2);border-radius:99px;margin:0 auto 16px"></div>
     <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:4px">Categoría</div>
     <div id="cat-picker-list"></div>
+  </div>
+</div>
+<div id="filtro-sheet" role="dialog" aria-modal="true" aria-labelledby="filtro-sheet-titulo" style="display:none;position:fixed;inset:0;z-index:1300;align-items:flex-end;justify-content:center">
+  <div onclick="cerrarHojaFiltro()" style="position:absolute;inset:0;background:rgba(0,0,0,.55)"></div>
+  <div style="position:relative;background:var(--surface);border-radius:20px 20px 0 0;padding:20px 20px 40px;width:100%;max-width:520px;max-height:78vh;display:flex;flex-direction:column">
+    <div style="width:40px;height:4px;background:var(--border2);border-radius:99px;margin:0 auto 16px"></div>
+    <div id="filtro-sheet-titulo" style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px"></div>
+    <input class="inp" id="filtro-sheet-buscar" type="search" placeholder="Buscar…" oninput="renderHojaFiltro()" style="width:100%;margin-bottom:12px">
+    <div id="filtro-sheet-lista" class="filtro-sheet-lista" onclick="clickHojaFiltro(event)"></div>
   </div>
 </div>
 <div id="express-modal" role="dialog" aria-modal="true" aria-label="Registro rápido" style="display:none;position:fixed;inset:0;z-index:1100;align-items:flex-end;justify-content:center">
@@ -397,6 +406,7 @@
     </div>
     <div class="ats-sub" id="ats-sub" style="margin-top:16px;font-size:11px">Liquidez en pesos y dólares, menos compromisos pendientes del mes</div>
   </div>
+  <div id="alerta-montos" class="alerta-montos" style="display:none"></div>
 
   <nav class="main-nav">
     <button class="nav-item active" onclick="switchTab('cuentas',this)"><span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="currentColor" viewBox="0 0 16 16"><path d="m8 0 6.61 3h.89a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5H15v7a.5.5 0 0 1 .485.38l.5 2a.498.498 0 0 1-.485.62H.5a.498.498 0 0 1-.485-.62l.5-2A.5.5 0 0 1 1 13V6H.5a.5.5 0 0 1-.5-.5v-2A.5.5 0 0 1 .5 3h.89zM3.777 3h8.447L8 1zM2 6v7h1V6zm2 0v7h2.5V6zm3.5 0v7h1V6zm2 0v7H12V6zM13 6v7h1V6zm2-1V4H1v1zm-.39 9H1.39l-.25 1h13.72z"/></svg></span><span>Cuentas</span></button>
@@ -540,6 +550,7 @@
           <button class="btn-analyze" onclick="sendSummary()">📋 Copiar resumen para Claude</button>
         </div>
         <div class="fbar">
+          <button class="fchip fchip-alerta" id="fchip-sospechosos" style="display:none;align-self:flex-start" onclick="clickChipFiltro(event,'sospechosos')"></button>
           <div class="fgroup-label">Periodo</div>
           <div class="fchips" id="fchips-rango" onclick="clickChipFiltro(event,'rango')">
             <button class="fchip active" data-v="ciclo">Este ciclo</button>
@@ -548,15 +559,16 @@
             <button class="fchip" data-v="anio">Este año</button>
             <button class="fchip" data-v="todo">🗓️ Todo el historial</button>
           </div>
+          <div class="fperiodo" id="fperiodo-texto"></div>
           <div class="fgroup-label">Tipo</div>
           <div class="fseg" id="fchips-tipo" onclick="clickChipFiltro(event,'tipo')">
             <button class="active" data-v="todos">Todo</button>
             <button data-v="gasto">➖ Gastos</button>
             <button data-v="ingreso">➕ Ingresos</button>
           </div>
-          <div class="fgroup-label">Cuenta</div>
+          <div class="fgroup-label">Cuenta · las más usadas en el periodo</div>
           <div class="fchips" id="fchips-cuenta" onclick="clickChipFiltro(event,'cuenta')"></div>
-          <div class="fgroup-label">Categoría</div>
+          <div class="fgroup-label">Categoría · las más usadas en el periodo</div>
           <div class="fchips" id="fchips-cat" onclick="clickChipFiltro(event,'cat')"></div>
         </div>
         <div style="display:flex;gap:6px;align-items:center">

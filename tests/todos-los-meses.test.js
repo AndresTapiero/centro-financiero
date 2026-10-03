@@ -19,4 +19,12 @@ test('últimos 3 ciclos incluye julio, agosto y septiembre', ()=>{set('filterRan
 test('este año', ()=>{set('filterRange','anio'); eq(src.movimientosVisibles().length,4)});
 test('restarCiclos cruza el año', ()=>eq(src.restarCiclos('2026-01',2),'2025-11'));
 set('filterRange','ciclo');
+console.log('\nmontos que no cuadran:');
+test('el filtro trae solo los sospechosos de todo el historial', ()=>{
+  set('accounts',{trm:3600});
+  set('entries',[mov('1','2026-07-10','rappitc'),{...mov('2','2026-05-10','arq'),amount:270000},mov('3','2026-09-10','nequi')]);
+  set('filterSospechosos',true); eq(src.movimientosVisibles().length,1);
+  set('filterSospechosos',false);
+});
+test('etiqueta del periodo del ciclo', ()=>{set('currentMonth','2026-10'); eq(src.etiquetaPeriodo(),'Oct 2026 · 26 sep – 25 oct')});
 console.log(`\n  ${p} passed  |  ${f} failed`); if(f)process.exit(1);
