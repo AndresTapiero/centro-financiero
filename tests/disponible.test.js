@@ -76,6 +76,20 @@ test('una meta por categoría NO saca ninguna cuenta', () => {
   limpiar();
 });
 
+test('distribución: líquidas = Nequi, Davivienda, ARQ, Ontop y Lulo X; ahorro de metas = Bolsillo Media y Lulo; Nu = emergencia', () => {
+  limpiar();
+  ev("ACCOUNTS_META['acc_lulo_x']={label:'Lulo X',currency:'USD',type:'debito'}");
+  ev("ACCOUNTS_META['acc_bolsillo_media']={label:'Bolsillo Media',currency:'COP',type:'debito'}");
+  set('dynamicAccounts', {acc_lulo_x:{label:'Lulo X',currency:'USD'}, acc_bolsillo_media:{label:'Bolsillo Media',currency:'COP'}});
+  set('goals', [{id:'b',name:'Bolsillo Media',type:'cuenta',acc:'acc_bolsillo_media',target:0}]);
+  assert(cuentasDeGastoDiario().sort().join(','), 'acc_lulo_x,arq,debito,nequi,ontop');
+  const a = cuentasDeAhorro();
+  ok(a.has('acc_bolsillo_media') && a.has('lulo') && a.has('nu'));
+  ok(!a.has('acc_lulo_x'), 'Lulo X no es ahorro');
+  ev("delete ACCOUNTS_META['acc_lulo_x']; delete ACCOUNTS_META['acc_bolsillo_media']");
+  limpiar();
+});
+
 // ─── Apartado a ahorro dentro del ciclo ──────────────────────────────────────
 console.log('\nPlata apartada en el ciclo:');
 
