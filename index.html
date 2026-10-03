@@ -74,7 +74,14 @@
     <div id="nueva-cuenta-title" style="font-size:13px;line-height:1.6;margin-bottom:14px">➕ <strong>Crear cuenta nueva</strong></div>
     <div style="margin-bottom:12px">
       <label for="nueva-cuenta-nombre" style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Nombre</label>
-      <input class="inp" id="nueva-cuenta-nombre" type="text" placeholder="Ej: Bolsillo Ahorro" style="width:100%">
+      <input class="inp" id="nueva-cuenta-nombre" type="text" placeholder="Ej: Lulo X, Cajita de rendimiento" style="width:100%">
+    </div>
+    <div style="margin-bottom:12px">
+      <label for="nueva-cuenta-tipo" style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Tipo</label>
+      <select class="inp" id="nueva-cuenta-tipo" style="width:100%">
+        <option value="liquida">💧 Cuenta líquida — para gastar</option>
+        <option value="cajita">🎯 Cajita de rendimiento — ahorro</option>
+      </select>
     </div>
     <div style="margin-bottom:16px">
       <label for="nueva-cuenta-moneda" style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Moneda</label>
@@ -406,7 +413,7 @@
     </div>
     <div class="card">
       <div class="card-title">💧 Cuentas líquidas — disponibles para gastar <span>(clic para editar)</span></div>
-      <div class="accounts-grid">
+      <div class="accounts-grid" id="liquid-accounts-grid">
         <div class="acc-card" id="card-nequi"><div class="acc-label"><span class="avatar-square" style="background:#C147E9">N</span><span>Nequi</span><span class="currency-badge">Pesos</span></div><input class="acc-value" id="acc-nequi" onblur="handleAccountFieldBlur('nequi')"></div>
         <div class="acc-card" id="card-debito"><div class="acc-label"><span class="avatar-square" style="background:#EF4444">D</span><span>Davivienda</span><span class="currency-badge">Pesos</span></div><input class="acc-value" id="acc-debito" onblur="handleAccountFieldBlur('debito')"></div>
         <div class="acc-card" id="card-arq"><div class="acc-label"><span class="avatar-square" style="background:#1B7A4D">A</span><span>ARQ</span><span class="currency-badge">Dólares</span></div><input class="acc-value" id="acc-arq" onblur="handleAccountFieldBlur('arq')"></div>
@@ -429,7 +436,7 @@
       <div class="accounts-grid" id="metas-accounts-grid">
         <div class="acc-card" id="card-lulo"><div class="acc-label"><span class="avatar-square" style="background:#0E9F6E">L</span><span>Lulo</span><span class="currency-badge">Pesos</span></div><input class="acc-value" id="acc-lulo" onblur="handleAccountFieldBlur('lulo')"></div>
       </div>
-      <div style="font-size:10px;color:var(--text3);margin-top:8px">Crea nuevas cuentas de ahorro directamente desde la pestaña 🏆 Metas.</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:8px">Crea una cajita con ➕ Crear cuenta nueva (tipo «Cajita de rendimiento») o desde la pestaña 🏆 Metas.</div>
     </div>
     <div class="card">
       <div class="card-title">💳 Tarjetas de crédito (deuda)</div>

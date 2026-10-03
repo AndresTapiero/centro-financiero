@@ -37,6 +37,7 @@ function slugify(text){
 function abrirNuevaCuentaModal(){
   document.getElementById('nueva-cuenta-nombre').value='';
   document.getElementById('nueva-cuenta-moneda').value='COP';
+  document.getElementById('nueva-cuenta-tipo').value='liquida';
   document.getElementById('nueva-cuenta-modal').style.display='flex';
 }
 
@@ -46,7 +47,33 @@ async function resolverNuevaCuentaModal(confirmado){
   const nombre=document.getElementById('nueva-cuenta-nombre').value.trim();
   if(!nombre)return;
   const moneda=document.getElementById('nueva-cuenta-moneda').value;
-  await createDynamicAccount(nombre,moneda);
+  const esCajita=document.getElementById('nueva-cuenta-tipo').value==='cajita';
+  const key=await createDynamicAccount(nombre,moneda);
+  // Una cajita de rendimiento es una cuenta de ahorro: se reconoce como tal porque está
+  // vinculada a una meta (sin monto objetivo). Así no hace falta un campo nuevo en la base.
+  if(esCajita)await crearMetaVinculada(nombre,key);
+}
+
+/** Crea y guarda una meta de ahorro (sin monto objetivo) vinculada a una cuenta. */
+async function crearMetaVinculada(nombre,accSlug){
+  const goal={name:nombre,type:'cuenta',target:0,acc:accSlug};
+  try{
+    const {data:fila,error}=await sb.from('fin_metas').insert({
+      user_id:currentUserId,nombre:goal.name,tipo:'cuenta',account_id:accountIdBySlug[accSlug],
+      categoria:null,monto_objetivo:0,acumulado:0,color:null,
+    }).select().single();
+    if(error)throw error;
+    goal.id=fila.id;
+  }catch(e){
+    registrarErrorDiagnostico('fin_metas (cajita)',e);
+    toastError('⚠ La cuenta se creó, pero no se pudo marcar como cajita de ahorro — revisa 🔧 Diagnóstico');
+    return null;
+  }
+  goals.push(goal);
+  reubicarTarjetasDinamicas();
+  renderGoals();
+  fillAccountInputs(); // el disponible cambia: ya no cuenta como plata para gastar
+  return goal;
 }
 
 async function createDynamicAccount(name,currency){
@@ -84,9 +111,28 @@ function refreshAllAccountSelectors(){
   });
 }
 
+/** Dónde va la tarjeta: las de ahorro con las metas, las demás con las cuentas líquidas. */
+function gridDeTarjeta(key){
+  const id=cuentasDeAhorro().has(key)?'metas-accounts-grid':'liquid-accounts-grid';
+  return document.getElementById(id);
+}
+
+/** Mueve las tarjetas ya dibujadas a su sección si cambió su clasificación (ej. al vincularlas a una meta). */
+function reubicarTarjetasDinamicas(){
+  Object.keys(dynamicAccounts).forEach(key=>{
+    const card=document.getElementById('card-'+key);
+    const grid=gridDeTarjeta(key);
+    if(card&&grid&&card.parentElement!==grid)grid.appendChild(card);
+  });
+}
+
 function renderDynamicAccountCard(key){
-  const grid=document.getElementById('metas-accounts-grid');
-  if(!grid||grid.querySelector('#card-'+key))return;
+  // Antes iban siempre a "Cuentas de ahorro para metas", aunque fueran cuentas de gasto
+  // (ej. donde cae un segundo salario). Ahora van a la sección que les corresponde.
+  const grid=gridDeTarjeta(key);
+  if(!grid)return;
+  const existente=document.getElementById('card-'+key);
+  if(existente){ if(existente.parentElement!==grid)grid.appendChild(existente); return; }
   const meta=ACCOUNTS_META[key];
   const card=document.createElement('div');
   card.className='acc-card';
@@ -282,6 +328,7 @@ async function addGoal(){
   document.getElementById('goal-catname').value='';
   refreshGoalCategoryOptions();
   renderGoals();
+  fillAccountInputs(); // vincular una cuenta a una meta la saca del disponible
 
   addingGoal=false;
   if(btn){
@@ -300,6 +347,7 @@ async function deleteGoal(id){
   goals=goals.filter(g=>g.id!==id);
   refreshGoalCategoryOptions();
   renderGoals();
+  fillAccountInputs(); // desvincular una cuenta de su meta la devuelve al disponible
   try{
     const {error}=await sb.from('fin_metas').delete().eq('id',id);
     if(error)throw error;
@@ -352,6 +400,7 @@ function calcularRitmoMeta(goal){
 }
 
 function renderGoals(){
+  reubicarTarjetasDinamicas();
   const list=document.getElementById('goals-list');
   if(!list)return;
   if(goals.length===0){
