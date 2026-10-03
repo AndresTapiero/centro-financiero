@@ -47,7 +47,7 @@
   </div>
 </div>
 <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
-<div id="confirm-modal" role="alertdialog" aria-modal="true" aria-describedby="confirm-modal-text" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
+<div id="confirm-modal" role="alertdialog" aria-modal="true" aria-describedby="confirm-modal-text" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1400;align-items:center;justify-content:center">
   <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:340px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.5)">
     <div id="confirm-modal-text" style="font-size:13px;line-height:1.6;margin-bottom:16px;white-space:pre-line"></div>
     <div style="display:flex;gap:8px">
@@ -397,6 +397,7 @@
     </div>
     <div class="ats-sub" id="ats-sub" style="margin-top:16px;font-size:11px">Liquidez en pesos y dólares, menos compromisos pendientes del mes</div>
   </div>
+  <div id="alerta-montos" class="alerta-montos" style="display:none"></div>
 
   <nav class="main-nav">
     <button class="nav-item active" onclick="switchTab('cuentas',this)"><span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="currentColor" viewBox="0 0 16 16"><path d="m8 0 6.61 3h.89a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5H15v7a.5.5 0 0 1 .485.38l.5 2a.498.498 0 0 1-.485.62H.5a.498.498 0 0 1-.485-.62l.5-2A.5.5 0 0 1 1 13V6H.5a.5.5 0 0 1-.5-.5v-2A.5.5 0 0 1 .5 3h.89zM3.777 3h8.447L8 1zM2 6v7h1V6zm2 0v7h2.5V6zm3.5 0v7h1V6zm2 0v7H12V6zM13 6v7h1V6zm2-1V4H1v1zm-.39 9H1.39l-.25 1h13.72z"/></svg></span><span>Cuentas</span></button>

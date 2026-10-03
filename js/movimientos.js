@@ -67,7 +67,17 @@ async function addEntry(seguirAgregando){
   const meta=ACCOUNTS_META[acc];
   const sign=type==='gasto'?1:-1;
   const curOverride=meta.currency==='USD'?document.getElementById('inp-currency').value:null;
-  const entryCurrency=curOverride&&curOverride!==meta.currency?curOverride:undefined;
+  let entryCurrency=curOverride&&curOverride!==meta.currency?curOverride:undefined;
+
+  // Cuenta en dólares + monto que solo tiene sentido en pesos (ej. 270.000): casi siempre se
+  // escribió en pesos. Guardado como USD se multiplica por la TRM y aparece un gasto de cientos
+  // de millones que descuadra todo el ciclo. Se pregunta antes de guardar.
+  if(meta.currency==='USD'&&!entryCurrency&&amount>=UMBRAL_USD_SOSPECHOSO){
+    const eranPesos=await customConfirm(
+      `Escribiste ${fmtUSD(amount)} en ${meta.label} (≈ ${fmtCOP(amount*accounts.trm)} pesos).\n\n¿Ese monto era en pesos?`,
+      {textoSi:'Sí, eran pesos',textoNo:'No, son dólares'});
+    if(eranPesos)entryCurrency='COP';
+  }
 
   let nativeAmount=amount;
   if(meta.currency==='USD'&&entryCurrency==='COP'){
@@ -188,17 +198,80 @@ async function addEntry(seguirAgregando){
   }
 }
 
+// Montos a partir de los cuales un movimiento casi seguro está mal registrado.
+const UMBRAL_USD_SOSPECHOSO=10000;      // 10.000 USD de un solo golpe: lo normal es que fueran pesos
+const UMBRAL_COP_SOSPECHOSO=50000000;   // 50 millones en un solo movimiento
+
+/** Un movimiento cuyo monto en pesos es absurdo para esta app (casi siempre: pesos guardados como dólares). */
+function montoSospechoso(e){
+  if(e.cat==='[Ajuste de saldo]')return false;
+  const meta=ACCOUNTS_META[e.acc];
+  if(!meta)return false;
+  if((e.currency||meta.currency)==='USD')return e.amount>=UMBRAL_USD_SOSPECHOSO;
+  return e.amount>=UMBRAL_COP_SOSPECHOSO;
+}
+
+/** Cuánto movió el movimiento en la moneda de SU cuenta (lo que tocó el saldo). */
+function montoNativo(e,meta){
+  const cur=e.currency||meta.currency;
+  if(cur===meta.currency)return e.amount;
+  return meta.currency==='USD'?e.amount/accounts.trm:e.amount*accounts.trm;
+}
+
+/**
+ * Cambia la moneda de un movimiento (USD ↔ COP). Antes solo cambiaba la etiqueta: el saldo de la
+ * cuenta seguía descontado con el monto equivocado (ej. 270.000 USD en vez de 270.000 pesos).
+ * Ahora ofrece también deshacer ese descuento, mostrando cómo queda el saldo — no se hace sin
+ * preguntar porque, si ya ajustaste el saldo a mano, corregirlo otra vez lo descuadraría.
+ */
 async function fixCurrency(id){
   const e=entries.find(x=>x.id===id);
   if(!e)return;
   const meta=ACCOUNTS_META[e.acc];
+  if(!meta)return;
+  const antes=montoNativo(e,meta);
   const actual=e.currency||meta.currency;
   e.currency=actual==='USD'?'COP':'USD';
+  const despues=montoNativo(e,meta);
+
+  // Mismo signo que addEntry: un gasto baja el saldo (o sube la deuda de una tarjeta)
+  const sign=e.txType==='gasto'?1:-1;
+  const delta=sign*(despues-antes);
+  const saldoNuevo=redondear3(meta.type==='credito'?accounts[e.acc]+delta:accounts[e.acc]-delta);
+  const fmt=n=>meta.currency==='USD'?fmtUSD(n):fmtCOP(n);
+  const corregirSaldo=Math.abs(delta)>0.005&&await customConfirm(
+    `"${e.name}" ahora queda en ${e.currency==='COP'?fmtCOP(e.amount):fmtUSD(e.amount)}.\n\n`+
+    `¿Corregir también el saldo de ${meta.label}?\nHoy: ${fmt(accounts[e.acc])}\nQuedaría: ${fmt(saldoNuevo)}\n\n`+
+    `Si ya habías ajustado ese saldo a mano, elige "Solo el movimiento".`,
+    {textoSi:'Sí, corregir saldo',textoNo:'Solo el movimiento'});
+  if(corregirSaldo)accounts[e.acc]=saldoNuevo;
+
+  fillAccountInputs();
   render();
   try{
     const {error}=await sb.from('fin_movimientos').update({moneda_override:e.currency}).eq('id',id);
     if(error)throw error;
   }catch(err){ registrarErrorDiagnostico('fin_movimientos (corregir moneda)',err); }
+  if(corregirSaldo){ try{ await saveAccountsData(); }catch(err){} }
+}
+
+/** Aviso arriba de todo con los movimientos de monto absurdo, para corregirlos con un toque. */
+function renderAlertaMontos(){
+  const el=document.getElementById('alerta-montos');
+  if(!el)return;
+  const sospechosos=entries.filter(montoSospechoso).sort((a,b)=>b.date.localeCompare(a.date));
+  if(!sospechosos.length){ el.style.display='none'; el.innerHTML=''; return; }
+  el.style.display='block';
+  el.innerHTML=`<div class="alerta-montos-titulo">⚠ ${sospechosos.length===1?'Hay un movimiento':'Hay '+sospechosos.length+' movimientos'} con un monto que no cuadra — por eso los totales salen gigantes</div>`+
+    sospechosos.slice(0,6).map(e=>{
+      const meta=ACCOUNTS_META[e.acc];
+      const enUSD=(e.currency||meta.currency)==='USD';
+      const monto=enUSD?fmtUSD(e.amount):fmtCOP(e.amount);
+      const accion=enUSD
+        ?`<button class="alerta-montos-btn" onclick="fixCurrency('${e.id}')">💱 Eran pesos</button>`
+        :`<button class="alerta-montos-btn" onclick="openEditEntryModal('${e.id}')">✏️ Revisar</button>`;
+      return `<div class="alerta-montos-fila"><div><strong>${esc(e.name)}</strong> · ${monto}${enUSD?` <span class="alerta-montos-cop">(≈ ${fmtCOP(entryCOP(e))})</span>`:''}<div class="alerta-montos-sub">${fmtDate(e.date)} · ${esc(meta.label)}</div></div>${accion}</div>`;
+    }).join('');
 }
 
 let _editEntryId=null;
@@ -247,7 +320,7 @@ function openEditEntryModal(id){
   onEditEntryAccountChange();
   const cop=entryCOP(e);
   const fixBtn=document.getElementById('edit-entry-fix-currency-btn');
-  if(fixBtn) fixBtn.style.display=(cop>5000000&&(e.currency||meta.currency)==='USD')?'block':'none';
+  if(fixBtn) fixBtn.style.display=(montoSospechoso(e)&&(e.currency||meta.currency)==='USD')?'block':'none';
   document.getElementById('edit-entry-modal').style.display='flex';
 }
 

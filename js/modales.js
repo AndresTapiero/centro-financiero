@@ -12,6 +12,7 @@ function customConfirm(mensaje,opciones={}){
     }else{
       btnNo.style.display='block';
     }
+    btnNo.textContent=opciones.textoNo||'Cancelar';
     document.getElementById('confirm-modal').style.display='flex';
   });
 }
