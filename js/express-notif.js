@@ -141,6 +141,8 @@ function abrirCatPicker(targetId) {
     html += '</div>';
   }
   document.getElementById('cat-picker-list').innerHTML = html;
+  const titulo = document.getElementById('cat-picker-titulo');
+  if (titulo) titulo.textContent = 'Categoría';
   document.getElementById('cat-picker-modal').style.display = 'flex';
 }
 

@@ -198,6 +198,32 @@ async function addEntry(seguirAgregando){
   }
 }
 
+/**
+ * Guarda cambios de un movimiento en Supabase y CONFIRMA que la base los aceptó.
+ *
+ * Un update que las políticas de seguridad (RLS) no dejan pasar no devuelve error: simplemente
+ * actualiza 0 filas. La app cambiaba el dato en pantalla, el cambio nunca llegaba a la base y al
+ * recargar volvía todo como estaba — parecía que editar "no tenía impacto". Ahora se pide de
+ * vuelta la fila actualizada y, si no vuelve ninguna, se avisa.
+ */
+async function guardarCambioMovimiento(ids,campos){
+  const lista=Array.isArray(ids)?ids:[ids];
+  const consulta=sb.from('fin_movimientos').update(campos);
+  const {data,error}=await (lista.length===1?consulta.eq('id',lista[0]):consulta.in('id',lista)).select('id');
+  if(error)throw error;
+  const guardadas=(data||[]).length;
+  if(guardadas<lista.length)throw new Error(`La base solo aceptó ${guardadas} de ${lista.length} cambios (revisa las políticas RLS de fin_movimientos)`);
+}
+
+function avisarGuardado(msg){
+  const el=document.getElementById('save-toast');
+  if(!el)return;
+  clearTimeout(el._hideTimer);
+  el.textContent=msg;
+  el.style.cssText='display:block;opacity:1;background:rgba(14,159,110,.12);color:var(--safe);border:1px solid rgba(14,159,110,.35)';
+  el._hideTimer=setTimeout(()=>{ el.style.opacity='0'; setTimeout(()=>{ el.style.display='none'; },300); },2000);
+}
+
 // Montos a partir de los cuales un movimiento casi seguro está mal registrado.
 const UMBRAL_USD_SOSPECHOSO=10000;      // 10.000 USD de un solo golpe: lo normal es que fueran pesos
 const UMBRAL_COP_SOSPECHOSO=50000000;   // 50 millones en un solo movimiento
@@ -249,9 +275,12 @@ async function fixCurrency(id){
   fillAccountInputs();
   render();
   try{
-    const {error}=await sb.from('fin_movimientos').update({moneda_override:e.currency}).eq('id',id);
-    if(error)throw error;
-  }catch(err){ registrarErrorDiagnostico('fin_movimientos (corregir moneda)',err); }
+    await guardarCambioMovimiento(id,{moneda_override:e.currency});
+    avisarGuardado('✓ Moneda corregida');
+  }catch(err){
+    registrarErrorDiagnostico('fin_movimientos (corregir moneda)',err);
+    toastError('⚠ No se guardó el cambio en la base — revisa 🔧 Diagnóstico');
+  }
   if(corregirSaldo){ try{ await saveAccountsData(); }catch(err){} }
 }
 
@@ -316,8 +345,8 @@ async function fixCurrencyTodos(){
   fillAccountInputs();
   render();
   try{
-    const {error}=await sb.from('fin_movimientos').update({moneda_override:'COP'}).in('id',lista.map(e=>e.id));
-    if(error)throw error;
+    await guardarCambioMovimiento(lista.map(e=>e.id),{moneda_override:'COP'});
+    avisarGuardado(`✓ ${lista.length} movimientos corregidos`);
   }catch(err){
     registrarErrorDiagnostico('fin_movimientos (corregir moneda en lote)',err);
     toastError('⚠ No se pudieron guardar todas las correcciones — revisa 🔧 Diagnóstico');
@@ -448,16 +477,21 @@ async function resolverEditEntryModal(confirmado){
   const oldCat=e.cat;
   const sign=e.txType==='gasto'?1:-1;
 
-  // 1. Revertir el impacto en la cuenta anterior con el monto viejo (antes de cualquier cambio)
-  if(oldMeta.type==='credito'){ accounts[oldAcc]=redondear3(accounts[oldAcc]-(sign*oldAmount)); }
-  else{ accounts[oldAcc]=redondear3(accounts[oldAcc]+(sign*oldAmount)); }
+  // 1. Revertir el impacto en la cuenta anterior con lo que REALMENTE movió en su moneda.
+  // Antes se usaba el monto escrito tal cual: un gasto de 45.000 pesos en ARQ (cuenta en dólares)
+  // devolvía 45.000 USD al saldo al editarlo.
+  const viejoNativo=montoNativo(e,oldMeta);
+  if(oldMeta.type==='credito'){ accounts[oldAcc]=redondear3(accounts[oldAcc]-(sign*viejoNativo)); }
+  else{ accounts[oldAcc]=redondear3(accounts[oldAcc]+(sign*viejoNativo)); }
 
-  // 2. El monto escrito en el formulario ya está en la moneda mostrada (newCurrencyChoice) — es el monto nativo final
+  // 2. El monto escrito está en la moneda elegida (newCurrencyChoice); se guarda tal cual
   const nuevoAmountNativo=montoEscrito;
+  const nuevoEnSuCuenta=newCurrencyChoice===newMeta.currency?montoEscrito
+    :(newMeta.currency==='USD'?montoEscrito/accounts.trm:montoEscrito*accounts.trm);
 
-  // 3. Aplicar el impacto en la cuenta nueva con el monto nuevo
-  if(newMeta.type==='credito'){ accounts[newAcc]=redondear3(accounts[newAcc]+(sign*nuevoAmountNativo)); }
-  else{ accounts[newAcc]=redondear3(accounts[newAcc]-(sign*nuevoAmountNativo)); }
+  // 3. Aplicar el impacto en la cuenta nueva, en la moneda de esa cuenta
+  if(newMeta.type==='credito'){ accounts[newAcc]=redondear3(accounts[newAcc]+(sign*nuevoEnSuCuenta)); }
+  else{ accounts[newAcc]=redondear3(accounts[newAcc]-(sign*nuevoEnSuCuenta)); }
 
   // 4. Ajustar metas acumuladas por categoría (considerando que categoría y/o monto pudieron cambiar)
   const montoViejoCOP=oldCurrency==='USD'?oldAmount*accounts.trm:oldAmount;
@@ -485,20 +519,74 @@ async function resolverEditEntryModal(confirmado){
   fillAccountInputs();
   render();
   try{
-    const {error}=await sb.from('fin_movimientos').update({
+    await guardarCambioMovimiento(id,{
       categoria:e.cat,
       account_id:accountIdBySlug[e.acc],
       monto:e.amount,
       moneda_override:e.currency||null,
       vehiculo:e.vehiculo||null,
-    }).eq('id',id);
-    if(error)throw error;
+    });
+    avisarGuardado('✓ Cambios guardados');
     await saveAccountsData();
     if(goalsChanged){
       if(oldGoal)await actualizarAcumuladoMeta(oldGoal);
       if(newGoal&&newGoal!==oldGoal)await actualizarAcumuladoMeta(newGoal);
     }
-  }catch(err){ registrarErrorDiagnostico('fin_movimientos (editar)',err); }
+  }catch(err){
+    registrarErrorDiagnostico('fin_movimientos (editar)',err);
+    toastError('⚠ El cambio no se guardó en la base — al recargar volverá como estaba. Revisa 🔧 Diagnóstico');
+  }
+}
+
+// ─── Mover un movimiento de categoría (desde Presupuesto) ───────────────────
+let _moverCatId=null;
+
+/** Abre el selector de categorías para mover este movimiento a otra. */
+function abrirMoverCategoria(id){
+  const e=entries.find(x=>x.id===id);
+  if(!e)return;
+  _moverCatId=id;
+  const sel=document.getElementById('mover-cat-select');
+  sel.innerHTML=document.getElementById('inp-cat').innerHTML;
+  sel.value=e.cat;
+  abrirCatPicker('mover-cat-select');
+  document.getElementById('cat-picker-titulo').textContent=`Mover «${e.name}» a…`;
+}
+
+document.getElementById('mover-cat-select')?.addEventListener('change',ev=>{
+  const id=_moverCatId;
+  _moverCatId=null;
+  if(id)moverMovimientoACategoria(id,ev.target.value);
+});
+
+/** Cambia la categoría de un movimiento (solo eso: no toca montos ni saldos) y la guarda verificada. */
+async function moverMovimientoACategoria(id,nuevaCat){
+  const e=entries.find(x=>x.id===id);
+  if(!e||!nuevaCat||e.cat===nuevaCat)return;
+  const anterior=e.cat;
+  const montoCOP=entryCOP(e)*(e.txType==='gasto'?1:-1);
+  e.cat=nuevaCat;
+  if(!nuevaCat.startsWith('Vehículo')&&e.vehiculo)delete e.vehiculo;
+  // Las metas por categoría llevan su propio acumulado: sale de una y entra en la otra
+  const metaVieja=goals.find(g=>g.type==='categoria'&&g.cat===anterior);
+  const metaNueva=goals.find(g=>g.type==='categoria'&&g.cat===nuevaCat);
+  if(metaVieja)metaVieja.accumulated=(metaVieja.accumulated||0)-montoCOP;
+  if(metaNueva)metaNueva.accumulated=(metaNueva.accumulated||0)+montoCOP;
+  render();
+  try{
+    await guardarCambioMovimiento(id,{categoria:nuevaCat,vehiculo:e.vehiculo||null});
+    avisarGuardado(`✓ «${e.name}» movido a ${scat(nuevaCat)}`);
+    if(metaVieja)await actualizarAcumuladoMeta(metaVieja);
+    if(metaNueva)await actualizarAcumuladoMeta(metaNueva);
+  }catch(err){
+    // No quedó en la base: se deshace en pantalla para no mostrar algo que no es real
+    e.cat=anterior;
+    if(metaVieja)metaVieja.accumulated=(metaVieja.accumulated||0)+montoCOP;
+    if(metaNueva)metaNueva.accumulated=(metaNueva.accumulated||0)-montoCOP;
+    render();
+    registrarErrorDiagnostico('fin_movimientos (mover categoría)',err);
+    toastError('⚠ No se pudo mover: la base no aceptó el cambio — revisa 🔧 Diagnóstico');
+  }
 }
 
 

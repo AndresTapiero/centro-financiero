@@ -95,6 +95,7 @@ function render(){
         <span style="flex:1;padding:0 8px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(e.name)}</span>
         <span style="color:var(--text3);font-size:9px;font-family:var(--mono);margin-right:8px">${esc(meta.label)}</span>
         <span style="font-family:var(--mono);font-weight:600">${amtStr}</span>
+        <button class="mover-cat-btn" onclick="event.stopPropagation();abrirMoverCategoria('${e.id}')" title="Mover a otra categoría">Mover ▸</button>
       </div>`;
     }).join(''):'<div style="font-size:11px;color:var(--text3);padding:8px 0">Sin compras registradas en esta categoría este mes.</div>';
     const nombreVisible=indentado?cat.split(' · ').slice(1).join(' · '):cat;
@@ -131,7 +132,7 @@ function render(){
     const bc=over?'#FF6B6B':near?'#FFB347':col(cats[0]);
     const groupId=`budget-group-${llave.replace(/\s+/g,'')}`;
     const encabezado=`<div class="budget-row" style="padding-bottom:6px">
-      <div class="budget-top" style="cursor:pointer" onclick="toggleBudgetDetail('${groupId}')"><span class="budget-name" style="font-weight:700">📁 ${llave} <span id="${groupId}-arrow" style="font-size:9px;color:var(--text3)">▾</span></span><span class="budget-nums" style="font-weight:700">${fmtCOP(spentTotal)} / ${fmtCOP(capTotal)}</span></div>
+      <div class="budget-top" style="cursor:pointer" onclick="toggleBudgetDetail('${groupId}')"><span class="budget-name" style="font-weight:700">${EMOJI_GRUPO[llave]||'📁'} ${llave} <span id="${groupId}-arrow" style="font-size:9px;color:var(--text3)">▾</span></span><span class="budget-nums" style="font-weight:700">${fmtCOP(spentTotal)} / ${fmtCOP(capTotal)}</span></div>
       <div class="budget-track"><div class="budget-fill" style="width:${p}%;background:${bc}"></div></div>
     </div>`;
     const hijosHTML=`<div id="${groupId}" style="display:none">${cats.map(c=>renderFilaCategoria(c,idxGlobal++,true)).join('')}</div>`;
@@ -160,7 +161,36 @@ function render(){
     </div>`;
   }
 
-  document.getElementById('budget-list').innerHTML=resumenHTML+listaActivaHTML+sinConsumoHTML;
+  // Gasto en categorías SIN tope (Otro, Pago Deuda, Comisiones viejas…): antes no salía en ningún
+  // lado del Presupuesto, así que mover un movimiento hacia una de ellas lo "desaparecía".
+  const catsSinTope=Object.keys(bycat).filter(c=>bycat[c]>0&&!(c in CAPS)).sort((a,b)=>bycat[b]-bycat[a]);
+  let sinTopeHTML='';
+  if(catsSinTope.length){
+    const filas=catsSinTope.map(cat=>{
+      const compras=gastos.filter(e=>e.cat===cat).sort((a,b)=>b.date.localeCompare(a.date));
+      const detailId=`budget-sintope-${idxGlobal++}`;
+      const comprasHTML=compras.map(e=>{
+        const meta=ACCOUNTS_META[e.acc]||{label:'Cuenta eliminada',currency:'COP'};
+        const amtStr=(e.currency||meta.currency)==='USD'?fmtUSD(e.amount):fmtCOP(e.amount);
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px">
+          <span style="color:var(--text3);font-family:var(--mono);min-width:34px">${fmtDate(e.date)}</span>
+          <span style="flex:1;padding:0 8px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(e.name)}</span>
+          <span style="font-family:var(--mono);font-weight:600">${amtStr}</span>
+          <button class="mover-cat-btn" onclick="event.stopPropagation();abrirMoverCategoria('${e.id}')" title="Mover a otra categoría">Mover ▸</button>
+        </div>`;
+      }).join('');
+      return `<div class="budget-row">
+        <div class="budget-top" style="cursor:pointer" onclick="toggleBudgetDetail('${detailId}')"><span class="budget-name">${esc(cat)} <span id="${detailId}-arrow" style="font-size:9px;color:var(--text3)">▾</span></span><span class="budget-nums">${fmtCOP(bycat[cat])}</span></div>
+        <div id="${detailId}" style="display:none;margin-top:8px;padding:8px 10px;background:var(--surface2);border-radius:8px">${comprasHTML}</div>
+      </div>`;
+    }).join('');
+    sinTopeHTML=`<div class="budget-row" style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)">
+      <div class="budget-name" style="font-weight:700">🗂️ Sin tope asignado</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px">Gastos del ciclo en categorías que no tienen tope. Si alguno está mal clasificado, usa «Mover ▸».</div>
+    </div>${filas}`;
+  }
+
+  document.getElementById('budget-list').innerHTML=resumenHTML+listaActivaHTML+sinTopeHTML+sinConsumoHTML;
 
 
   const monthNames=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
@@ -197,7 +227,7 @@ function renderMetrics(){
   if(centerTotalEl)centerTotalEl.textContent=fmtCOP(sum===1&&sorted.length===0?0:sum);
   document.getElementById('pie-legend').innerHTML=sorted.slice(0,8).map(([cat,val])=>{
     const pct=Math.round(val/sum*100);
-    return `<div class="legend-row"><div class="legend-dot" style="background:${col(cat)}"></div><span class="legend-name">${scat(cat)}</span><span class="legend-val">${pct}% · ${fmtCOP(val)}</span></div>`;
+    return `<div class="legend-row"><div class="legend-dot" style="background:${col(cat)}"></div><span class="legend-name">${esc(scat(cat))}${cat.includes(' · ')?` <span class="legend-grupo">${esc(cat.split(' · ')[0])}</span>`:''}</span><span class="legend-val">${pct}% · ${fmtCOP(val)}</span></div>`;
   }).join('')||'<div style="color:var(--text3);font-size:12px">Sin datos aún</div>';
 
   const davPct=Math.max(0,Math.min(100,Math.round((1-accounts.davtc/DEBT_ORIGINAL.davtc)*100)));
@@ -211,6 +241,7 @@ function renderMetrics(){
   document.getElementById('dp-rappi-current').textContent='Actual: '+fmtCOP(accounts.rappitc);
   document.getElementById('dp-rappi-original').textContent='Pico: '+fmtCOP(DEBT_ORIGINAL.rappitc);
 
+  renderCostosFinancieros();
   renderMonthComparison();
   renderPatrimonioHistorico();
   renderGastoHormiga();
@@ -530,6 +561,8 @@ const CATS_EXCLUIDAS_HORMIGA=new Set([
   'Arriendo','Salud','Servicios',            // obligaciones y necesidades
   'Alimentación · Mercado',                  // comida de casa, no gasto discrecional
   'Pago Deuda','Intereses','Comisión',       // costo financiero
+  'Costos financieros · Intereses','Costos financieros · Cuota de manejo',
+  'Costos financieros · Comisiones','Costos financieros · 4x1000',
   'Inversiones',                             // es ahorro, no gasto
   'Vehículo · Seguros','Vehículo · Taller',  // irregulares y obligatorios
   'Donación',                                // decisión deliberada, no una fuga
@@ -769,3 +802,40 @@ function renderEmergencyGrowth(){
   container.innerHTML=html;
 }
 
+
+/**
+ * Cuánto te cobran los bancos en el ciclo (intereses, cuota de manejo, comisiones, 4x1000),
+ * comparado con el ciclo anterior y proyectado al año. No es deuda: es el costo de tenerla
+ * y de usar tus cuentas, y suele ser plata que se puede recortar.
+ */
+function costosFinancierosDe(ciclo){
+  const porSub={};
+  entries.filter(e=>cicloDe(e.date)===ciclo&&esGastoReal(e)&&e.cat.startsWith('Costos financieros · '))
+    .forEach(e=>{ porSub[e.cat]=(porSub[e.cat]||0)+entryCOP(e); });
+  return {porSub,total:Object.values(porSub).reduce((s,v)=>s+v,0)};
+}
+
+function renderCostosFinancieros(){
+  const el=document.getElementById('costos-financieros-body');
+  if(!el)return;
+  const actual=costosFinancierosDe(currentMonth);
+  const anterior=costosFinancierosDe(restarCiclos(currentMonth,1));
+  if(actual.total===0&&anterior.total===0){
+    el.innerHTML='<div style="color:var(--text3);font-size:12px">Sin intereses, cuotas de manejo ni comisiones en este ciclo. 🎉</div>';
+    return;
+  }
+  const diff=actual.total-anterior.total;
+  const comparacion=anterior.total===0?'':
+    `<span style="color:${diff>0?'var(--danger)':'var(--safe)'}">${diff>0?'▲':'▼'} ${fmtCOP(Math.abs(diff))} vs ciclo anterior</span>`;
+  const filas=Object.entries(actual.porSub).sort((a,b)=>b[1]-a[1]).map(([cat,val])=>{
+    const pct=Math.round(val/actual.total*100);
+    return `<div class="cf-fila"><span class="legend-dot" style="background:${col(cat)}"></span><span class="cf-nombre">${esc(scat(cat))}</span>
+      <div class="cf-barra"><div style="width:${pct}%;background:${col(cat)}"></div></div><span class="cf-valor">${fmtCOP(val)}</span></div>`;
+  }).join('');
+  const consejo=actual.porSub['Costos financieros · Cuota de manejo']
+    ?'<div class="cf-consejo">💡 La cuota de manejo suele poder exonerarse: pídelo al banco o cambia a una cuenta o tarjeta sin cuota.</div>'
+    :actual.porSub['Costos financieros · Intereses']
+    ?'<div class="cf-consejo">💡 Los intereses desaparecen si pagas el total de la tarjeta antes de la fecha de corte.</div>':'';
+  el.innerHTML=`<div class="cf-total"><span class="cf-total-valor">${fmtCOP(actual.total)}</span><span class="cf-total-sub">este ciclo · ≈ ${fmtCOP(actual.total*12)} al año</span></div>
+    <div class="cf-comparacion">${comparacion}</div>${filas}${consejo}`;
+}

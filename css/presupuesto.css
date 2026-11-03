@@ -14,3 +14,7 @@
   .budget-name{flex-basis:100%}
   .budget-nums{margin-left:auto}
 }
+
+/* Botón para mover un gasto a otra categoría desde el detalle del Presupuesto */
+.mover-cat-btn{flex:0 0 auto;margin-left:8px;min-height:30px;padding:0 10px;border-radius:99px;border:1px solid var(--border2);background:var(--surface);color:var(--text2);font:600 11px var(--sans);cursor:pointer}
+.mover-cat-btn:hover{border-color:var(--accent);color:var(--accent)}

@@ -61,7 +61,7 @@ async function syncNow(){
         date:m.fecha,
         name:m.nombre,
         amount:Number(m.monto),
-        cat:m.categoria,
+        cat:categoriaVigente(m.categoria),
         acc:Object.keys(accountIdBySlug).find(slug=>accountIdBySlug[slug]===m.account_id),
         txType:m.tx_type,
         ...(m.moneda_override?{currency:m.moneda_override}:{}),
@@ -86,7 +86,7 @@ async function syncNow(){
         amount:Number(p.monto),
         date:p.fecha,
         acc:Object.keys(accountIdBySlug).find(slug=>accountIdBySlug[slug]===p.account_id),
-        cat:p.categoria,
+        cat:categoriaVigente(p.categoria),
         isIncome:p.is_income,
       }));
     }catch(e){ resP=null; registrarErrorDiagnostico('fin_pendientes (sync)',e); }
