@@ -95,6 +95,7 @@ function render(){
         <span style="flex:1;padding:0 8px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(e.name)}</span>
         <span style="color:var(--text3);font-size:9px;font-family:var(--mono);margin-right:8px">${esc(meta.label)}</span>
         <span style="font-family:var(--mono);font-weight:600">${amtStr}</span>
+        <button class="mover-cat-btn" onclick="event.stopPropagation();abrirMoverCategoria('${e.id}')" title="Mover a otra categoría">Mover ▸</button>
       </div>`;
     }).join(''):'<div style="font-size:11px;color:var(--text3);padding:8px 0">Sin compras registradas en esta categoría este mes.</div>';
     const nombreVisible=indentado?cat.split(' · ').slice(1).join(' · '):cat;
@@ -160,7 +161,36 @@ function render(){
     </div>`;
   }
 
-  document.getElementById('budget-list').innerHTML=resumenHTML+listaActivaHTML+sinConsumoHTML;
+  // Gasto en categorías SIN tope (Otro, Pago Deuda, Comisiones viejas…): antes no salía en ningún
+  // lado del Presupuesto, así que mover un movimiento hacia una de ellas lo "desaparecía".
+  const catsSinTope=Object.keys(bycat).filter(c=>bycat[c]>0&&!(c in CAPS)).sort((a,b)=>bycat[b]-bycat[a]);
+  let sinTopeHTML='';
+  if(catsSinTope.length){
+    const filas=catsSinTope.map(cat=>{
+      const compras=gastos.filter(e=>e.cat===cat).sort((a,b)=>b.date.localeCompare(a.date));
+      const detailId=`budget-sintope-${idxGlobal++}`;
+      const comprasHTML=compras.map(e=>{
+        const meta=ACCOUNTS_META[e.acc]||{label:'Cuenta eliminada',currency:'COP'};
+        const amtStr=(e.currency||meta.currency)==='USD'?fmtUSD(e.amount):fmtCOP(e.amount);
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px">
+          <span style="color:var(--text3);font-family:var(--mono);min-width:34px">${fmtDate(e.date)}</span>
+          <span style="flex:1;padding:0 8px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(e.name)}</span>
+          <span style="font-family:var(--mono);font-weight:600">${amtStr}</span>
+          <button class="mover-cat-btn" onclick="event.stopPropagation();abrirMoverCategoria('${e.id}')" title="Mover a otra categoría">Mover ▸</button>
+        </div>`;
+      }).join('');
+      return `<div class="budget-row">
+        <div class="budget-top" style="cursor:pointer" onclick="toggleBudgetDetail('${detailId}')"><span class="budget-name">${esc(cat)} <span id="${detailId}-arrow" style="font-size:9px;color:var(--text3)">▾</span></span><span class="budget-nums">${fmtCOP(bycat[cat])}</span></div>
+        <div id="${detailId}" style="display:none;margin-top:8px;padding:8px 10px;background:var(--surface2);border-radius:8px">${comprasHTML}</div>
+      </div>`;
+    }).join('');
+    sinTopeHTML=`<div class="budget-row" style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)">
+      <div class="budget-name" style="font-weight:700">🗂️ Sin tope asignado</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px">Gastos del ciclo en categorías que no tienen tope. Si alguno está mal clasificado, usa «Mover ▸».</div>
+    </div>${filas}`;
+  }
+
+  document.getElementById('budget-list').innerHTML=resumenHTML+listaActivaHTML+sinTopeHTML+sinConsumoHTML;
 
 
   const monthNames=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];

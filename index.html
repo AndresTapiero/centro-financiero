@@ -96,11 +96,12 @@
     </div>
   </div>
 </div>
+<select id="mover-cat-select" hidden aria-hidden="true"></select>
 <div id="cat-picker-modal" role="dialog" aria-modal="true" aria-label="Seleccionar categoría" style="display:none;position:fixed;inset:0;z-index:1300;align-items:flex-end;justify-content:center">
   <div onclick="cerrarCatPicker()" style="position:absolute;inset:0;background:rgba(0,0,0,.55)"></div>
   <div style="position:relative;background:var(--surface);border-radius:20px 20px 0 0;padding:20px 20px 40px;width:100%;max-width:480px;max-height:72vh;overflow-y:auto">
     <div style="width:40px;height:4px;background:var(--border2);border-radius:99px;margin:0 auto 16px"></div>
-    <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:4px">Categoría</div>
+    <div id="cat-picker-titulo" style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:4px">Categoría</div>
     <div id="cat-picker-list"></div>
   </div>
 </div>
