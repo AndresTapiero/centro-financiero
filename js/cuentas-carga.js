@@ -43,7 +43,7 @@ async function loadData(){
         date:m.fecha,
         name:m.nombre,
         amount:Number(m.monto),
-        cat:m.categoria,
+        cat:categoriaVigente(m.categoria),
         acc:Object.keys(accountIdBySlug).find(slug=>accountIdBySlug[slug]===m.account_id),
         txType:m.tx_type,
         ...(m.moneda_override?{currency:m.moneda_override}:{}),
@@ -66,7 +66,7 @@ async function loadData(){
         amount:Number(p.monto),
         date:p.fecha,
         acc:Object.keys(accountIdBySlug).find(slug=>accountIdBySlug[slug]===p.account_id),
-        cat:p.categoria,
+        cat:categoriaVigente(p.categoria),
         isIncome:p.is_income,
       }));
     }catch(e){ cargaConFallos=true; registrarErrorDiagnostico('fin_pendientes (lectura)',e); }

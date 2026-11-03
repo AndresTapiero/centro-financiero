@@ -312,7 +312,7 @@ async function doTransfer(){
   if(huboComision){
     filasNuevas.push({
       fecha:todayStr(),nombre:`Comisión transferencia ${metaO.label} → ${metaD.label}`,
-      monto:comision,categoria:'Comisión',acc:destino,txType:'gasto',currency:metaD.currency,
+      monto:comision,categoria:'Costos financieros · Comisiones',acc:destino,txType:'gasto',currency:metaD.currency,
     });
   }
 
