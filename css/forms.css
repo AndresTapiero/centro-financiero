@@ -36,3 +36,6 @@ option{color:var(--text);padding:6px}
      automático al enfocarlos, lo que se sentía como "las fuentes se ven mal". */
   .inp{font-size:16px}
 }
+
+/* Ningún campo de una grilla de formulario puede imponer un ancho mayor que su columna */
+.input-grid>*,.input-grid2>*{min-width:0}

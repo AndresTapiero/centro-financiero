@@ -4,9 +4,9 @@
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem;margin-bottom:1rem;box-shadow:0 1px 3px rgba(23,23,31,.05)}
 .card-title{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
 
-.accounts-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-@media(min-width:1024px){.accounts-grid{grid-template-columns:repeat(4,1fr)}}
-@media(max-width:640px){.accounts-grid{grid-template-columns:repeat(2,1fr)}}
+.accounts-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media(min-width:1024px){.accounts-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:640px){.accounts-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:400px){.accounts-grid{grid-template-columns:1fr}}
 
 .acc-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;transition:box-shadow .15s;position:relative;box-shadow:0 1px 3px rgba(23,23,31,.05)}
@@ -49,3 +49,12 @@
 .alerta-montos-acciones{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px}
 .alerta-montos-btn.is-solid{background:#DC2626;color:#fff}
 .alerta-montos-lista{max-height:260px;overflow-y:auto}
+
+/* Las tarjetas de cuenta nunca se salen de su grilla: sin min-width:0 un input o un monto largo
+   ($7.602.959) imponía su ancho mínimo y empujaba la segunda tarjeta fuera del componente. */
+.acc-card{min-width:0}
+.acc-value{min-width:0;font-size:clamp(14px,4.4vw,16px);text-overflow:ellipsis}
+.acc-label{min-width:0;flex-wrap:wrap;row-gap:4px}
+/* El nombre nunca se parte letra por letra: si no cabe junto a la etiqueta de moneda, la etiqueta baja */
+.acc-label span:nth-child(2){flex:1 1 72px;min-width:0;overflow-wrap:break-word}
+.accounts-grid-2{grid-template-columns:repeat(2,minmax(0,1fr))!important}

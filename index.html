@@ -458,7 +458,7 @@
     </div>
     <div class="card">
       <div class="card-title">💳 Tarjetas de crédito (deuda)</div>
-      <div class="accounts-grid" style="grid-template-columns:repeat(2,1fr)">
+      <div class="accounts-grid accounts-grid-2">
         <div class="acc-card debt"><div class="acc-label"><span class="avatar-square" style="background:#DC2626">D</span><span>Davivienda TC</span><span class="currency-badge">Crédito</span></div><input class="acc-value debt" id="acc-davtc" onblur="handleAccountFieldBlur('davtc')"><div id="due-davtc" style="font-size:9px;color:var(--text3);margin-top:4px"></div></div>
         <div class="acc-card debt"><div class="acc-label"><span class="avatar-square" style="background:#FF8C42">R</span><span>Rappi Card</span><span class="currency-badge">Crédito</span></div><input class="acc-value" style="color:#FF8C42" id="acc-rappitc" onblur="handleAccountFieldBlur('rappitc')"><div id="due-rappitc" style="font-size:9px;color:var(--text3);margin-top:4px"></div></div>
       </div>
@@ -469,7 +469,7 @@
     </div>
     <div class="card" id="transfer-card">
       <div class="card-title">🔄 Transferir entre cuentas</div>
-      <button class="btn-add is-ghost" style="margin-bottom:10px" onclick="abrirNuevaCuentaModal()">➕ Crear cuenta nueva (segundo salario, bolsillo, etc.)</button>
+      <button class="btn-add is-ghost btn-wrap" style="margin-bottom:10px;width:100%" onclick="abrirNuevaCuentaModal()">➕ Crear cuenta nueva (segundo salario, bolsillo, etc.)</button>
       <div class="input-grid2" style="margin-bottom:8px">
         <select class="inp" id="tr-origen" onchange="onTransferAccChange()">
           <optgroup label="🏦 Cuentas en pesos (COP)">
@@ -704,6 +704,17 @@
       <div class="card-title">🎯 Topes mensuales <span id="budget-month-label"></span></div>
       <div id="budget-list"></div>
     </div>
+    <div class="card" id="comparar-card">
+      <div class="card-title">📊 Comparar ciclos <span>— gasto por categoría</span></div>
+      <div class="fseg" id="comparar-n" onclick="clickCompararN(event)" style="margin-bottom:12px">
+        <button data-v="3" class="active">3 ciclos</button>
+        <button data-v="6">6 ciclos</button>
+        <button data-v="12">12 ciclos</button>
+      </div>
+      <div class="comparar-hint" id="comparar-hint" style="display:none">← Desliza la tabla para ver los ciclos anteriores</div>
+      <div class="comparar-scroll" id="comparar-tabla"></div>
+      <div class="comparar-nota">Termina en el ciclo elegido arriba. ▲▼ compara el último ciclo con el anterior. Toca un grupo para ver sus subcategorías.</div>
+    </div>
   </div>
 
   <div id="tab-metricas" class="tab-content">
@@ -820,8 +831,8 @@
     <div class="card">
       <div class="card-title">📐 Patrimonio neto — últimos meses</div>
       <div style="font-size:11px;color:var(--text3);margin-bottom:12px">Líquido menos deuda, al cierre de cada mes. Reconstruido desde tus movimientos — mismo método que el saldo histórico de Cuentas.</div>
-      <div id="networth-history-chart" style="display:flex;align-items:flex-end;gap:10px;height:120px;padding:0 8px 8px"></div>
-      <div id="networth-history-legend" style="display:flex;justify-content:space-around;font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:14px"></div>
+      <div id="networth-history-chart" class="barras-chart"></div>
+      <div id="networth-history-legend" hidden></div>
       <div style="padding-top:14px;border-top:1px solid var(--border)">
         <div class="card-title" style="margin-bottom:10px">💰 Tasa de ahorro por mes</div>
         <div id="savings-rate-list" style="font-size:12px;line-height:2"></div>
