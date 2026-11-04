@@ -191,6 +191,7 @@ function render(){
   }
 
   document.getElementById('budget-list').innerHTML=resumenHTML+listaActivaHTML+sinTopeHTML+sinConsumoHTML;
+  renderComparacionCiclos();
 
 
   const monthNames=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
@@ -511,19 +512,20 @@ function renderPatrimonioHistorico(){
     return;
   }
 
-  const maxAbs=Math.max(...datos.map(d=>Math.abs(d.neto)),1);
-  chart.innerHTML=datos.map(d=>{
+  // En pantallas angostas, 12 columnas con su valor no caben: se muestran los últimos 6 meses
+  const visibles=window.innerWidth<520?datos.slice(-6):datos;
+  const maxAbs=Math.max(...visibles.map(d=>Math.abs(d.neto)),1);
+  chart.innerHTML=visibles.map(d=>{
     const h=Math.max(4,Math.round(Math.abs(d.neto)/maxAbs*100));
     const color=d.neto>=0?'var(--safe)':'var(--danger)';
-    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;height:100%">
-      <div style="font-size:8px;font-family:var(--mono);color:var(--text2);white-space:nowrap">${(d.neto/1000000).toFixed(1)}M</div>
-      <div style="width:100%;max-width:32px;height:${h}px;background:${color};border-radius:4px 4px 0 0;transition:height .5s"></div>
+    const [,mo]=d.mes.split('-');
+    return `<div class="barra-col" title="${etiquetaCiclo(d.mes)}: ${fmtCOP(d.neto)}">
+      <div class="barra-valor">${fmtMillones(d.neto)}</div>
+      <div class="barra" style="height:${h}px;background:${color}"></div>
+      <div class="barra-mes">${monthNames[parseInt(mo)-1]}</div>
     </div>`;
   }).join('');
-  legend.innerHTML=datos.map(d=>{
-    const [,mo]=d.mes.split('-');
-    return `<span>${monthNames[parseInt(mo)-1]}</span>`;
-  }).join('');
+  legend.innerHTML='';
 
   // Tasa de ahorro: (ingresos − gastos) / ingresos, mismos filtros que usa el desglose del mes
   savingsList.innerHTML=datos.slice(-6).map(d=>{
@@ -839,3 +841,92 @@ function renderCostosFinancieros(){
   el.innerHTML=`<div class="cf-total"><span class="cf-total-valor">${fmtCOP(actual.total)}</span><span class="cf-total-sub">este ciclo · ≈ ${fmtCOP(actual.total*12)} al año</span></div>
     <div class="cf-comparacion">${comparacion}</div>${filas}${consejo}`;
 }
+
+/** Monto corto para etiquetas de gráficas: 1.521M, 984M, 2,5M, 850k. */
+function fmtMillones(n){
+  const a=Math.abs(n), s=n<0?'-':'';
+  if(a>=100e6)return s+Math.round(a/1e6).toLocaleString('es-CO')+'M';
+  if(a>=1e6)return s+(a/1e6).toLocaleString('es-CO',{maximumFractionDigits:1})+'M';
+  if(a>=1e3)return s+Math.round(a/1e3)+'k';
+  return s+Math.round(a);
+}
+
+// ─── Comparar ciclos (Presupuesto) ──────────────────────────────────────────
+let compararN=3;
+const _gruposComparacionAbiertos=new Set();
+
+function clickCompararN(ev){
+  const b=ev.target.closest('[data-v]');
+  if(!b)return;
+  compararN=Number(b.dataset.v);
+  marcarChips('comparar-n',b.dataset.v);
+  renderComparacionCiclos();
+}
+
+/**
+ * Tabla categorías × ciclos con el gasto de cada una, agrupada por familia (Alimentación,
+ * Vehículo, Costos financieros…). Las filas de grupo se abren para ver las subcategorías.
+ * La última columna compara el último ciclo con el anterior.
+ */
+function datosComparacion(ciclos){
+  const porCiclo=ciclos.map(c=>calcularResumenMes(c).bycat);
+  const cats=[...new Set(porCiclo.flatMap(b=>Object.keys(b)))];
+  const grupos={};
+  cats.forEach(cat=>{
+    const g=cat.includes(' · ')?cat.split(' · ')[0]:cat;
+    (grupos[g]=grupos[g]||[]).push(cat);
+  });
+  const valores=cs=>ciclos.map((_,i)=>cs.reduce((s,c)=>s+(porCiclo[i][c]||0),0));
+  const filas=Object.keys(grupos).map(g=>({grupo:g,cats:grupos[g].sort(),valores:valores(grupos[g])}))
+    .sort((a,b)=>b.valores.reduce((s,v)=>s+v,0)-a.valores.reduce((s,v)=>s+v,0));
+  return {filas,porCiclo,totales:valores(cats)};
+}
+
+function renderComparacionCiclos(){
+  const el=document.getElementById('comparar-tabla');
+  if(!el||!currentMonth)return;
+  const ciclos=[];
+  for(let i=compararN-1;i>=0;i--)ciclos.push(restarCiclos(currentMonth,i));
+  const {filas,porCiclo,totales}=datosComparacion(ciclos);
+  if(!filas.length){ el.innerHTML='<div class="empty">Sin gastos en estos ciclos</div>'; return; }
+  const meses=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const cab=c=>{ const [y,m]=c.split('-'); return `${meses[m-1]} ${y.slice(2)}`; };
+  const celda=v=>v?`<td>${fmtCOP(v)}</td>`:'<td class="cero">—</td>';
+  const delta=vals=>{
+    const ult=vals[vals.length-1], ant=vals[vals.length-2];
+    if(vals.length<2||(!ult&&!ant))return '<td class="cero">—</td>';
+    const d=ult-ant;
+    if(Math.abs(d)<1)return '<td class="cero">=</td>';
+    return `<td class="${d>0?'sube':'baja'}">${d>0?'▲':'▼'} ${fmtMillones(Math.abs(d))}</td>`;
+  };
+  const filasHTML=filas.map(f=>{
+    const tieneSubs=f.cats.length>1||f.cats[0]!==f.grupo;
+    const abierto=_gruposComparacionAbiertos.has(f.grupo);
+    const emoji=EMOJI_GRUPO[f.grupo]?EMOJI_GRUPO[f.grupo]+' ':'';
+    const fila=`<tr class="${tieneSubs?'grupo'+(abierto?' abierto':''):''}" ${tieneSubs?`data-grupo="${esc(f.grupo)}"`:''}>
+      <td title="${esc(f.grupo)}">${emoji}${esc(f.grupo)}</td>${f.valores.map(celda).join('')}${delta(f.valores)}</tr>`;
+    if(!tieneSubs||!abierto)return fila;
+    return fila+f.cats.map(cat=>{
+      const vals=porCiclo.map(b=>b[cat]||0);
+      return `<tr class="sub"><td title="${esc(cat)}">${esc(scat(cat))}</td>${vals.map(celda).join('')}${delta(vals)}</tr>`;
+    }).join('');
+  }).join('');
+  el.innerHTML=`<table class="comparar-tabla">
+    <thead><tr><th>Categoría</th>${ciclos.map(c=>`<th title="${etiquetaCiclo(c)}">${cab(c)}</th>`).join('')}<th>vs ant.</th></tr></thead>
+    <tbody>${filasHTML}<tr class="total"><td>Total</td>${totales.map(celda).join('')}${delta(totales)}</tr></tbody>
+  </table>`;
+  // Scroll al final: lo más útil es ver los ciclos más recientes
+  el.scrollLeft=el.scrollWidth;
+  const nota=document.getElementById('comparar-hint');
+  if(nota)nota.style.display=el.scrollWidth>el.clientWidth+2?'block':'none';
+}
+
+document.getElementById('comparar-tabla')?.addEventListener('click',ev=>{
+  const tr=ev.target.closest('tr[data-grupo]');
+  if(!tr)return;
+  const g=tr.dataset.grupo;
+  _gruposComparacionAbiertos.has(g)?_gruposComparacionAbiertos.delete(g):_gruposComparacionAbiertos.add(g);
+  const x=document.getElementById('comparar-tabla').scrollLeft;
+  renderComparacionCiclos();
+  document.getElementById('comparar-tabla').scrollLeft=x;
+});
