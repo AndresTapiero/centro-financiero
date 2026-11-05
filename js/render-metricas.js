@@ -565,6 +565,7 @@ const CATS_EXCLUIDAS_HORMIGA=new Set([
   'Pago Deuda','Intereses','Comisión',       // costo financiero
   'Costos financieros · Intereses','Costos financieros · Cuota de manejo',
   'Costos financieros · Comisiones','Costos financieros · 4x1000',
+  'Media · Cámaras','Media · Lentes','Media · Iluminación','Media · Audio','Media · Accesorios', // equipo de trabajo, no fuga
   'Inversiones',                             // es ahorro, no gasto
   'Vehículo · Seguros','Vehículo · Taller',  // irregulares y obligatorios
   'Donación',                                // decisión deliberada, no una fuga

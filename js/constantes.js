@@ -1,5 +1,5 @@
 
-const CAPS_DEFAULT={'Alimentación · Mercado':800000,'Alimentación · Comidas afuera · Entre semana':200000,'Alimentación · Comidas afuera · Fin de semana':300000,'Deportes · Ciclismo':150000,'Servicios':400000,'Salud':1000000,'Vehículo · Seguros':615500,'Vehículo · Gasolina':150000,'Vehículo · Taller':200000,'Vehículo · Lavada':50000,'Vehículo · Parqueadero':80000,'Entretenimiento':450000,'Suscripciones':150000,'Ropa':200000,'Tecnología':200000,'Hogar':200000,'Transporte':150000,'Regalos':100000,'Arriendo':1630000,'Inversiones':300000,'Donación':900000,'Turismo · Alojamiento':300000,'Turismo · Transporte':200000,'Turismo · Actividades':150000,'Turismo · Alimentación':150000,'Turismo · Compras':100000,'Costos financieros · Intereses':50000,'Costos financieros · Cuota de manejo':60000,'Costos financieros · Comisiones':30000,'Costos financieros · 4x1000':40000};
+const CAPS_DEFAULT={'Alimentación · Mercado':800000,'Alimentación · Comidas afuera · Entre semana':200000,'Alimentación · Comidas afuera · Fin de semana':300000,'Deportes · Ciclismo':150000,'Servicios':400000,'Salud':1000000,'Vehículo · Seguros':615500,'Vehículo · Gasolina':150000,'Vehículo · Taller':200000,'Vehículo · Lavada':50000,'Vehículo · Parqueadero':80000,'Entretenimiento':450000,'Suscripciones':150000,'Ropa':200000,'Tecnología':200000,'Hogar':200000,'Transporte':150000,'Regalos':100000,'Arriendo':1630000,'Inversiones':300000,'Donación':900000,'Turismo · Alojamiento':300000,'Turismo · Transporte':200000,'Turismo · Actividades':150000,'Turismo · Alimentación':150000,'Turismo · Compras':100000,'Costos financieros · Intereses':50000,'Costos financieros · Cuota de manejo':60000,'Costos financieros · Comisiones':30000,'Costos financieros · 4x1000':40000,'Media · Cámaras':300000,'Media · Lentes':300000,'Media · Iluminación':200000,'Media · Audio':150000,'Media · Accesorios':150000};
 let CAPS=Object.assign({},CAPS_DEFAULT);
 const COLORS={
   // Alimentación e Ingresos comparten familia esmeralda (dinero que entra / sustento) — 3 tonos
@@ -22,6 +22,9 @@ const COLORS={
   // Costos financieros: familia rosa/granate (lo que te cobra el banco), distinta del rojo de "Pago Deuda"
   'Costos financieros · Intereses':'#BE123C','Costos financieros · Cuota de manejo':'#E11D48',
   'Costos financieros · Comisiones':'#F43F5E','Costos financieros · 4x1000':'#FB7185',
+  // Media (equipo de cámara/video): familia índigo, distinta del violeta de Tecnología
+  'Media · Cámaras':'#3730A3','Media · Lentes':'#4338CA','Media · Iluminación':'#4F46E5',
+  'Media · Audio':'#6366F1','Media · Accesorios':'#818CF8',
   // Servicios/Suscripciones/Otro: familia neutra (gastos de fondo, sin urgencia visual)
   'Servicios':'#64748B','Suscripciones':'#94A3B8','Otro':'#475569',
   'Hogar':'#EAB308',
@@ -55,7 +58,7 @@ const CATEGORIAS_RENOMBRADAS={
   'Comisión':'Costos financieros · Comisiones',
 };
 /** Ícono de cada familia de categorías (el mismo de los selectores). */
-const EMOJI_GRUPO={'Alimentación':'🥦','Vehículo':'🏍️','Deportes':'🚴','Turismo':'🧳','Costos financieros':'🏦','Cuidado personal':'💆','Ingreso':'💰'};
+const EMOJI_GRUPO={'Alimentación':'🥦','Vehículo':'🏍️','Deportes':'🚴','Turismo':'🧳','Costos financieros':'🏦','Media':'🎬','Cuidado personal':'💆','Ingreso':'💰'};
 function categoriaVigente(cat){ return CATEGORIAS_RENOMBRADAS[cat]||cat; }
 
 /** Categorías con tope que sí dependen de tus decisiones del mes. */
@@ -79,7 +82,8 @@ function topeControlable(){
 // para no distorsionar el semáforo cuando aparecen de forma puntual, pero siguen teniendo su propio tope visible.
 // Turismo entra aquí también: un viaje no ocurre cada mes, así que no debe distorsionar
 // el ritmo de gasto diario cuando aparece de forma puntual.
-const CATEGORIAS_IRREGULARES=new Set(['Vehículo · Taller','Vehículo · Seguros','Turismo · Alojamiento','Turismo · Transporte','Turismo · Actividades','Turismo · Alimentación','Turismo · Compras']);
+const CATEGORIAS_IRREGULARES=new Set(['Vehículo · Taller','Vehículo · Seguros','Turismo · Alojamiento','Turismo · Transporte','Turismo · Actividades','Turismo · Alimentación','Turismo · Compras',
+  'Media · Cámaras','Media · Lentes','Media · Iluminación','Media · Audio','Media · Accesorios']);
 const ACCOUNTS_META={
   nequi:{label:'Nequi',currency:'COP',type:'debito'},
   debito:{label:'Davivienda',currency:'COP',type:'debito'},
