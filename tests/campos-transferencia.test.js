@@ -21,20 +21,28 @@ const campo = (v, dec) => { const el = { value: v, dataset: { decimales: dec ? '
 
 console.log('\nformato de campos:');
 test('pesos: pone puntos cada 3 dígitos', () => assert(campo('1234567'), '1.234.567'));
-test('pesos: ignora letras y decimales', () => assert(campo('12ab345,5'), '12.345'));
-test('dólares: miles y coma decimal', () => assert(campo('1234,5', true), '1.234,5'));
-test('dólares: máximo 2 decimales', () => assert(campo('10,999', true), '10,99'));
-test('dólares: escribir la coma sola no pierde el entero', () => assert(campo('1000,', true), '1.000,'));
-test('dólares: un punto decimal escrito a mano se entiende', () => assert(campo('12.5', true), '12,5'));
-test('reformatear un valor ya formateado no lo daña', () => assert(campo('1.234.567'), '1.234.567'));
-test('leer: ida y vuelta', () => {
+test('pesos: ignora letras y decimales', () => assert(campo('12ab345'), '12.345'));
+test('dólares: miles con coma y decimal con punto', () => assert(campo('1234.5', true), '1,234.5'));
+test('dólares: máximo 2 decimales', () => assert(campo('10.999', true), '10.99'));
+test('dólares: escribir el punto solo no pierde el entero', () => assert(campo('1000.', true), '1,000.'));
+test('dólares: una coma decimal a la colombiana se entiende', () => assert(campo('12,5', true), '12.5'));
+test('dólares: reformatear un valor ya formateado no lo daña', () => assert(campo('1,234,567.5', true), '1,234,567.5'));
+test('pesos: reformatear un valor ya formateado no lo daña', () => assert(campo('1.234.567'), '1.234.567'));
+test('leer: formatos de pesos y dólares', () => {
+  assert(leerCampoTransferencia('1,234.56'), 1234.56);
   assert(leerCampoTransferencia('1.234,56'), 1234.56);
   assert(leerCampoTransferencia('1.000.000'), 1000000);
+  assert(leerCampoTransferencia('1,000'), 1000);
+  assert(leerCampoTransferencia('12,5'), 12.5);
   assert(leerCampoTransferencia('100'), 100);
   assert(Number.isNaN(leerCampoTransferencia('')), true);
 });
-test('la TRM se muestra con miles', () => assert(textoCampoTransferencia(3596.5, true), '3.596,5'));
-
+test('la TRM se muestra con miles', () => assert(textoCampoTransferencia(3596.5, true), '3,596.5'));
+test('fmtUSD separa miles', () => {
+  assert(src.fmtUSD(1234.5), '$1,234.50 USD');
+  assert(src.fmtUSD(12.5), '$12.50 USD');
+  assert(src.parseNum(src.fmtUSD(1234.5)), 1234.5);
+});
 console.log('\norigen / destino:');
 function selects(origen, destino) {
   const mk = (val, vals) => ({ value: val, options: vals.map(v => ({ value: v, disabled: false })) });

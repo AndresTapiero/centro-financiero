@@ -175,9 +175,7 @@ async function payPendiente(id){
   // cuentas distintas. Lo de arriba ya descontó de dónde sale el dinero; esto además baja la deuda
   // de la tarjeta específica, detectada por el nombre del pendiente (sin agregar un campo nuevo).
   if(p.cat==='Pago Deuda'&&!p.isIncome){
-    let tarjeta=null;
-    if(p.name.includes('Davivienda'))tarjeta='davtc';
-    else if(p.name.includes('Rappi'))tarjeta='rappitc';
+    const tarjeta=tarjetaDePago(p.name);
     if(tarjeta&&tarjeta!==accFinal){
       accounts[tarjeta]=redondear3(accounts[tarjeta]-montoVigente);
     }
@@ -403,20 +401,57 @@ function calcularAbono({tarjeta,origen,monto}){
   return{error:null,metaT,metaO,monto,deuda,deudaNueva:redondear3(deuda-monto)};
 }
 
+/** Qué tarjeta paga un pago por su nombre ("Pago mínimo Davivienda TC" → davtc). Sin campo nuevo en la base. */
+function tarjetaDePago(nombre){
+  const n=String(nombre||'');
+  if(n.includes('Davivienda'))return 'davtc';
+  if(n.includes('Rappi'))return 'rappitc';
+  return null;
+}
+
+/**
+ * ¿Ya se hizo el pago mínimo de esta tarjeta en el ciclo? Es la condición para abonar a capital:
+ * adelantar plata a la deuda sin haber cubierto el mínimo deja la tarjeta en mora.
+ * Cuenta un "Pago Deuda" del ciclo que no sea un abono, y exige que no quede ningún pendiente de
+ * pago de esa tarjeta sin pagar (si el pendiente sigue ahí, el mínimo todavía no salió).
+ */
+function estadoPagoMinimo(tarjeta,ciclo){
+  ciclo=ciclo||cicloActual();
+  const pagos=entries.filter(e=>cicloDe(e.date)===ciclo&&e.cat==='Pago Deuda'&&e.txType!=='ingreso'
+    &&!/^Abono a capital/.test(e.name)&&(e.acc===tarjeta||tarjetaDePago(e.name)===tarjeta));
+  const sinPagar=pendientes.filter(p=>p.cat==='Pago Deuda'&&!p.isIncome&&tarjetaDePago(p.name)===tarjeta);
+  return{pagado:pagos.length>0,pendienteSinPagar:sinPagar[0]||null,hecho:pagos.length>0&&sinPagar.length===0};
+}
+
 let _abonoTarjeta=null;
 function abrirAbono(tarjeta){
   const meta=ACCOUNTS_META[tarjeta];
   if(!meta)return;
   _abonoTarjeta=tarjeta;
+  const deuda=accounts[tarjeta]||0;
+  const estado=estadoPagoMinimo(tarjeta);
   document.getElementById('abono-title').textContent=`💸 Abonar a capital · ${meta.label}`;
-  document.getElementById('abono-hint').textContent=
-    `Deuda actual: ${fmtCOP(accounts[tarjeta]||0)}. El abono baja el saldo de la tarjeta y sale de la cuenta que elijas.`;
+  document.getElementById('abono-hint').textContent=`Deuda actual: ${fmtCOP(deuda)}. El abono baja el saldo de la tarjeta y sale de la cuenta que elijas.`;
+
+  // Bloqueado hasta que el pago mínimo del ciclo esté hecho, o si no hay deuda que abonar.
+  let bloqueo='';
+  if(deuda<=0)bloqueo='🎉 Esta tarjeta no tiene deuda.';
+  else if(estado.pendienteSinPagar)bloqueo=`🔒 Primero paga «${estado.pendienteSinPagar.name}» (queda pendiente en Pendientes). Después podrás abonar a capital.`;
+  else if(!estado.pagado)bloqueo='🔒 Primero registra el pago mínimo de este ciclo. Después podrás abonar a capital.';
+  const bloqueoEl=document.getElementById('abono-bloqueo');
+  bloqueoEl.textContent=bloqueo;
+  bloqueoEl.style.display=bloqueo?'block':'none';
+  document.getElementById('abono-campos').style.display=bloqueo?'none':'block';
+  const btn=document.getElementById('abono-confirmar');
+  btn.disabled=!!bloqueo; btn.style.opacity=bloqueo?'.4':'1';
+
   const sel=document.getElementById('abono-origen');
   const origenes=Object.keys(ACCOUNTS_META).filter(k=>ACCOUNTS_META[k].type!=='credito'&&ACCOUNTS_META[k].currency==='COP');
   sel.innerHTML=origenes.map(k=>`<option value="${k}">${ACCOUNTS_META[k].label} · ${fmtCOP(accounts[k]||0)}</option>`).join('');
   sel.value=origenes.includes('debito')?'debito':origenes[0];
   document.getElementById('abono-monto').value='';
   document.getElementById('abono-modal').style.display='flex';
+  if(navigator.vibrate)try{ navigator.vibrate(12); }catch(e){}
 }
 
 function abonoUsarTotal(){
@@ -424,10 +459,36 @@ function abonoUsarTotal(){
   document.getElementById('abono-monto').value=Math.round(accounts[_abonoTarjeta]||0).toLocaleString('es-CO');
 }
 
+/**
+ * Mantener presionada una tarjeta de deuda abre el abono (clic derecho en computador).
+ * No hay botón visible a propósito: es una acción poco frecuente y solo aplica después del pago mínimo.
+ */
+function iniciarGestoAbono(){
+  const MS=450, TOLERANCIA=10;
+  document.querySelectorAll('.acc-card[data-abono]').forEach(card=>{
+    const tarjeta=card.dataset.abono;
+    let timer=null,x0=0,y0=0,disparado=false;
+    const cancelar=()=>{ clearTimeout(timer); timer=null; card.classList.remove('abono-presionando'); };
+    card.addEventListener('pointerdown',ev=>{
+      if(ev.button>0)return;
+      disparado=false; x0=ev.clientX; y0=ev.clientY;
+      card.classList.add('abono-presionando');
+      timer=setTimeout(()=>{ disparado=true; cancelar(); if(document.activeElement)document.activeElement.blur(); abrirAbono(tarjeta); },MS);
+    });
+    card.addEventListener('pointermove',ev=>{ if(timer&&Math.hypot(ev.clientX-x0,ev.clientY-y0)>TOLERANCIA)cancelar(); });
+    ['pointerup','pointercancel','pointerleave'].forEach(t=>card.addEventListener(t,cancelar));
+    // Si el gesto abrió la hoja, el "clic" que sigue al soltar no debe enfocar el campo de saldo
+    card.addEventListener('click',ev=>{ if(disparado){ ev.preventDefault(); ev.stopPropagation(); disparado=false; if(document.activeElement)document.activeElement.blur(); } },true);
+    card.addEventListener('contextmenu',ev=>{ ev.preventDefault(); if(!disparado)abrirAbono(tarjeta); });
+  });
+}
+
 async function resolverAbono(confirmado){
   const tarjeta=_abonoTarjeta;
   const cerrar=()=>{ document.getElementById('abono-modal').style.display='none'; _abonoTarjeta=null; };
   if(!confirmado||!tarjeta){ cerrar(); return; }
+  // La hoja deshabilita el botón, pero la regla vive aquí también: no depende de la pantalla.
+  if(!estadoPagoMinimo(tarjeta).hecho){ toastError('⚠ Primero registra el pago mínimo de este ciclo'); return; }
   const montoInp=document.getElementById('abono-monto');
   const origen=document.getElementById('abono-origen').value;
   const calc=calcularAbono({tarjeta,origen,monto:redondear3(parseMontoFormateado(montoInp.value))});
@@ -466,44 +527,29 @@ async function resolverAbono(confirmado){
 
 // ─── Campos de monto de la transferencia con separador de miles ─────────────
 // Eran type=number: sin puntos de miles, y en dólares tampoco. Ahora son texto con el mismo
-// formato es-CO del resto de la app (1.234.567 y 1.234,56). Los dólares y la TRM admiten
-// decimales con coma; los pesos son enteros.
+// formato del resto de la app: pesos 1.234.567; dólares y TRM 1,234.50 (ver formatearTextoMonto).
 
-/** Formatea lo que se está escribiendo. Deja pasar solo dígitos y una coma decimal (si aplica). */
 function formatearCampoTransferencia(el){
-  const permiteDec=el.dataset.decimales==='1';
-  const crudo=String(el.value).replace(/[^\d,.]/g,'');
-  // Un punto escrito a mano en un campo con decimales se interpreta como coma decimal solo si
-  // no hay ya una coma y no parece separador de miles (ya formateamos los miles nosotros).
-  let t=crudo;
-  if(permiteDec&&!t.includes(',')&&/\.\d{1,2}$/.test(t)&&!/\.\d{3}/.test(t))t=t.replace(/\.(\d{1,2})$/,',$1');
-  const[entero,...resto]=t.split(',');
-  const dig=entero.replace(/\D/g,'');
-  let out=dig?Number(dig).toLocaleString('es-CO'):'';
-  if(permiteDec&&resto.length){
-    out=(out||'0')+','+resto.join('').replace(/\D/g,'').slice(0,2);
-  }
-  el.value=out;
+  el.value=formatearTextoMonto(el.value,el.dataset.decimales==='1');
 }
 
-/** Valor numérico de un campo formateado ('1.234,56' → 1234.56). Vacío → NaN. */
+/** Valor numérico de un campo formateado. Vacío → NaN (así "sin monto recibido" sigue distinguiéndose de 0). */
 function leerCampoTransferencia(txt){
-  const s=String(txt).trim();
-  if(!s)return NaN;
-  return parseFloat(s.replace(/\./g,'').replace(',','.'));
+  return String(txt).trim()?parseMontoFormateado(txt):NaN;
 }
 
-/** Número → texto del campo ('3596.5' → '3.596,5'). */
-function textoCampoTransferencia(n,decimales){
-  if(n==null||isNaN(n))return '';
-  return decimales
-    ? Number(n).toLocaleString('es-CO',{maximumFractionDigits:2})
-    : Math.round(n).toLocaleString('es-CO');
-}
+function textoCampoTransferencia(n,decimales){ return textoMonto(n,decimales); }
 
 /** Cambia un campo entre modo dólares (decimales) y pesos (enteros), reformateando lo escrito. */
 function ajustarDecimalesCampo(inp,conDecimales){
   if(!inp)return;
+  const antes=inp.dataset.decimales==='1';
+  // Al pasar de dólares a pesos, el texto "1,234.5" se lee como número y se reescribe entero
+  if(inp.value&&antes!==conDecimales){
+    const n=parseMontoFormateado(inp.value);
+    inp.dataset.decimales=conDecimales?'1':'0';
+    inp.value=textoMonto(n,conDecimales);
+    return;
+  }
   inp.dataset.decimales=conDecimales?'1':'0';
-  if(inp.value)formatearCampoTransferencia(inp);
 }

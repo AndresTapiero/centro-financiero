@@ -5,9 +5,37 @@ const _monedaInput={'inp-amount':'COP','express-amount':'COP','pend-amount':'COP
 // Formatea como miles (COP) o deja pasar decimales (USD).
 function formatearInputMonto(el){
   const moneda=_monedaInput[el.id]||el.getAttribute('data-currency')||'COP';
-  if(moneda==='USD') return;
-  const digitos=el.value.replace(/\D/g,'');
-  el.value=digitos?Number(digitos).toLocaleString('es-CO'):'';
+  el.value=formatearTextoMonto(el.value,moneda==='USD'||(el.dataset&&el.dataset.decimales)==='1');
+}
+
+/**
+ * Formato de un monto mientras se escribe. Pesos: enteros con punto de miles (1.234.567).
+ * Dólares y TRM: miles con coma y decimales con punto (1,234.50), como se escriben los dólares.
+ * Antes los dólares se dejaban sin formato, así que 12500.5 se veía sin ningún separador.
+ */
+function formatearTextoMonto(txt,conDecimales){
+  const crudo=String(txt).replace(/[^\d.,]/g,'');
+  if(!conDecimales){
+    const digitos=crudo.replace(/\D/g,'');
+    return digitos?Number(digitos).toLocaleString('es-CO'):'';
+  }
+  // Una coma al final con 1-2 dígitos (y sin punto) es un decimal escrito a la colombiana: 12,5
+  let t=crudo;
+  if(!t.includes('.')&&/,\d{0,2}$/.test(t)&&t.includes(','))t=t.replace(/,(\d{0,2})$/,'.$1');
+  const hayPunto=t.includes('.');
+  const[entero,...resto]=t.split('.');
+  const dig=entero.replace(/\D/g,'');
+  let out=dig?Number(dig).toLocaleString('en-US'):'';
+  if(hayPunto)out=(out||'0')+'.'+resto.join('').replace(/\D/g,'').slice(0,2);
+  return out;
+}
+
+/** Número → texto de un campo de monto ('1234.5' → '1,234.5' en dólares, '1.235' en pesos). */
+function textoMonto(n,conDecimales){
+  if(n==null||isNaN(n))return '';
+  return conDecimales
+    ? Number(n).toLocaleString('en-US',{maximumFractionDigits:2})
+    : Math.round(n).toLocaleString('es-CO');
 }
 
 // Actualiza la moneda activa (variable global + atributo DOM) y el placeholder.
@@ -18,11 +46,11 @@ function setAmountInputMode(inp, isUSD, placeholderCOP){
   const next=isUSD?'USD':'COP';
   const prev=_monedaInput[inp.id]||inp.getAttribute('data-currency')||'COP';
   if(prev!==next){
-    const valorPrevio=prev==='USD'?(parseFloat(inp.value)||0):parseMontoFormateado(inp.value);
+    const valorPrevio=parseMontoFormateado(inp.value);
     const trm=(typeof accounts!=='undefined'&&accounts.trm>0)?accounts.trm:0;
     if(valorPrevio>0&&trm>0){
       const convertido=next==='USD'?redondear3(valorPrevio/trm):redondear3(valorPrevio*trm);
-      inp.value=next==='USD'?String(convertido):Math.round(convertido).toLocaleString('es-CO');
+      inp.value=textoMonto(convertido,next==='USD');
     }else{
       inp.value='';
     }
@@ -33,7 +61,16 @@ function setAmountInputMode(inp, isUSD, placeholderCOP){
 }
 
 function parseMontoFormateado(str){
-  const s=String(str).trim();
+  let s=String(str).trim();
+  // Con coma: si también hay punto, el último de los dos es el decimal (1,234.50 en dólares o
+  // 1.234,50 a la colombiana). Con coma sola, 1-2 dígitos al final es decimal (12,5); si no, miles.
+  if(s.includes(',')){
+    if(s.includes('.')){
+      if(s.lastIndexOf(',')>s.lastIndexOf('.'))s=s.replace(/\./g,'').replace(',','.');
+      else s=s.replace(/,/g,'');
+    }else if(/,\d{1,2}$/.test(s))s=s.replace(',','.');
+    else s=s.replace(/,/g,'');
+  }
   // Valor de type=number o decimal con punto: termina en .X o .XX sin ser separador de miles (.XXX)
   if(/\.\d{1,2}$/.test(s)&&!/\.\d{3}/.test(s)) return parseFloat(s)||0;
   // Formato COP con puntos de miles: removerlos y parsear
@@ -388,13 +425,9 @@ function openEditEntryModal(id){
   catSel.value=e.cat;
 
   const amtInp=document.getElementById('edit-entry-amount');
-  if(curDisplay==='USD'){
-    amtInp.type='number'; amtInp.step='0.01'; amtInp.oninput=null;
-    amtInp.value=e.amount;
-  }else{
-    amtInp.type='text'; amtInp.inputMode='decimal'; amtInp.oninput=()=>formatearInputMonto(amtInp);
-    amtInp.value=Math.round(e.amount).toLocaleString('es-CO');
-  }
+  amtInp.type='text'; amtInp.inputMode='decimal'; amtInp.oninput=()=>formatearInputMonto(amtInp);
+  amtInp.setAttribute('data-currency',curDisplay==='USD'?'USD':'COP');
+  amtInp.value=textoMonto(e.amount,curDisplay==='USD');
   document.getElementById('edit-entry-amount-label').textContent=`Monto (${curDisplay})`;
 
   onEditEntryAccountChange();
@@ -420,21 +453,15 @@ function onEditEntryAccountChange(){
   const currencyChoice=meta.currency==='USD'?document.getElementById('edit-entry-currency').value:meta.currency;
   label.textContent=`Monto (${currencyChoice})`;
   const amtInpChg=document.getElementById('edit-entry-amount');
-  const eraTexto=amtInpChg.type==='text';
   const currentVal=amtInpChg.value;
   // El valor se interpreta con el formato que TENÍA el campo, y se convierte antes de cambiar
   // el type. Antes se asignaba type='number' y en la línea siguiente se preguntaba si el type
   // era 'text' — nunca lo era, así que la conversión no ocurría y un monto COP de "36.000"
   // acababa leyéndose como 36 en el input numérico.
-  const valorNumerico=eraTexto?parseMontoFormateado(currentVal):(parseFloat(currentVal)||0);
-  if(currencyChoice==='USD'){
-    amtInpChg.oninput=null;
-    amtInpChg.type='number'; amtInpChg.step='0.01';
-    amtInpChg.value=valorNumerico?String(valorNumerico):'';
-  }else{
-    amtInpChg.type='text'; amtInpChg.inputMode='decimal'; amtInpChg.oninput=()=>formatearInputMonto(amtInpChg);
-    amtInpChg.value=valorNumerico?Math.round(valorNumerico).toLocaleString('es-CO'):'';
-  }
+  const valorNumerico=parseMontoFormateado(currentVal);
+  amtInpChg.type='text'; amtInpChg.inputMode='decimal'; amtInpChg.oninput=()=>formatearInputMonto(amtInpChg);
+  amtInpChg.setAttribute('data-currency',currencyChoice==='USD'?'USD':'COP');
+  amtInpChg.value=valorNumerico?textoMonto(valorNumerico,currencyChoice==='USD'):'';
 }
 document.getElementById('edit-entry-currency')?.addEventListener('change',onEditEntryAccountChange);
 
@@ -461,9 +488,7 @@ async function resolverEditEntryModal(confirmado){
   const newCurrencyChoice=newMeta.currency==='USD'?document.getElementById('edit-entry-currency').value:newMeta.currency;
   const newCat=document.getElementById('edit-entry-category').value;
   const _amtInp=document.getElementById('edit-entry-amount');
-  const montoEscrito=redondear3(_amtInp.type==='number'
-    ?parseFloat(_amtInp.value)||0
-    :parseMontoFormateado(_amtInp.value));
+  const montoEscrito=redondear3(parseMontoFormateado(_amtInp.value));
   if(isNaN(montoEscrito)||montoEscrito<=0){ toastError('⚠ El monto debe ser mayor a 0'); marcarInvalido(_amtInp); return; }
 
   // Validado: ya se puede cerrar y soltar el id.

@@ -242,13 +242,6 @@ function updateDueDates(){
   const diaHoy=hoy.getDate();
   const diaVencimiento=10; // Davivienda TC y Rappi Card vencen el día 10 de cada mes
 
-  // Detectar si ya se pagó este mes
-  const mesActual=cicloActual();
-  const pagosDavtcEste={davtc:0,rappitc:0};
-  entries.filter(e=>cicloDe(e.date)===mesActual&&e.cat==='Pago Deuda').forEach(e=>{
-    if(e.acc==='davtc'||e.acc==='rappitc') pagosDavtcEste[e.acc]+=entryCOP(e);
-  });
-
   let diasFaltantes=diaVencimiento-diaHoy;
   if(diasFaltantes<0){
     const diasEnMes=new Date(hoy.getFullYear(),hoy.getMonth()+1,0).getDate();
@@ -260,10 +253,10 @@ function updateDueDates(){
     const el=document.getElementById(info.id);
     if(!el)return;
 
-    const pagado=pagosDavtcEste[acc]>0;
+    const pagado=estadoPagoMinimo(acc).hecho;
     if(pagado){
       // Ya se pagó este mes, esperar al siguiente
-      el.textContent='✓ Pago registrado — próximo vencimiento mes que viene';
+      el.textContent='✓ Pago mínimo registrado · mantén presionado para abonar a capital';
       el.style.color='var(--accent)';
     }else{
       // Aún no se ha pagado

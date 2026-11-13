@@ -58,3 +58,11 @@
 /* El nombre nunca se parte letra por letra: si no cabe junto a la etiqueta de moneda, la etiqueta baja */
 .acc-label span:nth-child(2){flex:1 1 72px;min-width:0;overflow-wrap:break-word}
 .accounts-grid-2{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+
+/* Tarjetas de deuda: mantener presionado abre el abono a capital, así que no debe seleccionarse texto ni salir el menú del sistema */
+.acc-card[data-abono]{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.acc-card[data-abono].abono-presionando{transform:scale(.985);transition:transform .15s}
+.acc-card[data-abono] .acc-value{-webkit-user-select:text;user-select:text}
+@keyframes abono-sube{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+.abono-sheet{animation:abono-sube .22s ease-out}
+@media (prefers-reduced-motion:reduce){.abono-sheet{animation:none}}
