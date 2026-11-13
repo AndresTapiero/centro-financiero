@@ -324,6 +324,21 @@
     </div>
   </div>
 </div>
+<div id="abono-modal" role="dialog" aria-modal="true" aria-labelledby="abono-title" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
+  <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:340px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+    <div id="abono-title" style="font-size:13px;font-weight:700;margin-bottom:6px">💸 Abonar a capital</div>
+    <div id="abono-hint" style="font-size:11px;color:var(--text3);line-height:1.5;margin-bottom:10px"></div>
+    <label style="font-size:10px;color:var(--text3)">Pagar desde</label>
+    <select class="inp" id="abono-origen" style="width:100%;margin:4px 0 10px"></select>
+    <label style="font-size:10px;color:var(--text3)">Monto a abonar</label>
+    <input class="inp inp-num" id="abono-monto" type="text" inputmode="decimal" oninput="formatearInputMonto(this)" style="width:100%;margin:4px 0 8px">
+    <button class="btn-add is-ghost" style="margin:0 0 14px;font-size:11px;height:32px" onclick="abonoUsarTotal()">🔄 Pagar toda la deuda</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn-add" style="margin:0" onclick="resolverAbono(true)">Abonar</button>
+      <button class="btn-add is-ghost" style="margin:0" onclick="resolverAbono(false)">Cancelar</button>
+    </div>
+  </div>
+</div>
 <div id="opciones-modal" role="dialog" aria-modal="true" aria-labelledby="opciones-title" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
   <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:340px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.5)">
     <div id="opciones-title" style="font-size:13px;font-weight:700;margin-bottom:14px">⚙️ Opciones</div>
@@ -466,8 +481,8 @@
     <div class="card">
       <div class="card-title">💳 Tarjetas de crédito (deuda)</div>
       <div class="accounts-grid accounts-grid-2">
-        <div class="acc-card debt"><div class="acc-label"><span class="avatar-square" style="background:#DC2626">D</span><span>Davivienda TC</span><span class="currency-badge">Crédito</span></div><input class="acc-value debt" id="acc-davtc" onblur="handleAccountFieldBlur('davtc')"><div id="due-davtc" style="font-size:9px;color:var(--text3);margin-top:4px"></div></div>
-        <div class="acc-card debt"><div class="acc-label"><span class="avatar-square" style="background:#FF8C42">R</span><span>Rappi Card</span><span class="currency-badge">Crédito</span></div><input class="acc-value" style="color:#FF8C42" id="acc-rappitc" onblur="handleAccountFieldBlur('rappitc')"><div id="due-rappitc" style="font-size:9px;color:var(--text3);margin-top:4px"></div></div>
+        <div class="acc-card debt"><div class="acc-label"><span class="avatar-square" style="background:#DC2626">D</span><span>Davivienda TC</span><span class="currency-badge">Crédito</span></div><input class="acc-value debt" id="acc-davtc" onblur="handleAccountFieldBlur('davtc')"><div id="due-davtc" style="font-size:9px;color:var(--text3);margin-top:4px"></div><button class="btn-add is-ghost btn-abono" onclick="abrirAbono('davtc')">💸 Abonar a capital</button></div>
+        <div class="acc-card debt"><div class="acc-label"><span class="avatar-square" style="background:#FF8C42">R</span><span>Rappi Card</span><span class="currency-badge">Crédito</span></div><input class="acc-value" style="color:#FF8C42" id="acc-rappitc" onblur="handleAccountFieldBlur('rappitc')"><div id="due-rappitc" style="font-size:9px;color:var(--text3);margin-top:4px"></div><button class="btn-add is-ghost btn-abono" onclick="abrirAbono('rappitc')">💸 Abonar a capital</button></div>
       </div>
       <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
         <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Deuda total en tarjetas</span>

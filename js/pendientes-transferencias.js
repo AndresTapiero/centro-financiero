@@ -378,3 +378,82 @@ async function doTransfer(){
   }
 }
 
+
+
+// ─── Abono a capital de una tarjeta ─────────────────────────────────────────
+// El "pago mínimo" y "pagar el total" ya salían por Pendientes, pero no había forma de adelantar
+// plata a la deuda por fuera de eso. Un abono es lo mismo que un pago de deuda: sale de una
+// cuenta tuya (gasto, categoría "Pago Deuda") y baja el saldo de la tarjeta. No pasa por
+// "Transferencia" porque una tarjeta es deuda: transferirle sumaría deuda en vez de restarla.
+
+/** Valida un abono sin tocar cuentas ni pantalla. */
+function calcularAbono({tarjeta,origen,monto}){
+  const metaT=ACCOUNTS_META[tarjeta],metaO=ACCOUNTS_META[origen];
+  if(!metaT||metaT.type!=='credito')return{error:'tarjeta'};
+  if(!metaO||metaO.type==='credito'||metaO.currency!=='COP')return{error:'origen'};
+  if(!monto||isNaN(monto)||monto<=0)return{error:'monto'};
+  const deuda=accounts[tarjeta]||0;
+  if(deuda<=0)return{error:'sinDeuda'};
+  if(monto>deuda+0.5)return{error:'excede',deuda};
+  return{error:null,metaT,metaO,monto,deuda,deudaNueva:redondear3(deuda-monto)};
+}
+
+let _abonoTarjeta=null;
+function abrirAbono(tarjeta){
+  const meta=ACCOUNTS_META[tarjeta];
+  if(!meta)return;
+  _abonoTarjeta=tarjeta;
+  document.getElementById('abono-title').textContent=`💸 Abonar a capital · ${meta.label}`;
+  document.getElementById('abono-hint').textContent=
+    `Deuda actual: ${fmtCOP(accounts[tarjeta]||0)}. El abono baja el saldo de la tarjeta y sale de la cuenta que elijas.`;
+  const sel=document.getElementById('abono-origen');
+  const origenes=Object.keys(ACCOUNTS_META).filter(k=>ACCOUNTS_META[k].type!=='credito'&&ACCOUNTS_META[k].currency==='COP');
+  sel.innerHTML=origenes.map(k=>`<option value="${k}">${ACCOUNTS_META[k].label} · ${fmtCOP(accounts[k]||0)}</option>`).join('');
+  sel.value=origenes.includes('debito')?'debito':origenes[0];
+  document.getElementById('abono-monto').value='';
+  document.getElementById('abono-modal').style.display='flex';
+}
+
+function abonoUsarTotal(){
+  if(!_abonoTarjeta)return;
+  document.getElementById('abono-monto').value=Math.round(accounts[_abonoTarjeta]||0).toLocaleString('es-CO');
+}
+
+async function resolverAbono(confirmado){
+  const tarjeta=_abonoTarjeta;
+  const cerrar=()=>{ document.getElementById('abono-modal').style.display='none'; _abonoTarjeta=null; };
+  if(!confirmado||!tarjeta){ cerrar(); return; }
+  const montoInp=document.getElementById('abono-monto');
+  const origen=document.getElementById('abono-origen').value;
+  const calc=calcularAbono({tarjeta,origen,monto:redondear3(parseMontoFormateado(montoInp.value))});
+  if(calc.error==='monto'){ toastError('⚠ El monto debe ser mayor a 0'); marcarInvalido(montoInp); return; }
+  if(calc.error==='excede'){ toastError(`⚠ El abono no puede superar la deuda (${fmtCOP(calc.deuda)})`); marcarInvalido(montoInp); return; }
+  if(calc.error){ toastError('⚠ No se puede abonar a esa tarjeta'); return; }
+  cerrar();
+
+  const{metaT,metaO,monto}=calc;
+  const nombre=`Abono a capital ${metaT.label}`;
+  // Igual que payPendiente: primero el movimiento en la nube, y solo si se guarda se tocan saldos.
+  let fila;
+  try{
+    const {data,error}=await sb.from('fin_movimientos').insert({
+      user_id:currentUserId,fecha:todayStr(),nombre,monto,categoria:'Pago Deuda',
+      account_id:accountIdBySlug[origen],tx_type:'gasto',
+    }).select().single();
+    if(error)throw error;
+    fila=data;
+  }catch(e){
+    registrarErrorDiagnostico('fin_movimientos (abono a capital)',e);
+    toastError('🛑 No se pudo registrar el abono — no se cambió ningún saldo');
+    return;
+  }
+  accounts[origen]=redondear3(accounts[origen]-monto);
+  accounts[tarjeta]=redondear3(accounts[tarjeta]-monto);
+  entries.unshift({id:fila.id,date:todayStr(),name:nombre,amount:monto,cat:'Pago Deuda',acc:origen,txType:'gasto'});
+  fillAccountInputs();
+  populateMonthSelector();
+  document.getElementById('month-select').value=currentMonth;
+  render();
+  try{ await saveAccountsData(); }
+  catch(e){ registrarErrorDiagnostico('fin_accounts (abono a capital)',e); }
+}
