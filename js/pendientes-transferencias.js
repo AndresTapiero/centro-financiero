@@ -202,9 +202,11 @@ function onTransferAccChange(){
   const origen=origenSel.value;
   const destino=destinoSel.value;
 
-  // Excluir mutuamente: la cuenta seleccionada en uno no puede aparecer en el otro
+  // Solo se deshabilita en el destino la cuenta que ya es origen. Antes también se deshabilitaba
+  // en el origen la cuenta elegida como destino, y para cambiar de origen a esa cuenta había que
+  // primero cambiar el destino. Ahora el origen se elige libre y el destino se acomoda solo.
   [...destinoSel.options].forEach(opt=>{ opt.disabled=opt.value===origen; });
-  [...origenSel.options].forEach(opt=>{ opt.disabled=opt.value===destino; });
+  [...origenSel.options].forEach(opt=>{ opt.disabled=false; });
 
   // Si quedaron iguales (ej. carga inicial), auto-seleccionar la primera disponible en destino
   if(origen===destino){
@@ -214,6 +216,9 @@ function onTransferAccChange(){
 
   const metaO=ACCOUNTS_META[origenSel.value];
   const metaD=ACCOUNTS_META[destinoSel.value];
+  // Monto de origen y recibido: pesos sin decimales, dólares con hasta 2.
+  ajustarDecimalesCampo(document.getElementById('tr-monto'),metaO&&metaO.currency==='USD');
+  ajustarDecimalesCampo(document.getElementById('tr-recibido'),metaD&&metaD.currency==='USD');
   const mismaMoneda=metaO&&metaD&&metaO.currency===metaD.currency;
   const trmInp=document.getElementById('tr-trm');
   const hint=document.getElementById('tr-hint');
@@ -273,9 +278,9 @@ function mensajeConfirmacionTransferencia(c){
 async function doTransfer(){
   const origen=document.getElementById('tr-origen').value;
   const destino=document.getElementById('tr-destino').value;
-  const monto=redondear3(parseFloat(document.getElementById('tr-monto').value));
-  const trm=parseFloat(document.getElementById('tr-trm').value)||accounts.trm;
-  const recibidoManual=redondear3(parseFloat(document.getElementById('tr-recibido').value));
+  const monto=redondear3(leerCampoTransferencia(document.getElementById('tr-monto').value));
+  const trm=leerCampoTransferencia(document.getElementById('tr-trm').value)||accounts.trm;
+  const recibidoManual=redondear3(leerCampoTransferencia(document.getElementById('tr-recibido').value));
 
   const calc=calcularTransferencia({origen,destino,monto,trm,recibidoManual});
   if(calc.error==='monto'){ toastError('⚠ El monto a transferir debe ser mayor a 0'); marcarInvalido(document.getElementById('tr-monto')); return; }
@@ -456,4 +461,49 @@ async function resolverAbono(confirmado){
   render();
   try{ await saveAccountsData(); }
   catch(e){ registrarErrorDiagnostico('fin_accounts (abono a capital)',e); }
+}
+
+
+// ─── Campos de monto de la transferencia con separador de miles ─────────────
+// Eran type=number: sin puntos de miles, y en dólares tampoco. Ahora son texto con el mismo
+// formato es-CO del resto de la app (1.234.567 y 1.234,56). Los dólares y la TRM admiten
+// decimales con coma; los pesos son enteros.
+
+/** Formatea lo que se está escribiendo. Deja pasar solo dígitos y una coma decimal (si aplica). */
+function formatearCampoTransferencia(el){
+  const permiteDec=el.dataset.decimales==='1';
+  const crudo=String(el.value).replace(/[^\d,.]/g,'');
+  // Un punto escrito a mano en un campo con decimales se interpreta como coma decimal solo si
+  // no hay ya una coma y no parece separador de miles (ya formateamos los miles nosotros).
+  let t=crudo;
+  if(permiteDec&&!t.includes(',')&&/\.\d{1,2}$/.test(t)&&!/\.\d{3}/.test(t))t=t.replace(/\.(\d{1,2})$/,',$1');
+  const[entero,...resto]=t.split(',');
+  const dig=entero.replace(/\D/g,'');
+  let out=dig?Number(dig).toLocaleString('es-CO'):'';
+  if(permiteDec&&resto.length){
+    out=(out||'0')+','+resto.join('').replace(/\D/g,'').slice(0,2);
+  }
+  el.value=out;
+}
+
+/** Valor numérico de un campo formateado ('1.234,56' → 1234.56). Vacío → NaN. */
+function leerCampoTransferencia(txt){
+  const s=String(txt).trim();
+  if(!s)return NaN;
+  return parseFloat(s.replace(/\./g,'').replace(',','.'));
+}
+
+/** Número → texto del campo ('3596.5' → '3.596,5'). */
+function textoCampoTransferencia(n,decimales){
+  if(n==null||isNaN(n))return '';
+  return decimales
+    ? Number(n).toLocaleString('es-CO',{maximumFractionDigits:2})
+    : Math.round(n).toLocaleString('es-CO');
+}
+
+/** Cambia un campo entre modo dólares (decimales) y pesos (enteros), reformateando lo escrito. */
+function ajustarDecimalesCampo(inp,conDecimales){
+  if(!inp)return;
+  inp.dataset.decimales=conDecimales?'1':'0';
+  if(inp.value)formatearCampoTransferencia(inp);
 }

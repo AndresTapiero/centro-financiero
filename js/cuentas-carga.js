@@ -212,7 +212,7 @@ function fillAccountInputs(){
   document.getElementById('acc-davtc').value=fmtCOP(accounts.davtc);
   document.getElementById('acc-rappitc').value=fmtCOP(accounts.rappitc);
   const trInp=document.getElementById('tr-trm');
-  if(trInp)trInp.value=accounts.trm;
+  if(trInp)trInp.value=textoCampoTransferencia(accounts.trm,true);
   Object.keys(dynamicAccounts).forEach(key=>{
     const inp=document.getElementById('acc-'+key);
     if(inp){

@@ -517,11 +517,11 @@
             <option value="ontop">Ontop</option>
           </optgroup>
         </select>
-        <input class="inp inp-num" id="tr-monto" type="number" placeholder="Monto origen" step="0.01">
+        <input class="inp inp-num" id="tr-monto" type="text" inputmode="decimal" autocomplete="off" oninput="formatearCampoTransferencia(this)" placeholder="Monto origen">
       </div>
       <div class="input-grid2" id="tr-row2">
-        <input class="inp inp-num" id="tr-trm" type="number" placeholder="TRM del envío">
-        <input class="inp inp-num" id="tr-recibido" type="number" placeholder="Monto recibido (si hay comisión)" step="0.01">
+        <input class="inp inp-num" id="tr-trm" type="text" inputmode="decimal" autocomplete="off" data-decimales="1" oninput="formatearCampoTransferencia(this)" placeholder="TRM del envío">
+        <input class="inp inp-num" id="tr-recibido" type="text" inputmode="decimal" autocomplete="off" oninput="formatearCampoTransferencia(this)" placeholder="Monto recibido (si hay comisión)">
         <button class="btn-add" style="margin-top:0" onclick="doTransfer()">Transferir</button>
       </div>
       <div class="acc-hint" id="tr-hint">Si dejas "Monto recibido" vacío, se calcula automático con la TRM.</div>
