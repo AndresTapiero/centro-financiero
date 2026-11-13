@@ -177,7 +177,7 @@ function renderDynamicAccountCard(key){
   card.innerHTML=`<div class="acc-label"><span class="avatar-square" style="background:#2563EB">${esc(inicial)}</span><span>${esc(meta.label)}</span><span class="currency-badge">${monedaTexto}</span></div><input class="acc-value" id="acc-${key}" onblur="handleAccountFieldBlur('${key}')"><button type="button" class="move-acc-btn" id="move-${key}" onclick="moverCuentaDeSeccion('${key}')"></button>`;
   grid.appendChild(card);
   actualizarBotonMover(key);
-  document.getElementById('acc-'+key).value=meta.currency==='USD'?'$'+accounts[key]+' USD':fmtCOP(accounts[key]);
+  document.getElementById('acc-'+key).value=meta.currency==='USD'?fmtUSD(accounts[key]):fmtCOP(accounts[key]);
 }
 
 
@@ -292,7 +292,7 @@ async function addGoal(){
 
   const name=document.getElementById('goal-name').value.trim();
   const type=document.getElementById('goal-type').value;
-  const target=parseFloat(document.getElementById('goal-target').value)||0;
+  const target=parseMontoFormateado(document.getElementById('goal-target').value)||0;
   if(!name){
     toastError('⚠ Escribe un nombre para la meta');
     marcarInvalido(document.getElementById('goal-name'));
@@ -456,7 +456,7 @@ function renderGoals(){
     const actualCOP=moneda==='USD'?actual*accounts.trm:actual;
     const targetCOP=g.target||0;
     const pct=targetCOP>0?Math.min(100,Math.round(actualCOP/targetCOP*100)):null;
-    const actualStr=moneda==='USD'?'$'+actual.toFixed(2)+' USD':fmtCOP(actual);
+    const actualStr=moneda==='USD'?fmtUSD(actual):fmtCOP(actual);
     const {color:colorMeta,mensaje:mensajeMeta}=pct!==null?colorYMensajeProgreso(pct):{color:null,mensaje:null};
 
     let proyeccionHTML='';

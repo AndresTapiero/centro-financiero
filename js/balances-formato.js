@@ -55,11 +55,11 @@ async function handleAccountFieldBlur(key){
   // Para tarjetas de crédito: delta positivo = más deuda (Gasto), negativo = menos deuda (Pago)
   const tipoMovimiento=esCredito?(delta>0?'gasto':'ingreso'):(delta>0?'ingreso':'gasto');
   const etiqueta=esCredito?(delta>0?'nuevo cargo detectado':'pago/reducción detectada'):(delta>0?'Ingreso':'Faltante');
-  const deltaAbsStr=meta.currency==='USD'?'$'+Math.abs(delta).toFixed(2)+' USD':fmtCOP(Math.abs(delta));
+  const deltaAbsStr=meta.currency==='USD'?fmtUSD(Math.abs(delta)):fmtCOP(Math.abs(delta));
 
   pendingAdjustment={key,oldVal,newVal,tipoMovimiento};
   document.getElementById('adjust-banner-text').innerHTML=
-    `<strong>${esc(meta.label)}:</strong> detecté un cambio de <strong>${deltaAbsStr}</strong> (${etiqueta}).<br>Saldo anterior: ${meta.currency==='USD'?'$'+oldVal+' USD':fmtCOP(oldVal)} → nuevo: ${meta.currency==='USD'?'$'+newVal+' USD':fmtCOP(newVal)}.<br>¿Confirmas y registro el movimiento?`;
+    `<strong>${esc(meta.label)}:</strong> detecté un cambio de <strong>${deltaAbsStr}</strong> (${etiqueta}).<br>Saldo anterior: ${meta.currency==='USD'?fmtUSD(oldVal):fmtCOP(oldVal)} → nuevo: ${meta.currency==='USD'?fmtUSD(newVal):fmtCOP(newVal)}.<br>¿Confirmas y registro el movimiento?`;
   document.getElementById('adjust-banner').style.display='block';
 }
 
@@ -470,7 +470,7 @@ function todayStr(){
 function fmtDate(s){const p=s.split('-');return p[2]+'/'+p[1]}
 function fmtCOP(n){return '$'+Math.round(n).toLocaleString('es-CO')}
 function redondear3(n){ return Math.round(n*100)/100; } // máximo 2 decimales en cualquier monto registrado (nombre de función sin cambiar para no romper referencias)
-function fmtUSD(n){ return '$'+n.toFixed(2)+' USD'; } // 2 decimales al MOSTRAR (estándar de moneda), incluso si el dato guardado tiene más
+function fmtUSD(n){ return '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+' USD'; } // 2 decimales al MOSTRAR (estándar de moneda), incluso si el dato guardado tiene más
 function col(cat, name=''){
   if(name && cat==='Suscripciones'){
     const lowerName=name.toLowerCase();
