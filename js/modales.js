@@ -54,6 +54,7 @@ const MODALES = {
   'nuevo-movimiento-modal': ()=>cerrarModalNuevoMovimiento(),
   'edit-entry-modal':       ()=>resolverEditEntryModal(false),
   'edit-pendiente-modal':   ()=>resolverEditPendienteModal(false),
+  'abono-modal':            ()=>resolverAbono(false),
   'export-fallback-modal':  ()=>cerrarExportFallback(),
 };
 
