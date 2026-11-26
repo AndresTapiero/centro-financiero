@@ -160,7 +160,8 @@ async function addEntry(seguirAgregando){
     nuevoId=fila.id;
   }catch(e){
     // Si no hay conexión, intentar guardar offline
-    if(!navigator.onLine && db){
+    // En demo no se encola nada sin conexión: al volver la red se subiría a tu base real
+    if(!navigator.onLine && db && !(typeof modoDemo!=="undefined"&&modoDemo)){
       console.log('📴 Sin conexión - guardando offline...');
       isOffline=true;
       try{

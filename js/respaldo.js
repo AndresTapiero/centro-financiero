@@ -67,6 +67,7 @@ function cerrarExportFallback(){
 
 async function guardarConVerificacion(){
   const statusEl=document.getElementById('sync-status');
+  if(typeof modoDemo!=='undefined'&&modoDemo){ statusEl.style.display='block'; statusEl.style.opacity='1'; statusEl.className='sync-status'; statusEl.textContent='Modo demo: nada se guarda'; return; }
   statusEl.style.display='block';
   statusEl.style.opacity='1';
   if(cargaConFallos){
