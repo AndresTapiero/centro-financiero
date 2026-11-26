@@ -424,8 +424,8 @@ function renderEstadoMes(){
   semaforoEl.innerHTML=`<span class="dot dot-${semaforo}"></span>${esc(semaforoTexto)}`;
 
   body.innerHTML=`
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-      <div class="metric-box" style="padding:12px">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:10px;margin-bottom:12px">
+      <div class="metric-box" style="padding:12px;min-width:0">
         <div class="metric-label">Ingresos del mes</div>
         <div class="metric-value green" style="font-size:18px">${fmtCOP(ingresos)}</div>
       </div>

@@ -765,7 +765,7 @@ function renderCategoryTrend(){
     }).join('');
     return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
       <div style="width:110px;min-width:0;flex-shrink:0">
-        <div style="font-size:11px;color:${c};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${scat(cat)}</div>
+        <div style="font-size:11px;color:${c};line-height:1.25">${scat(cat)}</div>
         <div style="font-size:11px;color:var(--text3);font-family:var(--mono)">${fmtCOP(totalPorCategoria[cat])}</div>
       </div>
       <div style="flex:1;display:flex;align-items:flex-end;gap:3px;height:40px">${barras}</div>

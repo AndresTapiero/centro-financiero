@@ -35,8 +35,10 @@
   --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:24px;
   --tap:44px; /* alto mínimo de un control táctil */
 }
+/* Android/Samsung: sin esto el navegador "infla" bloques de texto por su cuenta y desordena las cajas */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-variant-numeric:tabular-nums;font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh}
+body{overflow-wrap:break-word;font-variant-numeric:tabular-nums;font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh}
 
 /* Íconos de línea (sprite SVG al inicio del body): sustituyen a los emojis decorativos */
 .ico{width:1.15em;height:1.15em;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.2em;margin-right:4px;flex:none}

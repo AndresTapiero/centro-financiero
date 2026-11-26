@@ -62,7 +62,7 @@
 .comparar-tabla{border-collapse:separate;border-spacing:0;width:100%;font-size:12px}
 .comparar-tabla th,.comparar-tabla td{padding:8px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--border);font-family:var(--mono)}
 .comparar-tabla thead th{font:600 10px var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.5px;background:var(--surface2);position:sticky;top:0}
-.comparar-tabla th:first-child,.comparar-tabla td:first-child{text-align:left;position:sticky;left:0;background:var(--surface);font-family:var(--sans);z-index:1;max-width:150px;overflow:hidden;text-overflow:ellipsis}
+.comparar-tabla th:first-child,.comparar-tabla td:first-child{text-align:left;position:sticky;left:0;background:var(--surface);font-family:var(--sans);z-index:1;min-width:112px;max-width:150px;white-space:normal;line-height:1.25}
 .comparar-tabla thead th:first-child{background:var(--surface2);z-index:2}
 .comparar-tabla tr.grupo td{font-weight:700;cursor:pointer}
 .comparar-tabla tr.grupo td:first-child::before{content:'▸ ';color:var(--text3)}

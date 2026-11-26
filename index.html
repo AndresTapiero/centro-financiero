@@ -455,7 +455,7 @@
       <select class="inp" id="month-select" style="width:auto;height:34px;font-size:12px" onchange="onMonthChange()"></select>
     </div>
     <div id="ats-breakdown" style="display:none">
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;text-align:center">
+      <div class="ats-grid" style="text-align:center">
         <div>
           <div class="ats-label" style="font-size:11px;margin-bottom:8px">Ingresos</div>
           <div class="ats-flow-value" id="ats-ingresos" style="color:var(--accent)">$0</div>
@@ -489,7 +489,7 @@
       </div>
     </div>
     <div id="ats-simple" style="display:none">
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+      <div class="ats-grid">
         <div style="text-align:center">
           <div class="ats-label" style="font-size:11px;margin-bottom:8px">Liquidez bruta</div>
           <div class="ats-value" id="ats-bruto" style="font-size:clamp(14px,4.2vw,26px);color:var(--hero-text2)">$0</div>
@@ -1017,7 +1017,7 @@
 
   <div class="hint"><svg class="ico" aria-hidden="true"><use href="#i-save"/></svg> Todo se guarda automáticamente en tu base de datos y persiste en cualquier dispositivo donde inicies sesión.<br>Selecciona la cuenta correcta en cada movimiento — el saldo se actualiza solo.<br>Desliza un movimiento hacia la izquierda para eliminarlo, o tócalo para editarlo.<br><span id="build-version" style="opacity:.5;font-size:11px;letter-spacing:0;margin-top:8px;display:block"></span></div>
 </div>
-<div id="demo-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#92400E;color:#FDE68A;z-index:950;align-items:center;justify-content:center;gap:12px;padding:10px 16px;font-size:12px;font-weight:600;text-align:center">
+<div id="demo-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#92400E;color:#FDE68A;z-index:950;align-items:center;justify-content:center;gap:8px 12px;flex-wrap:wrap;padding:10px 16px calc(10px + env(safe-area-inset-bottom));font-size:12px;font-weight:600;text-align:center">
   Modo demo — los datos son ficticios, nada se guarda
   <button onclick="desactivarModoDemo()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#FDE68A;font-size:11px;font-weight:700;padding:4px 12px;border-radius:6px;cursor:pointer;flex-shrink:0">Desactivar</button>
 </div>
