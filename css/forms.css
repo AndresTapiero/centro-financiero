@@ -11,9 +11,10 @@
   .input-grid,.input-grid2{grid-template-columns:1fr 1fr}
   .nuevo-movimiento-modal .input-grid{grid-template-columns:1fr 1fr}
 }
-@media(max-width:400px){
-  .input-grid{grid-template-columns:1fr}
-  .nuevo-movimiento-modal .input-grid{grid-template-columns:1fr}
+/* En un celular (≈412 px, y más estrecho aún con la fuente del sistema grande) dos campos lado a lado
+   ya cortan placeholders y opciones de los selectores: cada campo ocupa su fila. */
+@media(max-width:480px){
+  .input-grid,.input-grid2,.nuevo-movimiento-modal .input-grid{grid-template-columns:1fr}
 }
 
 .inp{font-family:var(--sans);font-size:13px;padding:0 12px;height:40px;border-radius:var(--rsm);border:1px solid var(--border2);background:var(--surface);color:var(--text);outline:none;transition:border-color .15s;width:100%}
