@@ -265,6 +265,7 @@ function fillAccountInputs(){
   checkLowBalances();
   updateDueDates();
   updateDeudaTotalTarjetas();
+  if(typeof actualizarProgresoCuentas==='function')actualizarProgresoCuentas();
 }
 
 function updateDeudaTotalTarjetas(){

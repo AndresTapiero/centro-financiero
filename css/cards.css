@@ -81,3 +81,18 @@
 .card.plegada .card-title.colapsable ~ *{display:none}
 .ct-main{display:inline-flex;align-items:center}
 .ct-main .ico{margin-right:8px}
+
+/* Resumen de metas */
+.metas-resumen-cifra{display:flex;align-items:baseline;justify-content:space-between;gap:var(--sp-3);flex-wrap:wrap;margin-bottom:var(--sp-2)}
+.metas-resumen-grande{font-family:var(--mono);font-size:var(--fs-xl);font-weight:700}
+.metas-resumen-de{font-size:var(--fs-sm);color:var(--text3)}
+.metas-resumen-pie{display:flex;justify-content:space-between;font-size:var(--fs-sm);color:var(--text2);margin-top:6px}
+.metas-resumen-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:var(--sp-3)}
+.metas-resumen-linea{font-size:var(--fs-sm);color:var(--text2);margin-top:var(--sp-3);line-height:1.5}
+.metas-resumen-vacio{font-size:var(--fs-sm);color:var(--text2);line-height:1.5}
+.meta-chip{display:inline-flex;align-items:center;font-size:var(--fs-xs);font-weight:600;padding:3px 10px;border-radius:99px;background:var(--surface3);color:var(--text2)}
+.meta-chip.ok{background:rgba(14,159,110,.14);color:var(--safe)}
+.metas-resumen.completo{border-color:var(--safe)}
+/* Avance de la meta dentro de la tarjeta de cuenta */
+.acc-meta{margin-top:var(--sp-3)}
+.acc-meta-texto{display:flex;justify-content:space-between;gap:var(--sp-2);font-size:var(--fs-xs);color:var(--text3);margin-top:4px}

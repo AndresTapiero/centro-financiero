@@ -435,7 +435,93 @@ function calcularRitmoMeta(goal){
   return {promedioMensual,mesesConsiderados:meses.length};
 }
 
+/** Avance de una meta, en COP: lo que llevas, el objetivo, el porcentaje y si ya se cumplió. */
+function datosMeta(g){
+  let actual,moneda='COP';
+  if(g.type==='cuenta'){
+    const meta=ACCOUNTS_META[g.acc]||{label:'Cuenta eliminada',currency:'COP'};
+    actual=accounts[g.acc]||0;
+    moneda=meta.currency;
+  }else actual=g.accumulated||0;
+  const actualCOP=moneda==='USD'?actual*accounts.trm:actual;
+  const targetCOP=g.target||0;
+  const conObjetivo=targetCOP>0;
+  return{actual,moneda,actualCOP,targetCOP,conObjetivo,
+    pct:conObjetivo?Math.min(100,Math.round(actualCOP/targetCOP*100)):null,
+    cumplida:conObjetivo&&actualCOP>=targetCOP,
+    faltaCOP:conObjetivo?Math.max(0,targetCOP-actualCOP):0};
+}
+
+/** Totales de todas las metas: cuánto suman los objetivos, cuánto llevas y cuántas están cumplidas. */
+function calcularResumenMetas(lista){
+  const datos=(lista||goals).map(g=>({g,d:datosMeta(g)}));
+  const conObj=datos.filter(x=>x.d.conObjetivo);
+  const sinObj=datos.filter(x=>!x.d.conObjetivo);
+  const totalObjetivo=conObj.reduce((s,x)=>s+x.d.targetCOP,0);
+  // Cada meta aporta como máximo su objetivo: un fondo que ya pasó la meta no debe tapar lo que falta en otra
+  const ahorradoEnObjetivo=conObj.reduce((s,x)=>s+Math.min(Math.max(x.d.actualCOP,0),x.d.targetCOP),0);
+  const cumplidas=conObj.filter(x=>x.d.cumplida);
+  const enCurso=conObj.filter(x=>!x.d.cumplida).sort((a,b)=>b.d.pct-a.d.pct);
+  return{
+    total:datos.length,conObjetivo:conObj.length,sinObjetivo:sinObj.length,
+    totalObjetivo,ahorradoEnObjetivo,faltaTotal:Math.max(0,totalObjetivo-ahorradoEnObjetivo),
+    pct:totalObjetivo>0?Math.min(100,Math.round(ahorradoEnObjetivo/totalObjetivo*100)):null,
+    cumplidas:cumplidas.length,enCurso:enCurso.length,
+    masCerca:enCurso[0]||null,
+    ahorradoSinObjetivo:sinObj.reduce((s,x)=>s+Math.max(x.d.actualCOP,0),0),
+  };
+}
+
+function renderResumenMetas(){
+  const el=document.getElementById('metas-resumen');
+  if(!el)return;
+  if(goals.length===0){ el.innerHTML=''; return; }
+  const r=calcularResumenMetas();
+  if(r.conObjetivo===0){
+    el.innerHTML=`<div class="card metas-resumen"><div class="card-title"><span class="ct-main">${ico('target')}Resumen de metas</span></div>
+      <div class="metas-resumen-vacio">Tienes ${r.total} meta${r.total===1?'':'s'} sin monto objetivo. Usa «Ajustar» en cada una para ponerle una cifra y seguir su avance.</div></div>`;
+    return;
+  }
+  const completo=r.cumplidas===r.conObjetivo;
+  const color=completo?'var(--safe)':'var(--accent)';
+  const cerca=r.masCerca?`<div class="metas-resumen-linea">Más cerca de cumplirse: <strong>${esc(r.masCerca.g.name)}</strong> (${r.masCerca.d.pct} %, faltan ${fmtCOP(r.masCerca.d.faltaCOP)})</div>`:'';
+  el.innerHTML=`<div class="card metas-resumen${completo?' completo':''}">
+    <div class="card-title"><span class="ct-main">${ico(completo?'check':'target')}Resumen de metas</span><span>${r.total} meta${r.total===1?'':'s'}</span></div>
+    <div class="metas-resumen-cifra"><span class="metas-resumen-grande" style="color:${color}">${fmtCOP(r.ahorradoEnObjetivo)}</span><span class="metas-resumen-de">de ${fmtCOP(r.totalObjetivo)}</span></div>
+    <div class="debt-track"><div class="debt-fill" style="width:${r.pct}%;background:${color}"></div></div>
+    <div class="metas-resumen-pie"><span>${completo?'Todas las metas con objetivo están cumplidas':`Faltan ${fmtCOP(r.faltaTotal)} en total`}</span><span>${r.pct} %</span></div>
+    <div class="metas-resumen-chips">
+      <span class="meta-chip ${r.cumplidas?'ok':''}">${r.cumplidas} cumplida${r.cumplidas===1?'':'s'}</span>
+      <span class="meta-chip">${r.enCurso} en curso</span>
+      ${r.sinObjetivo?`<span class="meta-chip">${r.sinObjetivo} sin objetivo · ${fmtCOP(r.ahorradoSinObjetivo)}</span>`:''}
+    </div>
+    ${cerca}
+  </div>`;
+}
+
+/**
+ * En Cuentas, una cuenta ligada a una meta con monto objetivo muestra su avance en la propia
+ * tarjeta, para no tener que ir a Metas. (Nu ya tiene su barra en «Fondo de emergencia».)
+ */
+function actualizarProgresoCuentas(){
+  const conMeta=new Map();
+  goals.forEach(g=>{ if(g.type==='cuenta'&&g.target>0&&g.acc&&g.acc!=='nu'&&!conMeta.has(g.acc))conMeta.set(g.acc,g); });
+  document.querySelectorAll('.acc-meta').forEach(n=>{ const k=n.dataset.acc; if(!conMeta.has(k))n.remove(); });
+  conMeta.forEach((g,acc)=>{
+    const card=document.getElementById('card-'+acc);
+    if(!card)return;
+    const d=datosMeta(g);
+    let box=card.querySelector('.acc-meta');
+    if(!box){ box=document.createElement('div'); box.className='acc-meta'; box.dataset.acc=acc; card.appendChild(box); }
+    const color=d.cumplida?'var(--safe)':d.pct>=50?'var(--safe)':d.pct>=25?'var(--warn)':'var(--text2)';
+    box.innerHTML=`<div class="debt-track"><div class="debt-fill" style="width:${d.pct}%;background:${color}"></div></div>
+      <div class="acc-meta-texto"><span>${d.cumplida?'Meta cumplida':esc(g.name)}</span><span>${d.pct} % de ${fmtCOP(d.targetCOP)}</span></div>`;
+  });
+}
+
 function renderGoals(){
+  renderResumenMetas();
+  actualizarProgresoCuentas();
   reubicarTarjetasDinamicas();
   const list=document.getElementById('goals-list');
   if(!list)return;
@@ -443,20 +529,11 @@ function renderGoals(){
     list.innerHTML='<div class="card"><div class="empty">Aún no tienes metas — crea la primera arriba (ej: Ahorro Vivienda vinculada a Lulo, o Inversión Cripto acumulada por categoría)</div></div>';
     return;
   }
-  list.innerHTML=goals.map(g=>{
-    let actual,moneda='COP';
-    if(g.type==='cuenta'){
-      // La cuenta vinculada pudo eliminarse: sin respaldo, meta.currency lanzaba y se caía
-      // el render de todas las metas.
-      const meta=ACCOUNTS_META[g.acc]||{label:'Cuenta eliminada',currency:'COP'};
-      actual=accounts[g.acc]||0;
-      moneda=meta.currency;
-    }else{
-      actual=g.accumulated||0;
-    }
-    const actualCOP=moneda==='USD'?actual*accounts.trm:actual;
-    const targetCOP=g.target||0;
-    const pct=targetCOP>0?Math.min(100,Math.round(actualCOP/targetCOP*100)):null;
+  // Primero las que siguen en curso (de la más avanzada a la menos), luego las sin objetivo y al final las cumplidas
+  const orden=g=>{ const d=datosMeta(g); return d.cumplida?2:d.conObjetivo?0:1; };
+  const ordenadas=[...goals].sort((a,b)=>orden(a)-orden(b)||(datosMeta(b).pct||0)-(datosMeta(a).pct||0));
+  list.innerHTML=ordenadas.map(g=>{
+    const {actual,moneda,actualCOP,targetCOP,pct,cumplida}=datosMeta(g);
     const actualStr=moneda==='USD'?fmtUSD(actual):fmtCOP(actual);
     const {color:colorMeta,mensaje:mensajeMeta}=pct!==null?colorYMensajeProgreso(pct):{color:null,mensaje:null};
 
@@ -481,7 +558,7 @@ function renderGoals(){
     }
 
     return `<div class="card">
-      <div class="card-title"><span class="ct-main">${ico(g.type==='cuenta'?'wallet':'tag')}${esc(g.name)}</span> <button class="btn-del" onclick="deleteGoal('${g.id}')" style="float:right">×</button></div>
+      <div class="card-title"><span class="ct-main">${ico(cumplida?'check':g.type==='cuenta'?'wallet':'tag')}${esc(g.name)}${cumplida?'<span class="meta-chip ok" style="margin-left:8px">Cumplida</span>':''}</span> <button class="btn-del" onclick="deleteGoal('${g.id}')" style="float:right">×</button></div>
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
         <span style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--accent)">${actualStr}</span>
         <span style="font-size:11px;color:var(--text3)">${g.target?`meta: ${fmtCOP(g.target)}`:'sin meta fija'} · <button type="button" class="btn-link-sm" onclick="abrirAjusteMeta('${g.id}')">Ajustar</button></span>
