@@ -12,6 +12,24 @@ function renderPendientes(){
   if(typeof actualizarBadgePendientes==='function') actualizarBadgePendientes();
 }
 
+// Suma n meses a una fecha YYYY-MM-DD; si el día no existe en el mes destino (31 → feb) usa el último día.
+function sumarMesesFecha(iso,n){
+  const [y,m,d]=iso.split('-').map(Number);
+  const idx=(m-1)+n, yy=y+Math.floor(idx/12), mm=((idx%12)+12)%12;
+  const ultimo=new Date(Date.UTC(yy,mm+1,0)).getUTCDate();
+  return `${yy}-${String(mm+1).padStart(2,'0')}-${String(Math.min(d,ultimo)).padStart(2,'0')}`;
+}
+// Fechas de una repetición mensual: la original y las n-1 siguientes (siempre contando desde la original).
+function fechasRepeticion(iso,n){
+  const out=[]; for(let i=0;i<n;i++) out.push(sumarMesesFecha(iso,i)); return out;
+}
+// Pendientes de los meses siguientes que parecen la misma serie (mismo nombre, cuenta, categoría y tipo).
+function pendientesSiguientes(p){
+  if(!p||!p.date) return [];
+  return pendientes.filter(x=>x.id!==p.id&&x.date&&x.date>p.date&&cicloDe(x.date)!==cicloDe(p.date)
+    &&x.name===p.name&&x.acc===p.acc&&x.cat===p.cat&&!!x.isIncome===!!p.isIncome);
+}
+
 async function addPendiente(){
   const name=document.getElementById('pend-name').value.trim();
   const amount=redondear3(parseMontoFormateado(document.getElementById('pend-amount').value));
@@ -19,28 +37,34 @@ async function addPendiente(){
   const acc=document.getElementById('pend-account').value;
   const cat=document.getElementById('pend-cat').value;
   const isIncome=_pendTipo==='ingreso';
+  const repetirEl=document.getElementById('pend-repetir');
+  const veces=Math.max(1,Math.min(24,parseInt(repetirEl&&repetirEl.value,10)||1));
   if(!name){ toastError('⚠ Escribe una descripción'); marcarInvalido(document.getElementById('pend-name')); return; }
   if(isNaN(amount)||amount<=0){ toastError('⚠ El monto debe ser mayor a 0'); marcarInvalido(document.getElementById('pend-amount')); return; }
-  const nuevo={name,amount,date,acc,cat,isIncome};
+  if(veces>1&&!date){ toastError('⚠ Elige la fecha del primer pendiente para repetirlo'); marcarInvalido(document.getElementById('pend-date')); return; }
+  const fechas=veces>1?fechasRepeticion(date,veces):[date];
+  const nuevos=fechas.map(f=>({name,amount,date:f,acc,cat,isIncome}));
   try{
-    const {data:fila,error}=await sb.from('fin_pendientes').insert({
+    const {data:filas,error}=await sb.from('fin_pendientes').insert(nuevos.map(n=>({
       user_id:currentUserId,
-      nombre:name,
-      monto:amount,
-      fecha:date||null,
+      nombre:n.name,
+      monto:n.amount,
+      fecha:n.date||null,
       account_id:accountIdBySlug[acc],
-      categoria:cat,
-      is_income:isIncome,
-    }).select().single();
+      categoria:n.cat,
+      is_income:n.isIncome,
+    }))).select();
     if(error)throw error;
-    nuevo.id=fila.id;
+    if(!filas||filas.length!==nuevos.length) throw new Error('La base no confirmó todos los pendientes');
+    filas.forEach((fila,i)=>{ nuevos[i].id=fila.id; });
   }catch(e){
     registrarErrorDiagnostico('fin_pendientes (crear)',e);
     return; // no lo agregamos localmente si no se pudo guardar en la nube
   }
-  pendientes.push(nuevo);
+  nuevos.forEach(n=>pendientes.push(n));
   document.getElementById('pend-name').value='';
   document.getElementById('pend-amount').value='';
+  if(repetirEl) repetirEl.value='1';
   const suggestEl=document.getElementById('pend-suggest');
   if(suggestEl) suggestEl.style.display='none';
   setTipoPend('gasto');
@@ -56,11 +80,20 @@ async function deletePendiente(id){
   const confirmado=await customConfirm(`¿Eliminar este pendiente?\n\n"${p.name}"\n${montoStr} — ${meta.label}\n${p.date?fmtDate(p.date):'Sin fecha'}`);
   if(!confirmado)return false;
 
-  pendientes=pendientes.filter(x=>x.id!==id);
+  // Si el mismo pendiente existe en meses siguientes, se ofrece quitarlos de una vez.
+  let ids=[id];
+  const siguientes=pendientesSiguientes(p);
+  if(siguientes.length){
+    const todos=await customConfirm(`Este pendiente también está en ${siguientes.length} ${siguientes.length===1?'mes siguiente':'meses siguientes'}.\n\n¿Eliminarlos también?`,{textoSi:'Sí, eliminar todos',textoNo:'Solo este'});
+    if(todos) ids=ids.concat(siguientes.map(x=>x.id));
+  }
+
+  const respaldo=pendientes.slice();
+  pendientes=pendientes.filter(x=>!ids.includes(x.id));
   renderPendientes();
   updateNetWorth();
   try{
-    const {error}=await sb.from('fin_pendientes').delete().eq('id',id);
+    const {error}=await sb.from('fin_pendientes').delete().in('id',ids);
     if(error)throw error;
   }catch(e){ registrarErrorDiagnostico('fin_pendientes (borrar)',e); }
   return true;
