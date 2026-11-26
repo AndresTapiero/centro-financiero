@@ -281,7 +281,7 @@
     <div id="edit-entry-modal-text" style="font-size:11px;color:var(--text3);margin-bottom:14px"></div>
     <div style="margin-bottom:16px">
       <label for="edit-entry-amount" style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px" id="edit-entry-amount-label">Monto</label>
-      <input class="inp inp-num" id="edit-entry-amount" type="number" step="0.01" style="width:100%;font-size:20px;font-weight:700;height:52px">
+      <input class="inp inp-num" id="edit-entry-amount" type="text" inputmode="decimal" autocomplete="off" style="width:100%;font-size:20px;font-weight:700;height:52px">
     </div>
     <div style="margin-bottom:12px">
       <label for="edit-entry-account" style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Cuenta</label>
@@ -324,18 +324,23 @@
     </div>
   </div>
 </div>
-<div id="abono-modal" role="dialog" aria-modal="true" aria-labelledby="abono-title" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
-  <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:340px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.5)">
-    <div id="abono-title" style="font-size:13px;font-weight:700;margin-bottom:6px">💸 Abonar a capital</div>
-    <div id="abono-hint" style="font-size:11px;color:var(--text3);line-height:1.5;margin-bottom:10px"></div>
-    <label style="font-size:10px;color:var(--text3)">Pagar desde</label>
-    <select class="inp" id="abono-origen" style="width:100%;margin:4px 0 10px"></select>
-    <label style="font-size:10px;color:var(--text3)">Monto a abonar</label>
-    <input class="inp inp-num" id="abono-monto" type="text" inputmode="decimal" oninput="formatearInputMonto(this)" style="width:100%;margin:4px 0 8px">
-    <button class="btn-add is-ghost" style="margin:0 0 14px;font-size:11px;height:32px" onclick="abonoUsarTotal()">🔄 Pagar toda la deuda</button>
+<div id="abono-modal" role="dialog" aria-modal="true" aria-labelledby="abono-title" style="display:none;position:fixed;inset:0;z-index:1300;align-items:flex-end;justify-content:center">
+  <div onclick="resolverAbono(false)" style="position:absolute;inset:0;background:rgba(0,0,0,.55)"></div>
+  <div class="abono-sheet" style="position:relative;background:var(--surface);border-radius:20px 20px 0 0;padding:20px 20px 36px;width:100%;max-width:480px;box-shadow:0 -8px 40px rgba(0,0,0,.3)">
+    <div style="width:40px;height:4px;background:var(--border2);border-radius:99px;margin:0 auto 16px"></div>
+    <div id="abono-title" style="font-size:14px;font-weight:700;margin-bottom:6px">💸 Abonar a capital</div>
+    <div id="abono-hint" style="font-size:11px;color:var(--text3);line-height:1.5;margin-bottom:12px"></div>
+    <div id="abono-bloqueo" style="display:none;font-size:12px;line-height:1.5;color:var(--warn);background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;margin-bottom:12px"></div>
+    <div id="abono-campos">
+      <label for="abono-origen" style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Pagar desde</label>
+      <select class="inp" id="abono-origen" style="width:100%;margin:4px 0 12px"></select>
+      <label for="abono-monto" style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Monto a abonar</label>
+      <input class="inp inp-num" id="abono-monto" type="text" inputmode="decimal" autocomplete="off" oninput="formatearInputMonto(this)" style="width:100%;margin:4px 0 8px">
+      <button type="button" class="btn-add is-ghost" style="margin:0 0 14px;font-size:11px;height:32px" onclick="abonoUsarTotal()">🔄 Pagar toda la deuda</button>
+    </div>
     <div style="display:flex;gap:8px">
-      <button class="btn-add" style="margin:0" onclick="resolverAbono(true)">Abonar</button>
-      <button class="btn-add is-ghost" style="margin:0" onclick="resolverAbono(false)">Cancelar</button>
+      <button class="btn-add" id="abono-confirmar" style="margin:0" onclick="resolverAbono(true)">Abonar</button>
+      <button class="btn-add is-ghost" style="margin:0" onclick="resolverAbono(false)">Cerrar</button>
     </div>
   </div>
 </div>
@@ -481,8 +486,8 @@
     <div class="card">
       <div class="card-title">💳 Tarjetas de crédito (deuda)</div>
       <div class="accounts-grid accounts-grid-2">
-        <div class="acc-card debt"><div class="acc-label"><span class="avatar-square" style="background:#DC2626">D</span><span>Davivienda TC</span><span class="currency-badge">Crédito</span></div><input class="acc-value debt" id="acc-davtc" onblur="handleAccountFieldBlur('davtc')"><div id="due-davtc" style="font-size:9px;color:var(--text3);margin-top:4px"></div><button class="btn-add is-ghost btn-abono" onclick="abrirAbono('davtc')">💸 Abonar a capital</button></div>
-        <div class="acc-card debt"><div class="acc-label"><span class="avatar-square" style="background:#FF8C42">R</span><span>Rappi Card</span><span class="currency-badge">Crédito</span></div><input class="acc-value" style="color:#FF8C42" id="acc-rappitc" onblur="handleAccountFieldBlur('rappitc')"><div id="due-rappitc" style="font-size:9px;color:var(--text3);margin-top:4px"></div><button class="btn-add is-ghost btn-abono" onclick="abrirAbono('rappitc')">💸 Abonar a capital</button></div>
+        <div class="acc-card debt" data-abono="davtc"><div class="acc-label"><span class="avatar-square" style="background:#DC2626">D</span><span>Davivienda TC</span><span class="currency-badge">Crédito</span></div><input class="acc-value debt" id="acc-davtc" onblur="handleAccountFieldBlur('davtc')"><div id="due-davtc" style="font-size:9px;color:var(--text3);margin-top:4px"></div></div>
+        <div class="acc-card debt" data-abono="rappitc"><div class="acc-label"><span class="avatar-square" style="background:#FF8C42">R</span><span>Rappi Card</span><span class="currency-badge">Crédito</span></div><input class="acc-value" style="color:#FF8C42" id="acc-rappitc" onblur="handleAccountFieldBlur('rappitc')"><div id="due-rappitc" style="font-size:9px;color:var(--text3);margin-top:4px"></div></div>
       </div>
       <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
         <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Deuda total en tarjetas</span>
@@ -517,11 +522,11 @@
             <option value="ontop">Ontop</option>
           </optgroup>
         </select>
-        <input class="inp inp-num" id="tr-monto" type="number" placeholder="Monto origen" step="0.01">
+        <input class="inp inp-num" id="tr-monto" type="text" inputmode="decimal" autocomplete="off" oninput="formatearCampoTransferencia(this)" placeholder="Monto origen">
       </div>
       <div class="input-grid2" id="tr-row2">
-        <input class="inp inp-num" id="tr-trm" type="number" placeholder="TRM del envío">
-        <input class="inp inp-num" id="tr-recibido" type="number" placeholder="Monto recibido (si hay comisión)" step="0.01">
+        <input class="inp inp-num" id="tr-trm" type="text" inputmode="decimal" autocomplete="off" data-decimales="1" oninput="formatearCampoTransferencia(this)" placeholder="TRM del envío">
+        <input class="inp inp-num" id="tr-recibido" type="text" inputmode="decimal" autocomplete="off" oninput="formatearCampoTransferencia(this)" placeholder="Monto recibido (si hay comisión)">
         <button class="btn-add" style="margin-top:0" onclick="doTransfer()">Transferir</button>
       </div>
       <div class="acc-hint" id="tr-hint">Si dejas "Monto recibido" vacío, se calcula automático con la TRM.</div>
@@ -895,7 +900,7 @@
           <option value="cuenta">💧 Vinculada a una cuenta</option>
           <option value="categoria">🏷️ Acumulada por categoría</option>
         </select>
-        <input class="inp inp-num" id="goal-target" type="number" placeholder="Meta (opcional)"/>
+        <input class="inp inp-num" id="goal-target" type="text" inputmode="decimal" autocomplete="off" oninput="formatearInputMonto(this)" placeholder="Meta (opcional)"/>
       </div>
       <div class="input-grid2" id="goal-cuenta-row">
         <select class="inp" id="goal-account" onchange="onGoalAccountChange()">
