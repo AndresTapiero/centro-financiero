@@ -55,6 +55,7 @@
 <symbol id="i-save" viewBox="0 0 24 24"><path d="M5 3h11l4 4v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM7 3v6h8V3M7 21v-7h10v7"/></symbol>
 <symbol id="i-bars" viewBox="0 0 24 24"><path d="M5 20V11M12 20V5M19 20v-9"/></symbol>
 <symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8L3 12zM8 8h.01"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
 <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
 </defs>
 </svg>
@@ -386,6 +387,11 @@
     </div>
     <label for="edit-meta-target" style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Monto objetivo</label>
     <input class="inp inp-num" id="edit-meta-target" type="text" inputmode="decimal" autocomplete="off" oninput="formatearInputMonto(this)" style="width:100%;margin:4px 0 8px">
+    <label for="edit-meta-fecha" style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Fecha límite (opcional)</label>
+    <div style="display:flex;gap:8px;align-items:center;margin:4px 0 14px">
+      <input class="inp" id="edit-meta-fecha" type="date" style="flex:1;min-width:0">
+      <button type="button" class="btn-link-sm" onclick="document.getElementById('edit-meta-fecha').value=''">Quitar</button>
+    </div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
       <button type="button" class="fchip" onclick="ajustarMetaPorcentaje(-10)">−10 %</button>
       <button type="button" class="fchip" onclick="ajustarMetaPorcentaje(10)">+10 %</button>
@@ -957,6 +963,7 @@
   </div>
 
   <div id="tab-metas" class="tab-content">
+    <div id="metas-resumen"></div>
     <div class="input-section">
       <div class="input-label"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg> Nueva meta</div>
       <div class="input-grid2" style="margin-bottom:8px">
@@ -966,6 +973,10 @@
           <option value="categoria">Acumulada por categoría</option>
         </select>
         <input class="inp inp-num" id="goal-target" type="text" inputmode="decimal" autocomplete="off" oninput="formatearInputMonto(this)" placeholder="Meta (opcional)"/>
+      </div>
+      <div class="input-grid2" id="goal-deadline-row" style="margin-bottom:8px">
+        <label class="goal-deadline-label" for="goal-deadline">Fecha límite (opcional): la app te dice cuánto aportar en cada ciclo</label>
+        <input class="inp" id="goal-deadline" type="date" style="grid-column:span 1"/>
       </div>
       <div class="input-grid2" id="goal-cuenta-row">
         <select class="inp" id="goal-account" onchange="onGoalAccountChange()">

@@ -359,6 +359,9 @@ async function addGoal(){
   }
 
   goals.push(goal);
+  const fechaLimite=document.getElementById('goal-deadline').value||null;
+  if(fechaLimite&&goal.target>0){ goal.deadline=fechaLimite; await guardarFechaMeta(goal); }
+  document.getElementById('goal-deadline').value='';
   document.getElementById('goal-name').value='';
   document.getElementById('goal-target').value='';
   document.getElementById('goal-catname').value='';
@@ -435,7 +438,177 @@ function calcularRitmoMeta(goal){
   return {promedioMensual,mesesConsiderados:meses.length};
 }
 
+/** Avance de una meta, en COP: lo que llevas, el objetivo, el porcentaje y si ya se cumplió. */
+function datosMeta(g){
+  let actual,moneda='COP';
+  if(g.type==='cuenta'){
+    const meta=ACCOUNTS_META[g.acc]||{label:'Cuenta eliminada',currency:'COP'};
+    actual=accounts[g.acc]||0;
+    moneda=meta.currency;
+  }else actual=g.accumulated||0;
+  const actualCOP=moneda==='USD'?actual*accounts.trm:actual;
+  const targetCOP=g.target||0;
+  const conObjetivo=targetCOP>0;
+  return{actual,moneda,actualCOP,targetCOP,conObjetivo,
+    pct:conObjetivo?Math.min(100,Math.round(actualCOP/targetCOP*100)):null,
+    cumplida:conObjetivo&&actualCOP>=targetCOP,
+    faltaCOP:conObjetivo?Math.max(0,targetCOP-actualCOP):0};
+}
+
+// ─── Fecha límite y consejo de aporte ────────────────────────────────────────
+const CLAVE_FECHAS_META='cf_fechas_meta';
+function fechasMetaLocales(){ try{ return JSON.parse(localStorage.getItem(CLAVE_FECHAS_META)||'{}')||{}; }catch(e){ return {}; } }
+
+/** Guarda la fecha límite. La columna puede no existir aún: en ese caso queda en el dispositivo y se avisa. */
+async function guardarFechaMeta(g){
+  const m=fechasMetaLocales();
+  if(g.deadline)m[g.id]=g.deadline; else delete m[g.id];
+  try{ localStorage.setItem(CLAVE_FECHAS_META,JSON.stringify(m)); }catch(e){}
+  try{
+    const {data,error}=await sb.from('fin_metas').update({fecha_objetivo:g.deadline||null}).eq('id',g.id).select('id');
+    if(error)throw error;
+    if(!data||data.length===0)throw new Error('La base no guardó la fecha (0 filas actualizadas)');
+    return true;
+  }catch(e){
+    registrarErrorDiagnostico('fin_metas (fecha límite)',e);
+    toastError('⚠ Fecha guardada solo en este dispositivo — falta correr sql/meta-fecha-limite.sql en Supabase');
+    return false;
+  }
+}
+
+/** Ciclos de pago que quedan hasta la fecha límite, contando el ciclo actual (0 o negativo = ya pasó). */
+function ciclosHasta(fechaISO,hoyISO){
+  const a=cicloDe(hoyISO||todayStr()).split('-').map(Number), b=cicloDe(fechaISO).split('-').map(Number);
+  return (b[0]-a[0])*12+(b[1]-a[1])+1;
+}
+
+/** Lo que entró (o salió) de la meta durante este ciclo: transferencias e ingresos suman, retiros restan. Los ajustes de saldo no cuentan. */
+function aportadoEnCiclo(g,ciclo){
+  return entries.filter(e=>cicloDe(e.date)===ciclo&&e.cat!=='[Ajuste de saldo]'&&(g.type==='categoria'?e.cat===g.cat:e.acc===g.acc))
+    .reduce((s,e)=>{
+      const monto=entryCOP(e);
+      return s+(g.type==='categoria'?(e.txType==='gasto'?monto:-monto):(e.txType==='ingreso'?monto:-monto));
+    },0);
+}
+
+/**
+ * Cuánto aportar este ciclo para llegar a tiempo. Se reparte lo que falta (más lo ya aportado este ciclo)
+ * en partes iguales entre los ciclos que quedan, incluido el actual. Devuelve null si la meta no tiene
+ * objetivo ni fecha.
+ */
+function consejoMeta(g,hoyISO){
+  const d=datosMeta(g);
+  if(!d.conObjetivo||!g.deadline)return null;
+  hoyISO=hoyISO||todayStr();
+  if(d.cumplida)return{tipo:'cumplida'};
+  const ciclos=ciclosHasta(g.deadline,hoyISO);
+  if(ciclos<1||g.deadline<hoyISO)return{tipo:'vencida',falta:d.faltaCOP};
+  const aportado=Math.max(0,aportadoEnCiclo(g,cicloDe(hoyISO)));
+  const cuota=(d.faltaCOP+aportado)/ciclos;
+  const porAportar=Math.max(0,Math.round(cuota-aportado));
+  const ritmo=typeof calcularRitmoMeta==='function'?calcularRitmoMeta(g):null;
+  return{tipo:'plan',ciclos,cuota:Math.round(cuota),aportado:Math.round(aportado),porAportar,falta:d.faltaCOP,
+    alDia:porAportar===0,ritmoMensual:ritmo?Math.round(ritmo.promedioMensual):null,
+    ritmoAlcanza:ritmo?ritmo.promedioMensual>=cuota:null};
+}
+
+const MESES_CORTOS=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+function fechaLegible(iso){ const [y,m,d]=iso.split('-').map(Number); return `${d} ${MESES_CORTOS[m-1]} ${y}`; }
+
+function htmlConsejoMeta(g){
+  const c=consejoMeta(g);
+  if(!c||c.tipo==='cumplida')return '';
+  const fecha=`<div class="meta-fecha">Fecha límite: ${fechaLegible(g.deadline)}${c.tipo==='plan'?` · ${c.ciclos} ciclo${c.ciclos===1?'':'s'} de pago`:''}</div>`;
+  if(c.tipo==='vencida')return fecha+`<div class="meta-consejo alerta"><strong>La fecha límite ya pasó.</strong> Faltan ${fmtCOP(c.falta)}. Usa «Ajustar» para mover la fecha o el objetivo.</div>`;
+  const ritmo=c.ritmoMensual===null?'':c.ritmoAlcanza
+    ?` Tu ritmo reciente (~${fmtCOP(c.ritmoMensual)}/ciclo) alcanza.`
+    :` Tu ritmo reciente (~${fmtCOP(Math.max(0,c.ritmoMensual))}/ciclo) no alcanza para esta cuota.`;
+  if(c.alDia)return fecha+`<div class="meta-consejo ok"><strong>Cuota de este ciclo cubierta.</strong> Aportaste ${fmtCOP(c.aportado)} de ${fmtCOP(c.cuota)}.${ritmo}</div>`;
+  return fecha+`<div class="meta-consejo${c.ritmoAlcanza===false?' alerta':''}">Para llegar a tiempo, este ciclo aporta
+    <span class="meta-consejo-cifra">${fmtCOP(c.porAportar)}</span>
+    Cuota por ciclo: ${fmtCOP(c.cuota)}${c.aportado>0?` · ya aportaste ${fmtCOP(c.aportado)}`:''}.${ritmo}</div>`;
+}
+
+/** Totales de todas las metas: cuánto suman los objetivos, cuánto llevas y cuántas están cumplidas. */
+function calcularResumenMetas(lista){
+  const datos=(lista||goals).map(g=>({g,d:datosMeta(g)}));
+  const conObj=datos.filter(x=>x.d.conObjetivo);
+  const sinObj=datos.filter(x=>!x.d.conObjetivo);
+  const totalObjetivo=conObj.reduce((s,x)=>s+x.d.targetCOP,0);
+  // Cada meta aporta como máximo su objetivo: un fondo que ya pasó la meta no debe tapar lo que falta en otra
+  const ahorradoEnObjetivo=conObj.reduce((s,x)=>s+Math.min(Math.max(x.d.actualCOP,0),x.d.targetCOP),0);
+  const cumplidas=conObj.filter(x=>x.d.cumplida);
+  const enCurso=conObj.filter(x=>!x.d.cumplida).sort((a,b)=>b.d.pct-a.d.pct);
+  return{
+    total:datos.length,conObjetivo:conObj.length,sinObjetivo:sinObj.length,
+    totalObjetivo,ahorradoEnObjetivo,faltaTotal:Math.max(0,totalObjetivo-ahorradoEnObjetivo),
+    pct:totalObjetivo>0?Math.min(100,Math.round(ahorradoEnObjetivo/totalObjetivo*100)):null,
+    cumplidas:cumplidas.length,enCurso:enCurso.length,
+    masCerca:enCurso[0]||null,
+    ahorradoSinObjetivo:sinObj.reduce((s,x)=>s+Math.max(x.d.actualCOP,0),0),
+    ...resumenPlanes(lista||goals),
+  };
+}
+
+/** Suma de lo que conviene aportar este ciclo en las metas que tienen fecha límite. */
+function resumenPlanes(lista){
+  const planes=lista.map(g=>({g,c:consejoMeta(g)})).filter(x=>x.c&&x.c.tipo==='plan');
+  const vencidas=lista.filter(g=>{ const c=consejoMeta(g); return c&&c.tipo==='vencida'; }).length;
+  return{conFecha:planes.length,aportarEsteCiclo:planes.reduce((s,x)=>s+x.c.porAportar,0),vencidas,
+    proxima:planes.sort((a,b)=>a.g.deadline.localeCompare(b.g.deadline))[0]||null};
+}
+
+function renderResumenMetas(){
+  const el=document.getElementById('metas-resumen');
+  if(!el)return;
+  if(goals.length===0){ el.innerHTML=''; return; }
+  const r=calcularResumenMetas();
+  if(r.conObjetivo===0){
+    el.innerHTML=`<div class="card metas-resumen"><div class="card-title"><span class="ct-main">${ico('target')}Resumen de metas</span></div>
+      <div class="metas-resumen-vacio">Tienes ${r.total} meta${r.total===1?'':'s'} sin monto objetivo. Usa «Ajustar» en cada una para ponerle una cifra y seguir su avance.</div></div>`;
+    return;
+  }
+  const completo=r.cumplidas===r.conObjetivo;
+  const color=completo?'var(--safe)':'var(--accent)';
+  const cerca=r.masCerca?`<div class="metas-resumen-linea">Más cerca de cumplirse: <strong>${esc(r.masCerca.g.name)}</strong> (${r.masCerca.d.pct} %, faltan ${fmtCOP(r.masCerca.d.faltaCOP)})</div>`:'';
+  el.innerHTML=`<div class="card metas-resumen${completo?' completo':''}">
+    <div class="card-title"><span class="ct-main">${ico(completo?'check':'target')}Resumen de metas</span><span>${r.total} meta${r.total===1?'':'s'}</span></div>
+    <div class="metas-resumen-cifra"><span class="metas-resumen-grande" style="color:${color}">${fmtCOP(r.ahorradoEnObjetivo)}</span><span class="metas-resumen-de">de ${fmtCOP(r.totalObjetivo)}</span></div>
+    <div class="debt-track"><div class="debt-fill" style="width:${r.pct}%;background:${color}"></div></div>
+    <div class="metas-resumen-pie"><span>${completo?'Todas las metas con objetivo están cumplidas':`Faltan ${fmtCOP(r.faltaTotal)} en total`}</span><span>${r.pct} %</span></div>
+    <div class="metas-resumen-chips">
+      <span class="meta-chip ${r.cumplidas?'ok':''}">${r.cumplidas} cumplida${r.cumplidas===1?'':'s'}</span>
+      <span class="meta-chip">${r.enCurso} en curso</span>
+      ${r.sinObjetivo?`<span class="meta-chip">${r.sinObjetivo} sin objetivo · ${fmtCOP(r.ahorradoSinObjetivo)}</span>`:''}
+    </div>
+    ${cerca}
+    ${r.conFecha?`<div class="meta-consejo${r.vencidas?' alerta':''}">Para ir al día con las fechas límite, este ciclo aporta en total <span class="meta-consejo-cifra">${fmtCOP(r.aportarEsteCiclo)}</span>${r.proxima?`La más próxima es <strong>${esc(r.proxima.g.name)}</strong> (${fechaLegible(r.proxima.g.deadline)}).`:''}${r.vencidas?` ${r.vencidas} meta${r.vencidas===1?'':'s'} con la fecha vencida.`:''}</div>`:''}
+  </div>`;
+}
+
+/**
+ * En Cuentas, una cuenta ligada a una meta con monto objetivo muestra su avance en la propia
+ * tarjeta, para no tener que ir a Metas. (Nu ya tiene su barra en «Fondo de emergencia».)
+ */
+function actualizarProgresoCuentas(){
+  const conMeta=new Map();
+  goals.forEach(g=>{ if(g.type==='cuenta'&&g.target>0&&g.acc&&g.acc!=='nu'&&!conMeta.has(g.acc))conMeta.set(g.acc,g); });
+  document.querySelectorAll('.acc-meta').forEach(n=>{ const k=n.dataset.acc; if(!conMeta.has(k))n.remove(); });
+  conMeta.forEach((g,acc)=>{
+    const card=document.getElementById('card-'+acc);
+    if(!card)return;
+    const d=datosMeta(g);
+    let box=card.querySelector('.acc-meta');
+    if(!box){ box=document.createElement('div'); box.className='acc-meta'; box.dataset.acc=acc; card.appendChild(box); }
+    const color=d.cumplida?'var(--safe)':d.pct>=50?'var(--safe)':d.pct>=25?'var(--warn)':'var(--text2)';
+    box.innerHTML=`<div class="debt-track"><div class="debt-fill" style="width:${d.pct}%;background:${color}"></div></div>
+      <div class="acc-meta-texto"><span>${d.cumplida?'Meta cumplida':esc(g.name)}</span><span>${d.pct} % de ${fmtCOP(d.targetCOP)}</span></div>`;
+  });
+}
+
 function renderGoals(){
+  renderResumenMetas();
+  actualizarProgresoCuentas();
   reubicarTarjetasDinamicas();
   const list=document.getElementById('goals-list');
   if(!list)return;
@@ -443,20 +616,11 @@ function renderGoals(){
     list.innerHTML='<div class="card"><div class="empty">Aún no tienes metas — crea la primera arriba (ej: Ahorro Vivienda vinculada a Lulo, o Inversión Cripto acumulada por categoría)</div></div>';
     return;
   }
-  list.innerHTML=goals.map(g=>{
-    let actual,moneda='COP';
-    if(g.type==='cuenta'){
-      // La cuenta vinculada pudo eliminarse: sin respaldo, meta.currency lanzaba y se caía
-      // el render de todas las metas.
-      const meta=ACCOUNTS_META[g.acc]||{label:'Cuenta eliminada',currency:'COP'};
-      actual=accounts[g.acc]||0;
-      moneda=meta.currency;
-    }else{
-      actual=g.accumulated||0;
-    }
-    const actualCOP=moneda==='USD'?actual*accounts.trm:actual;
-    const targetCOP=g.target||0;
-    const pct=targetCOP>0?Math.min(100,Math.round(actualCOP/targetCOP*100)):null;
+  // Primero las que siguen en curso (de la más avanzada a la menos), luego las sin objetivo y al final las cumplidas
+  const orden=g=>{ const d=datosMeta(g); return d.cumplida?2:d.conObjetivo?0:1; };
+  const ordenadas=[...goals].sort((a,b)=>orden(a)-orden(b)||(datosMeta(b).pct||0)-(datosMeta(a).pct||0));
+  list.innerHTML=ordenadas.map(g=>{
+    const {actual,moneda,actualCOP,targetCOP,pct,cumplida}=datosMeta(g);
     const actualStr=moneda==='USD'?fmtUSD(actual):fmtCOP(actual);
     const {color:colorMeta,mensaje:mensajeMeta}=pct!==null?colorYMensajeProgreso(pct):{color:null,mensaje:null};
 
@@ -481,14 +645,14 @@ function renderGoals(){
     }
 
     return `<div class="card">
-      <div class="card-title"><span class="ct-main">${ico(g.type==='cuenta'?'wallet':'tag')}${esc(g.name)}</span> <button class="btn-del" onclick="deleteGoal('${g.id}')" style="float:right">×</button></div>
+      <div class="card-title"><span class="ct-main">${ico(cumplida?'check':g.type==='cuenta'?'wallet':'tag')}${esc(g.name)}${cumplida?'<span class="meta-chip ok" style="margin-left:8px">Cumplida</span>':''}</span> <button class="btn-del" onclick="deleteGoal('${g.id}')" style="float:right">×</button></div>
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
         <span style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--accent)">${actualStr}</span>
         <span style="font-size:11px;color:var(--text3)">${g.target?`meta: ${fmtCOP(g.target)}`:'sin meta fija'} · <button type="button" class="btn-link-sm" onclick="abrirAjusteMeta('${g.id}')">Ajustar</button></span>
       </div>
       ${pct!==null?`<div class="debt-track"><div class="debt-fill" style="width:${pct}%;background:${colorMeta}"></div></div><div style="font-size:11px;margin-top:4px;display:flex;justify-content:space-between"><span style="color:${colorMeta};font-weight:600">${mensajeMeta}</span><span style="color:var(--text3)">${pct}%</span></div>`:''}
       <div style="font-size:11px;color:var(--text3);margin-top:8px">${g.type==='cuenta'?'Vinculada a: '+esc((ACCOUNTS_META[g.acc]||{}).label||'Cuenta eliminada'):'Acumula movimientos categorizados como "'+esc(g.name)+'"'}</div>
-      ${proyeccionHTML}
+      ${g.deadline&&g.target?htmlConsejoMeta(g):proyeccionHTML}
     </div>`;
   }).join('');
 }
@@ -508,6 +672,7 @@ function abrirAjusteMeta(id){
   document.getElementById('edit-meta-title').textContent=`Ajustar meta · ${g.name}`;
   document.getElementById('edit-meta-hint').textContent=`Llevas ${fmtCOP(actual)}. Meta actual: ${g.target?fmtCOP(g.target):'sin meta fija'}.`;
   document.getElementById('edit-meta-target').value=g.target?textoMonto(g.target,false):'';
+  document.getElementById('edit-meta-fecha').value=g.deadline||'';
   // El nombre de una meta por categoría ES la categoría: renombrarla dejaría sin sumar lo ya acumulado.
   const nom=document.getElementById('edit-meta-nombre');
   nom.value=g.name;
@@ -539,8 +704,13 @@ async function resolverAjusteMeta(confirmado){
   const nomInp=document.getElementById('edit-meta-nombre');
   const nuevoNombre=g.type==='cuenta'?String(nomInp.value).trim():g.name;
   if(!nuevoNombre){ toastError('⚠ La meta necesita un nombre'); marcarInvalido(nomInp); return; }
+  const fechaNueva=document.getElementById('edit-meta-fecha').value||null;
+  if(fechaNueva&&fechaNueva<todayStr()&&fechaNueva!==g.deadline){ toastError('⚠ La fecha límite debe ser de hoy en adelante'); marcarInvalido(document.getElementById('edit-meta-fecha')); return; }
+  if(fechaNueva&&!(nuevo>0)){ toastError('⚠ Para usar una fecha límite, la meta necesita un monto objetivo'); marcarInvalido(inp); return; }
   cerrar();
   const anterior=g.target||0, nombreAnterior=g.name;
+  const fechaCambio=(fechaNueva||null)!==(g.deadline||null);
+  if(fechaCambio){ g.deadline=fechaNueva; renderGoals(); await guardarFechaMeta(g); }
   if(nuevo===anterior&&nuevoNombre===nombreAnterior)return;
   g.target=nuevo; g.name=nuevoNombre;
   renderGoals();
