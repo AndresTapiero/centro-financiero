@@ -317,6 +317,7 @@
     <div id="edit-pendiente-title" style="font-size:13px;line-height:1.6;margin-bottom:10px">✏️ <strong>Editar monto</strong></div>
     <div id="edit-pendiente-hint" style="font-size:11px;color:var(--text3);margin-bottom:10px"></div>
     <input class="inp inp-num" id="edit-pendiente-amount" type="text" inputmode="decimal" oninput="formatearInputMonto(this)" style="width:100%;margin-bottom:10px">
+    <label id="edit-pendiente-recordar-fila" style="display:none;align-items:flex-start;gap:8px;font-size:11px;color:var(--text2);line-height:1.4;margin:0 0 14px;cursor:pointer"><input type="checkbox" id="edit-pendiente-recordar" style="margin-top:2px"><span id="edit-pendiente-recordar-texto">Usar este monto también en los próximos meses</span></label>
     <button class="btn-add" id="edit-pendiente-usar-saldo" style="display:none;margin:0 0 14px;background:var(--surface3);color:var(--text2);font-size:11px;height:32px" onclick="usarSaldoActualEnEdicion()">🔄 Usar saldo actual de la tarjeta</button>
     <div style="display:flex;gap:8px">
       <button class="btn-add" style="margin:0" onclick="resolverEditPendienteModal(true)">Guardar</button>
@@ -341,6 +342,39 @@
     <div style="display:flex;gap:8px">
       <button class="btn-add" id="abono-confirmar" style="margin:0" onclick="resolverAbono(true)">Abonar</button>
       <button class="btn-add is-ghost" style="margin:0" onclick="resolverAbono(false)">Cerrar</button>
+    </div>
+  </div>
+</div>
+<div id="edit-meta-modal" role="dialog" aria-modal="true" aria-labelledby="edit-meta-title" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
+  <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:340px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+    <div id="edit-meta-title" style="font-size:13px;font-weight:700;margin-bottom:6px">Ajustar meta</div>
+    <div id="edit-meta-hint" style="font-size:11px;color:var(--text3);line-height:1.5;margin-bottom:12px"></div>
+    <div id="edit-meta-nombre-fila">
+      <label for="edit-meta-nombre" style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Nombre de la meta</label>
+      <input class="inp" id="edit-meta-nombre" type="text" maxlength="40" autocomplete="off" style="width:100%;margin:4px 0 12px">
+    </div>
+    <label for="edit-meta-target" style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Monto objetivo</label>
+    <input class="inp inp-num" id="edit-meta-target" type="text" inputmode="decimal" autocomplete="off" oninput="formatearInputMonto(this)" style="width:100%;margin:4px 0 8px">
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
+      <button type="button" class="fchip" onclick="ajustarMetaPorcentaje(-10)">−10 %</button>
+      <button type="button" class="fchip" onclick="ajustarMetaPorcentaje(10)">+10 %</button>
+      <button type="button" class="fchip" onclick="ajustarMetaPorcentaje(25)">+25 %</button>
+      <button type="button" class="fchip" onclick="document.getElementById('edit-meta-target').value=''">Sin meta fija</button>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-add" style="margin:0" onclick="resolverAjusteMeta(true)">Guardar</button>
+      <button class="btn-add is-ghost" style="margin:0" onclick="resolverAjusteMeta(false)">Cancelar</button>
+    </div>
+  </div>
+</div>
+<div id="renombrar-cuenta-modal" role="dialog" aria-modal="true" aria-labelledby="renombrar-cuenta-title" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
+  <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:340px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+    <div id="renombrar-cuenta-title" style="font-size:13px;font-weight:700;margin-bottom:6px">Renombrar cuenta</div>
+    <div id="renombrar-cuenta-hint" style="font-size:11px;color:var(--text3);line-height:1.5;margin-bottom:12px">El saldo y los movimientos no cambian: solo el nombre con el que la ves.</div>
+    <input class="inp" id="renombrar-cuenta-nombre" type="text" maxlength="40" autocomplete="off" onkeydown="if(event.key==='Enter')resolverRenombrarCuenta(true)" style="width:100%;margin-bottom:14px">
+    <div style="display:flex;gap:8px">
+      <button class="btn-add" style="margin:0" onclick="resolverRenombrarCuenta(true)">Guardar</button>
+      <button class="btn-add is-ghost" style="margin:0" onclick="resolverRenombrarCuenta(false)">Cancelar</button>
     </div>
   </div>
 </div>

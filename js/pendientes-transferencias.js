@@ -100,6 +100,18 @@ function editPendiente(id){
     hintEl.textContent=`"${p.name}" — ${meta.label}`;
     btnSaldo.style.display='none';
   }
+  // Si es un pago que se repite cada ciclo, se puede dejar el monto nuevo para los próximos meses
+  // (antes cada ciclo volvía a llegar con el valor fijo de fábrica, aunque el pago cambie).
+  const rec=RECURRENTES.find(r=>r.name===p.name);
+  const filaRec=document.getElementById('edit-pendiente-recordar-fila');
+  if(rec){
+    const tiene=typeof recurrentesMontos[rec.name]==='number';
+    document.getElementById('edit-pendiente-recordar').checked=tiene;
+    const fmtR=meta.currency==='USD'?fmtUSD:fmtCOP;
+    document.getElementById('edit-pendiente-recordar-texto').textContent=
+      `Usar este monto también en los próximos meses${tiene?` (ahora: ${fmtR(recurrentesMontos[rec.name])})`:` (de fábrica: ${fmtR(rec.amount)})`}`;
+    filaRec.style.display='flex';
+  }else filaRec.style.display='none';
   document.getElementById('edit-pendiente-modal').style.display='flex';
 }
 
@@ -120,6 +132,8 @@ async function resolverEditPendienteModal(confirmado){
   const amtInp=document.getElementById('edit-pendiente-amount');
   const nuevoMonto=redondear3(parseMontoFormateado(amtInp.value));
   if(isNaN(nuevoMonto)||nuevoMonto<=0){ toastError('⚠ El monto debe ser mayor a 0'); marcarInvalido(amtInp); return; }
+  const rec=RECURRENTES.find(r=>r.name===p.name);
+  const recordar=!!(rec&&document.getElementById('edit-pendiente-recordar').checked);
   cerrar();
   p.amount=nuevoMonto;
   renderPendientes();
@@ -128,6 +142,19 @@ async function resolverEditPendienteModal(confirmado){
     const {error}=await sb.from('fin_pendientes').update({monto:nuevoMonto}).eq('id',id);
     if(error)throw error;
   }catch(e){ registrarErrorDiagnostico('fin_pendientes (editar monto)',e); }
+  // Para los ciclos que vienen: dejar este monto, o volver al de fábrica si desmarcaste la casilla
+  if(rec){
+    const habia=typeof recurrentesMontos[rec.name]==='number';
+    if(recordar&&recurrentesMontos[rec.name]!==nuevoMonto){
+      recurrentesMontos[rec.name]=nuevoMonto;
+    }else if(!recordar&&habia){
+      delete recurrentesMontos[rec.name];
+    }else return;
+    const enNube=await guardarRecurrentesMontos();
+    const fmtR=ACCOUNTS_META[p.acc]&&ACCOUNTS_META[p.acc].currency==='USD'?fmtUSD:fmtCOP;
+    if(enNube)avisarGuardado(recordar?`✓ Los próximos meses llegarán con ${fmtR(nuevoMonto)}`:'✓ Los próximos meses vuelven al monto de fábrica');
+    else toastError('⚠ Guardado solo en este dispositivo — falta correr sql/recurrentes-montos.sql en Supabase');
+  }
 }
 
 async function payPendiente(id){

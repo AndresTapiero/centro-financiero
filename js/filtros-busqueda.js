@@ -440,6 +440,14 @@ function updateEntriesSummary(){
   // balanceEl.textContent=fmtCOP(balance);
   // balanceEl.style.color=balance>=0?'var(--accent)':'var(--danger)';
 }
+// Montos que ajustaste a mano para los próximos ciclos: {nombre: monto}. Mandan sobre `amount` de abajo.
+let recurrentesMontos={};
+const CLAVE_RECURRENTES_LOCAL='cf_recurrentes_montos';
+/** Monto con el que se siembra un recurrente en el ciclo nuevo: el que ajustaste, o el de fábrica. */
+function montoRecurrente(r){
+  const v=recurrentesMontos[r.name];
+  return (typeof v==='number'&&v>0)?v:r.amount;
+}
 const RECURRENTES=[
   {name:'Salario',amount:2675,acc:'ontop',cat:'Ingreso · Salario',day:26,isIncome:true},
   {name:'Arriendo',amount:1630000,acc:'debito',cat:'Otro',day:3},

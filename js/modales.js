@@ -55,6 +55,8 @@ const MODALES = {
   'edit-entry-modal':       ()=>resolverEditEntryModal(false),
   'edit-pendiente-modal':   ()=>resolverEditPendienteModal(false),
   'abono-modal':            ()=>resolverAbono(false),
+  'edit-meta-modal':        ()=>resolverAjusteMeta(false),
+  'renombrar-cuenta-modal': ()=>resolverRenombrarCuenta(false),
   'export-fallback-modal':  ()=>cerrarExportFallback(),
 };
 

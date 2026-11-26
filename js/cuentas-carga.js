@@ -3,6 +3,41 @@ let accountIdBySlug={}; // slug ('nequi','davtc',...) -> UUID real de fin_accoun
 
 let cargaConFallos=false; // true si alguna lectura falló durante loadData — bloquea cualquier siembra automática para no arriesgarse a sobrescribir datos reales con listas "vacías" por error
 
+/**
+ * Lee los montos que ajustaste para los próximos meses. Va en su propia consulta: si la columna
+ * `recurrentes` todavía no existe en Supabase (sql/recurrentes-montos.sql), esto falla solo y no
+ * arrastra la lectura de TRM/vehículos. Mientras tanto se usa la copia de este dispositivo.
+ */
+let nombresRenombrados=[]; // slugs de cuentas de fábrica con nombre propio; se pintan al terminar de cargar
+
+async function cargarRecurrentesMontos(){
+  let local={};
+  try{ local=JSON.parse(localStorage.getItem(CLAVE_RECURRENTES_LOCAL)||'{}')||{}; }catch(e){}
+  recurrentesMontos=local;
+  try{
+    const {data,error}=await sb.from('fin_configuracion').select('recurrentes').maybeSingle();
+    if(error)throw error;
+    if(data&&data.recurrentes&&typeof data.recurrentes==='object')recurrentesMontos=data.recurrentes;
+  }catch(e){ /* sin columna todavía: se queda con la copia local */ }
+}
+
+/** Guarda los montos ajustados. Devuelve true si quedaron en Supabase, false si solo en este dispositivo. */
+async function guardarRecurrentesMontos(){
+  try{ localStorage.setItem(CLAVE_RECURRENTES_LOCAL,JSON.stringify(recurrentesMontos)); }catch(e){}
+  if(!currentUserId)return false;
+  try{
+    const {error}=await sb.from('fin_configuracion').upsert(
+      {user_id:currentUserId,trm:accounts.trm,vehiculos:vehiculos&&vehiculos.length?vehiculos:['Moto'],recurrentes:recurrentesMontos},
+      {onConflict:'user_id'}
+    );
+    if(error)throw error;
+    return true;
+  }catch(e){
+    registrarErrorDiagnostico('fin_configuracion (montos recurrentes)',e);
+    return false;
+  }
+}
+
 async function loadData(){
   const statusEl=document.getElementById('sync-status');
   try{
@@ -20,6 +55,10 @@ async function loadData(){
         if(row.is_dynamic){
           ACCOUNTS_META[row.slug]={label:row.label,currency:row.currency,type:row.account_type};
           dynamicAccounts[row.slug]={label:row.label,currency:row.currency};
+        }else if(ACCOUNTS_META[row.slug]&&row.label&&row.label!==ACCOUNTS_META[row.slug].label&&ACCOUNTS_META[row.slug].type!=='credito'){
+          // Una cuenta de fábrica (Nu, Lulo…) que renombraste: el nombre guardado manda sobre el del código.
+          ACCOUNTS_META[row.slug].label=row.label;
+          nombresRenombrados.push(row.slug);
         }
       });
       if(accounts.trm===undefined)accounts.trm=4000; // valor de respaldo si la lectura de abajo también falla
@@ -30,6 +69,8 @@ async function loadData(){
           if(cfg.vehiculos&&cfg.vehiculos.length)vehiculos=cfg.vehiculos;
         }
       }catch(e){ registrarErrorDiagnostico('fin_configuracion (lectura TRM/vehículos)',e); }
+      await cargarRecurrentesMontos();
+      nombresRenombrados.forEach(k=>aplicarNombreCuentaEnPantalla(k));
     }else{
       accounts=Object.assign({},SEED_ACCOUNTS);
     }
@@ -148,7 +189,7 @@ async function autoSeedRecurrentes(){
     if(yaExisten.has(r.name)||yaGastados.has(r.name))return;
     // fechaEnCiclo, no `${mesActual}-${dd}`: un recurrente del día 26 pertenece al mes
     // ANTERIOR al que da nombre al ciclo.
-    nuevos.push({name:r.name,amount:r.amount,date:fechaEnCiclo(mesActual,r.day),acc:r.acc,cat:r.cat,isIncome:r.isIncome||false});
+    nuevos.push({name:r.name,amount:montoRecurrente(r),date:fechaEnCiclo(mesActual,r.day),acc:r.acc,cat:r.cat,isIncome:r.isIncome||false});
   });
   seeded.push(mesActual);
   let agregados=0;
