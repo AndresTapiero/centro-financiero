@@ -176,6 +176,7 @@ function renderDynamicAccountCard(key){
   // meta.label lo escribes tú al crear la cuenta, así que va escapado antes de entrar a innerHTML.
   card.innerHTML=`<div class="acc-label"><span class="avatar-square" style="background:#2563EB">${esc(inicial)}</span><span>${esc(meta.label)}</span><span class="currency-badge">${monedaTexto}</span></div><input class="acc-value" id="acc-${key}" onblur="handleAccountFieldBlur('${key}')"><button type="button" class="move-acc-btn" id="move-${key}" onclick="moverCuentaDeSeccion('${key}')"></button>`;
   grid.appendChild(card);
+  agregarLapicesRenombrar();
   actualizarBotonMover(key);
   document.getElementById('acc-'+key).value=meta.currency==='USD'?fmtUSD(accounts[key]):fmtCOP(accounts[key]);
 }
@@ -483,7 +484,7 @@ function renderGoals(){
       <div class="card-title">${g.type==='cuenta'?'💧':'🏷️'} ${esc(g.name)} <button class="btn-del" onclick="deleteGoal('${g.id}')" style="float:right">×</button></div>
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
         <span style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--accent)">${actualStr}</span>
-        ${g.target?`<span style="font-size:11px;color:var(--text3)">meta: ${fmtCOP(g.target)}</span>`:'<span style="font-size:11px;color:var(--text3)">sin meta fija — solo trazabilidad</span>'}
+        <span style="font-size:11px;color:var(--text3)">${g.target?`meta: ${fmtCOP(g.target)}`:'sin meta fija'} · <button type="button" class="btn-link-sm" onclick="abrirAjusteMeta('${g.id}')">Ajustar</button></span>
       </div>
       ${pct!==null?`<div class="debt-track"><div class="debt-fill" style="width:${pct}%;background:${colorMeta}"></div></div><div style="font-size:10px;margin-top:4px;display:flex;justify-content:space-between"><span style="color:${colorMeta};font-weight:600">${mensajeMeta}</span><span style="color:var(--text3)">${pct}%</span></div>`:''}
       <div style="font-size:10px;color:var(--text3);margin-top:8px">${g.type==='cuenta'?'Vinculada a: '+esc((ACCOUNTS_META[g.acc]||{}).label||'Cuenta eliminada'):'Acumula movimientos categorizados como "'+esc(g.name)+'"'}</div>
@@ -492,3 +493,164 @@ function renderGoals(){
   }).join('');
 }
 
+
+
+// ─── Ajustar el monto objetivo de una meta ──────────────────────────────────
+// Antes la meta quedaba fija desde que se creaba: si querías subirla o bajarla había que borrarla
+// y crearla de nuevo. El nombre, el tipo y la cuenta/categoría vinculada no se tocan: solo el objetivo.
+
+let _ajusteMetaId=null;
+function abrirAjusteMeta(id){
+  const g=goals.find(x=>String(x.id)===String(id));
+  if(!g)return;
+  _ajusteMetaId=g.id;
+  const actual=g.type==='cuenta'?((accounts[g.acc]||0)*((ACCOUNTS_META[g.acc]||{}).currency==='USD'?accounts.trm:1)):(g.accumulated||0);
+  document.getElementById('edit-meta-title').textContent=`Ajustar meta · ${g.name}`;
+  document.getElementById('edit-meta-hint').textContent=`Llevas ${fmtCOP(actual)}. Meta actual: ${g.target?fmtCOP(g.target):'sin meta fija'}.`;
+  document.getElementById('edit-meta-target').value=g.target?textoMonto(g.target,false):'';
+  // El nombre de una meta por categoría ES la categoría: renombrarla dejaría sin sumar lo ya acumulado.
+  const nom=document.getElementById('edit-meta-nombre');
+  nom.value=g.name;
+  nom.disabled=g.type!=='cuenta';
+  nom.title=g.type!=='cuenta'?'El nombre de esta meta es el de su categoría':'';
+  document.getElementById('edit-meta-modal').style.display='flex';
+  setTimeout(()=>document.getElementById('edit-meta-target').focus(),80);
+}
+
+/** Sube o baja el objetivo un porcentaje (sobre lo que haya escrito, o la meta actual). */
+function ajustarMetaPorcentaje(pct){
+  const g=goals.find(x=>String(x.id)===String(_ajusteMetaId));
+  if(!g)return;
+  const inp=document.getElementById('edit-meta-target');
+  const base=parseMontoFormateado(inp.value)||g.target||0;
+  if(base<=0){ toastError('⚠ Escribe primero un monto base'); return; }
+  inp.value=textoMonto(Math.round(base*(1+pct/100)),false);
+}
+
+async function resolverAjusteMeta(confirmado){
+  const id=_ajusteMetaId;
+  const cerrar=()=>{ document.getElementById('edit-meta-modal').style.display='none'; _ajusteMetaId=null; };
+  if(!confirmado||id==null){ cerrar(); return; }
+  const g=goals.find(x=>String(x.id)===String(id));
+  if(!g){ cerrar(); return; }
+  const inp=document.getElementById('edit-meta-target');
+  const nuevo=Math.round(parseMontoFormateado(inp.value))||0; // vacío = sin meta fija
+  if(nuevo<0){ toastError('⚠ El monto no puede ser negativo'); marcarInvalido(inp); return; }
+  const nomInp=document.getElementById('edit-meta-nombre');
+  const nuevoNombre=g.type==='cuenta'?String(nomInp.value).trim():g.name;
+  if(!nuevoNombre){ toastError('⚠ La meta necesita un nombre'); marcarInvalido(nomInp); return; }
+  cerrar();
+  const anterior=g.target||0, nombreAnterior=g.name;
+  if(nuevo===anterior&&nuevoNombre===nombreAnterior)return;
+  g.target=nuevo; g.name=nuevoNombre;
+  renderGoals();
+  try{
+    const {data,error}=await sb.from('fin_metas').update({monto_objetivo:nuevo,nombre:nuevoNombre}).eq('id',id).select('id');
+    if(error)throw error;
+    // Una política (RLS) que bloquea el UPDATE no da error: devuelve cero filas.
+    if(!data||data.length===0)throw new Error('La base no guardó el cambio (0 filas actualizadas)');
+  }catch(e){
+    g.target=anterior; g.name=nombreAnterior;
+    renderGoals();
+    registrarErrorDiagnostico('fin_metas (ajustar objetivo)',e);
+    toastError('🛑 No se pudo guardar el nuevo objetivo — quedó como estaba');
+  }
+}
+
+
+// ─── Renombrar una cuenta ───────────────────────────────────────────────────
+// Solo cambia el nombre que ves: el saldo, los movimientos y las metas siguen apuntando a la cuenta
+// por su identificador interno, no por el nombre. Las transferencias VIEJAS de una sola pata se
+// reconocían por el nombre; las nuevas guardan las dos patas y no dependen de él.
+
+/** Pinta el nombre nuevo en la tarjeta y en todos los selectores, sin recargar. */
+function aplicarNombreCuentaEnPantalla(slug){
+  const meta=ACCOUNTS_META[slug];
+  if(!meta)return;
+  if(dynamicAccounts[slug])dynamicAccounts[slug].label=meta.label;
+  const card=document.getElementById('card-'+slug);
+  const spans=card?card.querySelectorAll('.acc-label > span'):[];
+  if(spans.length>=2){ spans[0].textContent=meta.label.charAt(0).toUpperCase(); spans[1].textContent=meta.label; }
+  document.querySelectorAll(`select option[value="${slug}"]`).forEach(o=>{ o.textContent=meta.label; });
+  if(typeof poblarFiltroCuentaBusqueda==='function')poblarFiltroCuentaBusqueda();
+}
+
+let _renombrarSlug=null;
+function abrirRenombrarCuenta(slug){
+  const meta=ACCOUNTS_META[slug];
+  if(!meta||meta.type==='credito')return;
+  _renombrarSlug=slug;
+  document.getElementById('renombrar-cuenta-title').textContent=`Renombrar «${meta.label}»`;
+  const inp=document.getElementById('renombrar-cuenta-nombre');
+  inp.value=meta.label;
+  document.getElementById('renombrar-cuenta-modal').style.display='flex';
+  setTimeout(()=>{ inp.focus(); inp.select(); },80);
+}
+
+/** Valida un nombre de cuenta: devuelve el texto de error, o null si está bien. */
+function errorNombreCuenta(slug,nombre){
+  if(!nombre)return 'Escribe un nombre para la cuenta';
+  if(nombre.length>40)return 'El nombre es muy largo (máximo 40 caracteres)';
+  const repetido=Object.keys(ACCOUNTS_META).find(k=>k!==slug&&ACCOUNTS_META[k].label.trim().toLowerCase()===nombre.toLowerCase());
+  if(repetido)return 'Ya tienes una cuenta con ese nombre';
+  return null;
+}
+
+async function resolverRenombrarCuenta(confirmado){
+  const slug=_renombrarSlug;
+  const cerrar=()=>{ document.getElementById('renombrar-cuenta-modal').style.display='none'; _renombrarSlug=null; };
+  if(!confirmado||!slug){ cerrar(); return; }
+  const inp=document.getElementById('renombrar-cuenta-nombre');
+  const nombre=String(inp.value).trim();
+  const meta=ACCOUNTS_META[slug];
+  if(!meta){ cerrar(); return; }
+  const err=errorNombreCuenta(slug,nombre);
+  if(err){ toastError('⚠ '+err); marcarInvalido(inp); return; }
+  cerrar();
+  const anterior=meta.label;
+  if(nombre===anterior)return;
+
+  // La meta vinculada que se llamaba igual que la cuenta (caso típico de una cajita) cambia con ella
+  const metasConMismoNombre=goals.filter(g=>g.type==='cuenta'&&g.acc===slug&&g.name===anterior);
+  meta.label=nombre;
+  metasConMismoNombre.forEach(g=>{ g.name=nombre; });
+  aplicarNombreCuentaEnPantalla(slug);
+  render();
+  renderGoals();
+
+  // Escritura puntual: solo el nombre. guardarCuentasSupabase() reescribe TODOS los saldos desde
+  // memoria y, con otra pestaña abierta, podría pisar saldos corregidos.
+  try{
+    const {data,error}=await sb.from('fin_accounts').update({label:nombre}).eq('user_id',currentUserId).eq('slug',slug).select('id');
+    if(error)throw error;
+    if(!data||data.length===0)throw new Error('La base no guardó el nombre (0 filas actualizadas)');
+    for(const g of metasConMismoNombre){
+      const {error:e2}=await sb.from('fin_metas').update({nombre}).eq('id',g.id);
+      if(e2)throw e2;
+    }
+    avisarGuardado(`✓ Ahora se llama «${nombre}»`);
+  }catch(e){
+    meta.label=anterior;
+    metasConMismoNombre.forEach(g=>{ g.name=anterior; });
+    aplicarNombreCuentaEnPantalla(slug);
+    render();
+    renderGoals();
+    registrarErrorDiagnostico('fin_accounts (renombrar)',e);
+    toastError('🛑 No se pudo guardar el nombre — quedó como estaba');
+  }
+}
+
+/** Agrega el lápiz de renombrar a las tarjetas de cuentas que no son tarjeta de crédito. */
+function agregarLapicesRenombrar(){
+  Object.keys(ACCOUNTS_META).forEach(slug=>{
+    if(ACCOUNTS_META[slug].type==='credito')return;
+    const card=document.getElementById('card-'+slug);
+    const label=card&&card.querySelector('.acc-label');
+    if(!label||label.querySelector('.rename-acc-btn'))return;
+    const b=document.createElement('button');
+    b.type='button'; b.className='rename-acc-btn'; b.title='Renombrar cuenta'; b.setAttribute('aria-label','Renombrar '+ACCOUNTS_META[slug].label);
+    b.textContent='✎';
+    b.onclick=ev=>{ ev.stopPropagation(); abrirRenombrarCuenta(slug); };
+    label.appendChild(b);
+  });
+}
