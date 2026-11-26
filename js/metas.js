@@ -461,6 +461,7 @@ function fechasMetaLocales(){ try{ return JSON.parse(localStorage.getItem(CLAVE_
 
 /** Guarda la fecha límite. La columna puede no existir aún: en ese caso queda en el dispositivo y se avisa. */
 async function guardarFechaMeta(g){
+  if(typeof modoDemo!=='undefined'&&modoDemo)return true;
   const m=fechasMetaLocales();
   if(g.deadline)m[g.id]=g.deadline; else delete m[g.id];
   try{ localStorage.setItem(CLAVE_FECHAS_META,JSON.stringify(m)); }catch(e){}

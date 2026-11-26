@@ -23,6 +23,7 @@ async function cargarRecurrentesMontos(){
 
 /** Guarda los montos ajustados. Devuelve true si quedaron en Supabase, false si solo en este dispositivo. */
 async function guardarRecurrentesMontos(){
+  if(typeof modoDemo!=='undefined'&&modoDemo)return false;
   try{ localStorage.setItem(CLAVE_RECURRENTES_LOCAL,JSON.stringify(recurrentesMontos)); }catch(e){}
   if(!currentUserId)return false;
   try{

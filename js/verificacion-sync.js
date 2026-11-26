@@ -2,6 +2,8 @@ let lastSyncAttempt=0;
 const SYNC_COOLDOWN_MS=8000; // evita disparar de más y agotar el límite de solicitudes por minuto de la API
 
 async function syncNow(){
+  // En modo demo los datos son ficticios: sincronizar los reemplazaría por los reales sin salir del demo.
+  if(typeof modoDemo!=='undefined'&&modoDemo)return;
   const statusEl=document.getElementById('sync-status');
   const ahoraMs=Date.now();
   if(ahoraMs-lastSyncAttempt<SYNC_COOLDOWN_MS){
