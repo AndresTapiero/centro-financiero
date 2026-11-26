@@ -11,7 +11,7 @@ function onExpressAccountChange(){
   setAmountInputMode(amtInp,isUSD,'0');
   const hint=document.getElementById('express-currency-hint');
   if(hint){
-    hint.textContent=isUSD?'🌎 USD — escribe con decimales, ej: 10.40':'';
+    hint.textContent=isUSD?'USD — escribe con decimales, ej: 10.40':'';
     hint.style.display=isUSD?'block':'none';
   }
 }
@@ -129,7 +129,7 @@ function abrirCatPicker(targetId) {
 
   let html = '';
   for (const group of sel.querySelectorAll('optgroup')) {
-    html += `<div style="font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin:14px 0 8px">${esc(group.label)}</div>`;
+    html += `<div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin:14px 0 8px">${esc(group.label)}</div>`;
     html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:2px">';
     for (const opt of group.querySelectorAll('option')) {
       const c = col(opt.value);
@@ -190,10 +190,10 @@ function actualizarBtnNotif() {
   const btn = document.getElementById('notif-btn');
   if (!btn || !('Notification' in window)) { if (btn) btn.style.display = 'none'; return; }
   if (Notification.permission === 'granted') {
-    btn.textContent = '🔔 Notificaciones activas';
+    btn.textContent = 'Notificaciones activas';
     btn.disabled = true; btn.style.opacity = '.45';
   } else if (Notification.permission === 'denied') {
-    btn.textContent = '🔕 Notificaciones bloqueadas';
+    btn.textContent = 'Notificaciones bloqueadas';
     btn.disabled = true; btn.style.opacity = '.45';
   }
 }
@@ -221,5 +221,5 @@ function mostrarNotificacionPendientes(forzar = false) {
   const body = urgentes.length === 1
     ? `"${nombres}" vence en los próximos 3 días`
     : `${urgentes.length} pendientes por vencer: ${nombres}${urgentes.length > 2 ? '…' : ''}`;
-  new Notification('💰 Centro Financiero', { body });
+  new Notification('Centro Financiero', { body });
 }

@@ -70,12 +70,12 @@ async function guardarConVerificacion(){
   statusEl.style.display='block';
   statusEl.style.opacity='1';
   if(cargaConFallos){
-    statusEl.textContent='🛑 Guardado bloqueado: tus datos reales no cargaron y guardar ahora los pisaría. Usa "🔁 Reintentar carga" en 🔧 Diagnóstico primero';
+    statusEl.textContent='Guardado bloqueado: tus datos reales no cargaron y guardar ahora los pisaría. Usa "Reintentar carga" en Diagnóstico primero';
     statusEl.className='sync-status error';
     return;
   }
   statusEl.className='sync-status';
-  statusEl.textContent='💾 Guardando…';
+  statusEl.textContent='Guardando…';
 
   pendingSaves++;
   const resultados={};
@@ -103,7 +103,7 @@ async function guardarConVerificacion(){
       statusEl.className='sync-status ok';
     }else{
       const fallidos=Object.keys(resultados).filter(k=>!resultados[k]);
-      statusEl.textContent=`⚠ No se pudo confirmar: ${fallidos.join(', ')} — revisa la pestaña 🔧 Diagnóstico para ver el error real`;
+      statusEl.textContent=`⚠ No se pudo confirmar: ${fallidos.join(', ')} — revisa la pestaña Diagnóstico para ver el error real`;
       statusEl.className='sync-status error';
     }
   }catch(err){
@@ -115,3 +115,15 @@ async function guardarConVerificacion(){
   }
 }
 
+
+// Secciones plegables (Transferir, Resumen patrimonial): clic o Enter/Espacio; el estado se recuerda.
+(function iniciarColapsables(){
+  document.querySelectorAll('.card-title.colapsable').forEach(t=>{
+    const card=t.closest('.card'),k='cf_plegada_'+t.dataset.colapsable;
+    const aplicar=p=>{ card.classList.toggle('plegada',p); t.setAttribute('aria-expanded',String(!p)); };
+    try{ aplicar(localStorage.getItem(k)==='1'); }catch(e){ aplicar(false); }
+    const alternar=()=>{ const p=!card.classList.contains('plegada'); aplicar(p); try{ localStorage.setItem(k,p?'1':'0'); }catch(e){} };
+    t.addEventListener('click',alternar);
+    t.addEventListener('keydown',ev=>{ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); alternar(); } });
+  });
+})();

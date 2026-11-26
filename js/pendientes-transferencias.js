@@ -190,7 +190,7 @@ async function payPendiente(id){
     registrarErrorDiagnostico('fin_movimientos (pagar pendiente)',e);
     const statusEl=document.getElementById('sync-status');
     statusEl.style.display='block'; statusEl.style.opacity='1';
-    statusEl.textContent='🛑 No se pudo registrar el pago — el pendiente sigue ahí, no se cambió ningún saldo. Revisa 🔧 Diagnóstico.';
+    statusEl.textContent='No se pudo registrar el pago — el pendiente sigue ahí, no se cambió ningún saldo. Revisa Diagnóstico.';
     statusEl.className='sync-status error';
     return;
   }
@@ -291,7 +291,7 @@ function mensajeConfirmacionTransferencia(c){
     return`¿Transferir ${fmt(c.monto,c.metaO.currency)} de ${c.metaO.label} a ${c.metaD.label}?`;
   }
   const direccion=c.metaO.currency==='USD'?'Dólares → Pesos':'Pesos → Dólares';
-  let msg=`💱 ${direccion}\n\nEnvías ${fmt(c.monto,c.metaO.currency)} desde ${c.metaO.label}\n`+
+  let msg=`${direccion}\n\nEnvías ${fmt(c.monto,c.metaO.currency)} desde ${c.metaO.label}\n`+
     `Llegan ${fmt(c.recibidoTeorico,c.metaD.currency)} a ${c.metaD.label}\n\nTRM usada: $${c.trm.toLocaleString('es-CO')}`;
   if(c.huboComision){
     msg+=`\n\n⚠ Con el monto recibido que escribiste, en realidad llegan ${fmt(c.recibido,c.metaD.currency)} — `+
@@ -359,7 +359,7 @@ async function doTransfer(){
   const statusEl=document.getElementById('sync-status');
   statusEl.style.display='block';
   statusEl.style.opacity='1';
-  statusEl.textContent='💾 Guardando transferencia…';
+  statusEl.textContent='Guardando transferencia…';
   statusEl.className='sync-status';
 
   let okEntries=false;
@@ -403,7 +403,7 @@ async function doTransfer(){
     setTimeout(()=>{statusEl.style.opacity='0.35'},1500);
   }else{
     const faltante=[!okEntries&&'el movimiento',!okAccounts&&'el saldo',!okTrm&&'la TRM'].filter(Boolean).join(' y ');
-    statusEl.textContent=`🛑 Los números en pantalla ya cambiaron, pero no se pudo guardar ${faltante} en la nube. Ve a 🔧 Diagnóstico y reintenta antes de cerrar la app.`;
+    statusEl.textContent=`Los números en pantalla ya cambiaron, pero no se pudo guardar ${faltante} en la nube. Ve a Diagnóstico y reintenta antes de cerrar la app.`;
     statusEl.className='sync-status error';
   }
 }
@@ -457,14 +457,14 @@ function abrirAbono(tarjeta){
   _abonoTarjeta=tarjeta;
   const deuda=accounts[tarjeta]||0;
   const estado=estadoPagoMinimo(tarjeta);
-  document.getElementById('abono-title').textContent=`💸 Abonar a capital · ${meta.label}`;
+  document.getElementById('abono-title').textContent=`Abonar a capital · ${meta.label}`;
   document.getElementById('abono-hint').textContent=`Deuda actual: ${fmtCOP(deuda)}. El abono baja el saldo de la tarjeta y sale de la cuenta que elijas.`;
 
   // Bloqueado hasta que el pago mínimo del ciclo esté hecho, o si no hay deuda que abonar.
   let bloqueo='';
-  if(deuda<=0)bloqueo='🎉 Esta tarjeta no tiene deuda.';
-  else if(estado.pendienteSinPagar)bloqueo=`🔒 Primero paga «${estado.pendienteSinPagar.name}» (queda pendiente en Pendientes). Después podrás abonar a capital.`;
-  else if(!estado.pagado)bloqueo='🔒 Primero registra el pago mínimo de este ciclo. Después podrás abonar a capital.';
+  if(deuda<=0)bloqueo='Esta tarjeta no tiene deuda.';
+  else if(estado.pendienteSinPagar)bloqueo=`Primero paga «${estado.pendienteSinPagar.name}» (queda pendiente en Pendientes). Después podrás abonar a capital.`;
+  else if(!estado.pagado)bloqueo='Primero registra el pago mínimo de este ciclo. Después podrás abonar a capital.';
   const bloqueoEl=document.getElementById('abono-bloqueo');
   bloqueoEl.textContent=bloqueo;
   bloqueoEl.style.display=bloqueo?'block':'none';
@@ -537,7 +537,7 @@ async function resolverAbono(confirmado){
     fila=data;
   }catch(e){
     registrarErrorDiagnostico('fin_movimientos (abono a capital)',e);
-    toastError('🛑 No se pudo registrar el abono — no se cambió ningún saldo');
+    toastError('No se pudo registrar el abono — no se cambió ningún saldo');
     return;
   }
   accounts[origen]=redondear3(accounts[origen]-monto);

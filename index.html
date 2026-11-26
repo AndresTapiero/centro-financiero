@@ -28,14 +28,45 @@
 <link rel="stylesheet" href="css/metricas.css">
 </head>
 <body>
+<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+<defs>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+<symbol id="i-pencil" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4"/></symbol>
+<symbol id="i-wallet" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h12v4M3 7v10a2 2 0 0 0 2 2h14V9H5a2 2 0 0 1-2-2zM16 14h2"/></symbol>
+<symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/></symbol>
+<symbol id="i-card" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></symbol>
+<symbol id="i-repeat" viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 0-14-5.3L4 9M4 4v5h5M4 12a8 8 0 0 0 14 5.3L20 15M20 20v-5h-5"/></symbol>
+<symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 4v16M6 20h12M5 7h14M5 7l-3 7a3 3 0 0 0 6 0L5 7zM19 7l-3 7a3 3 0 0 0 6 0l-3-7z"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></symbol>
+<symbol id="i-pie" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-9-9v9h9zM15 3.5A9 9 0 0 1 20.5 9H15z"/></symbol>
+<symbol id="i-bank" viewBox="0 0 24 24"><path d="M3 10l9-6 9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18"/></symbol>
+<symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+<symbol id="i-coins" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5c0-1 1-1.5 2.5-1.5s2.5.6 2.5 1.7-1 1.4-2.5 1.8-2.5.7-2.5 1.8 1 1.7 2.5 1.7 2.5-.5 2.5-1.5"/></symbol>
+<symbol id="i-trend" viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></symbol>
+<symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+<symbol id="i-clipboard" viewBox="0 0 24 24"><rect x="6" y="4" width="12" height="17" rx="2"/><rect x="9" y="2" width="6" height="4" rx="1"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7"/></symbol>
+<symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></symbol>
+<symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></symbol>
+<symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.7 2.7-2.4-.6-.6-2.4 2.7-2.7z"/></symbol>
+<symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4M16 8l4 4-4 4M20 12H9"/></symbol>
+<symbol id="i-save" viewBox="0 0 24 24"><path d="M5 3h11l4 4v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM7 3v6h8V3M7 21v-7h10v7"/></symbol>
+<symbol id="i-bars" viewBox="0 0 24 24"><path d="M5 20V11M12 20V5M19 20v-9"/></symbol>
+<symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8L3 12zM8 8h.01"/></symbol>
+<symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+</defs>
+</svg>
+
 <div id="login-gate" role="dialog" aria-modal="true" aria-labelledby="login-title" style="position:fixed;inset:0;background:#0F1117;z-index:9999;display:flex;align-items:center;justify-content:center;padding:28px">
   <div style="width:100%;max-width:320px;display:flex;flex-direction:column;align-items:center">
     <img src="icon.svg" alt="Centro Financiero" style="width:72px;height:72px;border-radius:18px;margin-bottom:22px;box-shadow:0 8px 32px rgba(14,159,110,.25)">
     <div id="login-title" style="font-size:22px;font-weight:800;color:#E6EDF3;letter-spacing:-.3px;margin-bottom:6px;text-align:center">Centro Financiero</div>
     <div style="font-size:13px;color:#6E7681;margin-bottom:36px;text-align:center">Bienvenido de nuevo</div>
-    <input id="login-email" aria-label="Correo electrónico" type="email" placeholder="Correo electrónico" autocomplete="email" style="width:100%;margin-bottom:10px;height:48px;padding:0 16px;border-radius:10px;border:1px solid #30363D;background:#161B22;color:#E6EDF3;font-family:inherit;font-size:15px;outline:none;transition:border-color .15s" onfocus="this.style.borderColor='#0E9F6E'" onblur="this.style.borderColor='#30363D'">
-    <input id="login-password" aria-label="Contraseña" type="password" placeholder="Contraseña" autocomplete="current-password" style="width:100%;margin-bottom:20px;height:48px;padding:0 16px;border-radius:10px;border:1px solid #30363D;background:#161B22;color:#E6EDF3;font-family:inherit;font-size:15px;outline:none;transition:border-color .15s" onfocus="this.style.borderColor='#0E9F6E'" onblur="this.style.borderColor='#30363D'" onkeydown="if(event.key==='Enter')intentarLogin()">
-    <button id="login-btn" style="width:100%;height:48px;border-radius:10px;border:none;background:#0E9F6E;color:#fff;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:.1px;transition:background .15s" onmouseover="this.style.background='#0B8259'" onmouseout="this.style.background='#0E9F6E'" onclick="intentarLogin()">Iniciar sesión</button>
+    <input id="login-email" aria-label="Correo electrónico" type="email" placeholder="Correo electrónico" autocomplete="email" style="width:100%;margin-bottom:10px;height:48px;padding:0 16px;border-radius:10px;border:1px solid #30363D;background:#161B22;color:#E6EDF3;font-family:inherit;font-size:16px;outline:none;transition:border-color .15s" onfocus="this.style.borderColor='#0E9F6E'" onblur="this.style.borderColor='#30363D'">
+    <input id="login-password" aria-label="Contraseña" type="password" placeholder="Contraseña" autocomplete="current-password" style="width:100%;margin-bottom:20px;height:48px;padding:0 16px;border-radius:10px;border:1px solid #30363D;background:#161B22;color:#E6EDF3;font-family:inherit;font-size:16px;outline:none;transition:border-color .15s" onfocus="this.style.borderColor='#0E9F6E'" onblur="this.style.borderColor='#30363D'" onkeydown="if(event.key==='Enter')intentarLogin()">
+    <button id="login-btn" style="width:100%;height:48px;border-radius:10px;border:none;background:#0E9F6E;color:#fff;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;letter-spacing:.1px;transition:background .15s" onmouseover="this.style.background='#0B8259'" onmouseout="this.style.background='#0E9F6E'" onclick="intentarLogin()">Iniciar sesión</button>
     <div id="login-error" role="alert" style="display:none;margin-top:14px;font-size:12px;color:#ff6b6b;background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.3);border-radius:8px;padding:10px 14px;width:100%;text-align:center;line-height:1.5"></div>
   </div>
 </div>
@@ -60,7 +91,7 @@
   <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:340px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.5)">
     <div id="pay-modal-text" style="font-size:13px;line-height:1.6;margin-bottom:12px"></div>
     <div style="margin-bottom:16px">
-      <label for="pay-modal-account" style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">¿En qué cuenta?</label>
+      <label for="pay-modal-account" style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">¿En qué cuenta?</label>
       <select class="inp" id="pay-modal-account" style="width:100%"></select>
     </div>
     <div style="display:flex;gap:8px">
@@ -71,20 +102,20 @@
 </div>
 <div id="nueva-cuenta-modal" role="dialog" aria-modal="true" aria-labelledby="nueva-cuenta-title" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
   <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:340px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.5)">
-    <div id="nueva-cuenta-title" style="font-size:13px;line-height:1.6;margin-bottom:14px">➕ <strong>Crear cuenta nueva</strong></div>
+    <div id="nueva-cuenta-title" style="font-size:13px;line-height:1.6;margin-bottom:14px"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg> <strong>Crear cuenta nueva</strong></div>
     <div style="margin-bottom:12px">
-      <label for="nueva-cuenta-nombre" style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Nombre</label>
+      <label for="nueva-cuenta-nombre" style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Nombre</label>
       <input class="inp" id="nueva-cuenta-nombre" type="text" placeholder="Ej: Lulo X, Cajita de rendimiento" style="width:100%">
     </div>
     <div style="margin-bottom:12px">
-      <label for="nueva-cuenta-tipo" style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Tipo</label>
+      <label for="nueva-cuenta-tipo" style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Tipo</label>
       <select class="inp" id="nueva-cuenta-tipo" style="width:100%">
-        <option value="liquida">💧 Cuenta líquida — para gastar</option>
-        <option value="cajita">🎯 Cajita de rendimiento — ahorro</option>
+        <option value="liquida">Cuenta líquida — para gastar</option>
+        <option value="cajita">Cajita de rendimiento — ahorro</option>
       </select>
     </div>
     <div style="margin-bottom:16px">
-      <label for="nueva-cuenta-moneda" style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Moneda</label>
+      <label for="nueva-cuenta-moneda" style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Moneda</label>
       <select class="inp" id="nueva-cuenta-moneda" style="width:100%">
         <option value="COP">Pesos (COP)</option>
         <option value="USD">Dólares (USD)</option>
@@ -119,23 +150,23 @@
   <div style="position:relative;background:var(--surface);border-radius:20px 20px 0 0;padding:20px 20px 36px;width:100%;max-width:480px;box-shadow:0 -8px 40px rgba(0,0,0,.3)">
     <div style="width:40px;height:4px;background:var(--border2);border-radius:99px;margin:0 auto 18px"></div>
     <div style="display:flex;gap:6px;margin-bottom:14px">
-      <button type="button" id="express-tab-gasto" class="tipo-tab tipo-tab-gasto active" onclick="setTipoExpress('gasto')">➖ Gasto</button>
-      <button type="button" id="express-tab-ingreso" class="tipo-tab tipo-tab-ingreso" onclick="setTipoExpress('ingreso')">➕ Ingreso</button>
+      <button type="button" id="express-tab-gasto" class="tipo-tab tipo-tab-gasto active" onclick="setTipoExpress('gasto')"><svg class="ico" aria-hidden="true"><use href="#i-minus"/></svg> Gasto</button>
+      <button type="button" id="express-tab-ingreso" class="tipo-tab tipo-tab-ingreso" onclick="setTipoExpress('ingreso')"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg> Ingreso</button>
     </div>
     <input class="inp inp-num" id="express-amount" type="text" inputmode="decimal" placeholder="0" data-currency="COP" oninput="formatearInputMonto(this)" style="font-size:30px;font-weight:800;height:60px;text-align:center;margin-bottom:6px;letter-spacing:-1px">
-    <div id="express-currency-hint" style="display:none;text-align:center;font-size:10px;color:var(--text3);margin-bottom:8px;letter-spacing:.5px"></div>
+    <div id="express-currency-hint" style="display:none;text-align:center;font-size:11px;color:var(--text3);margin-bottom:8px;letter-spacing:.5px"></div>
     <input class="inp" id="express-name" type="text" placeholder="¿En qué?" oninput="suggestCategoryExpress()" autocomplete="off" style="margin-bottom:6px">
-    <div id="express-suggest" style="display:none;font-size:11px;color:var(--accent);margin-bottom:8px;padding:5px 10px;background:rgba(168,224,99,.08);border-radius:6px;border:1px solid rgba(168,224,99,.2)">✨ Categoría sugerida — cámbiala si no aplica</div>
+    <div id="express-suggest" style="display:none;font-size:11px;color:var(--accent);margin-bottom:8px;padding:5px 10px;background:rgba(168,224,99,.08);border-radius:6px;border:1px solid rgba(168,224,99,.2)">Categoría sugerida — cámbiala si no aplica</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
       <select class="inp" id="express-account" style="height:38px;font-size:12px" onchange="onExpressAccountChange()">
-        <optgroup label="🏦 Pesos (COP)"><option value="debito">🏦 Davivienda</option><option value="nequi">💳 Nequi</option><option value="nu">🛡️ Nu cajitas</option><option value="lulo">🎯 Lulo (Ahorro Vivienda)</option></optgroup>
-        <optgroup label="💳 Crédito"><option value="davtc">🔴 Davivienda TC</option><option value="rappitc">🟠 Rappi Card</option></optgroup>
-        <optgroup label="🌎 USD"><option value="arq">🌎 ARQ</option><option value="ontop">🌎 Ontop</option></optgroup>
+        <optgroup label="Pesos (COP)"><option value="debito">Davivienda</option><option value="nequi">Nequi</option><option value="nu">Nu cajitas</option><option value="lulo">Lulo (Ahorro Vivienda)</option></optgroup>
+        <optgroup label="Crédito"><option value="davtc">Davivienda TC</option><option value="rappitc">Rappi Card</option></optgroup>
+        <optgroup label="USD"><option value="arq">ARQ</option><option value="ontop">Ontop</option></optgroup>
       </select>
       <button id="cat-btn-express-category" class="inp" onclick="abrirCatPicker('express-category')" style="height:38px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:8px;padding:0 10px;text-align:left;background:var(--surface3)">
         <span id="cat-dot-express-category" style="width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--text3)"></span>
         <span id="cat-label-express-category" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Categoría</span>
-        <span style="opacity:.4;font-size:10px;flex-shrink:0">▾</span>
+        <span style="opacity:.4;font-size:11px;flex-shrink:0">▾</span>
       </button>
       <select id="express-category" style="display:none"></select>
     </div>
@@ -148,19 +179,19 @@
 <div id="nuevo-movimiento-modal" role="dialog" aria-modal="true" aria-labelledby="nuevo-movimiento-title" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;height:100dvh;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center;padding:16px;overflow-y:auto" class="nuevo-movimiento-modal">
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(23,23,31,.25);max-height:88vh;overflow-y:auto;min-width:0">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-          <span id="nuevo-movimiento-title" class="input-label" style="margin:0">➕ Nuevo movimiento</span>
+          <span id="nuevo-movimiento-title" class="input-label" style="margin:0"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg> Nuevo movimiento</span>
           <button onclick="cerrarModalNuevoMovimiento()" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;line-height:1;width:44px;height:44px;display:flex;align-items:center;justify-content:center" aria-label="Cerrar">×</button>
         </div>
         <div style="display:flex;gap:6px;margin-bottom:12px">
-          <button type="button" id="tab-tipo-gasto" class="tipo-tab tipo-tab-gasto active" onclick="setTipoMovimiento('gasto')">➖ Gasto</button>
-          <button type="button" id="tab-tipo-ingreso" class="tipo-tab tipo-tab-ingreso" onclick="setTipoMovimiento('ingreso')">➕ Ingreso</button>
+          <button type="button" id="tab-tipo-gasto" class="tipo-tab tipo-tab-gasto active" onclick="setTipoMovimiento('gasto')"><svg class="ico" aria-hidden="true"><use href="#i-minus"/></svg> Gasto</button>
+          <button type="button" id="tab-tipo-ingreso" class="tipo-tab tipo-tab-ingreso" onclick="setTipoMovimiento('ingreso')"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg> Ingreso</button>
         </div>
         <div class="input-grid">
           <input class="inp inp-desc" id="inp-name" type="text" placeholder="Descripción" oninput="suggestCategory()" autocomplete="off"/>
           <input class="inp inp-num" id="inp-amount" type="text" inputmode="decimal" placeholder="Monto" data-currency="COP" oninput="formatearInputMonto(this)"/>
           <input class="inp inp-date" id="inp-date" type="date"/>
         </div>
-        <div id="suggest-badge" style="display:none;font-size:11px;color:var(--accent);margin-bottom:8px;padding:6px 10px;background:rgba(168,224,99,.08);border-radius:6px;border:1px solid rgba(168,224,99,.25)">✨ Categoría sugerida — puedes cambiarla si no aplica</div>
+        <div id="suggest-badge" style="display:none;font-size:11px;color:var(--accent);margin-bottom:8px;padding:6px 10px;background:rgba(168,224,99,.08);border-radius:6px;border:1px solid rgba(168,224,99,.25)">Categoría sugerida — puedes cambiarla si no aplica</div>
         <div class="input-grid2" id="currency-override-row" style="display:none">
           <span class="acc-hint" style="align-self:center">Esta cuenta es USD por defecto — ¿en qué moneda fue realmente este gasto?</span>
           <select class="inp" id="inp-currency" onchange="onEntryCurrencyChange()">
@@ -171,25 +202,25 @@
         </div>
         <div class="input-grid2">
           <select class="inp" id="inp-account" onchange="onAccountChange()">
-            <optgroup label="🏦 Cuentas en pesos (COP)">
-              <option value="debito">🏦 Davivienda</option>
-              <option value="nequi">💳 Nequi</option>
-              <option value="nu">🛡️ Nu cajitas</option>
-              <option value="lulo">🎯 Lulo (Ahorro Vivienda)</option>
+            <optgroup label="Cuentas en pesos (COP)">
+              <option value="debito">Davivienda</option>
+              <option value="nequi">Nequi</option>
+              <option value="nu">Nu cajitas</option>
+              <option value="lulo">Lulo (Ahorro Vivienda)</option>
             </optgroup>
-            <optgroup label="💳 Tarjetas de crédito">
-              <option value="davtc">🔴 Davivienda TC</option>
-              <option value="rappitc">🟠 Rappi Card</option>
+            <optgroup label="Tarjetas de crédito">
+              <option value="davtc">Davivienda TC</option>
+              <option value="rappitc">Rappi Card</option>
             </optgroup>
-            <optgroup label="🌎 Dólares (USD)">
-              <option value="arq">🌎 ARQ</option>
-              <option value="ontop">🌎 Ontop</option>
+            <optgroup label="Dólares (USD)">
+              <option value="arq">ARQ</option>
+              <option value="ontop">Ontop</option>
             </optgroup>
           </select>
           <button id="cat-btn-inp-cat" class="inp" onclick="abrirCatPicker('inp-cat')" style="cursor:pointer;display:flex;align-items:center;gap:8px;padding:0 12px;text-align:left;background:var(--surface3)">
             <span id="cat-dot-inp-cat" style="width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--text3)"></span>
             <span id="cat-label-inp-cat" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Categoría</span>
-            <span style="opacity:.4;font-size:10px;flex-shrink:0">▾</span>
+            <span style="opacity:.4;font-size:11px;flex-shrink:0">▾</span>
           </button>
           <select id="inp-cat" style="display:none" onchange="onCategoryChange()">
             <optgroup label="💰 Ingresos">
@@ -253,15 +284,15 @@
             </optgroup>
           </select>
           <select class="inp" id="inp-type" style="display:none">
-            <option value="gasto">➖ Gasto</option>
-            <option value="ingreso">➕ Ingreso</option>
+            <option value="gasto">Gasto</option>
+            <option value="ingreso">Ingreso</option>
           </select>
         </div>
         <div class="acc-hint" id="acc-hint">La cuenta Nequi se reducirá por este monto.</div>
         <div class="input-grid2" id="vehiculo-tag-row" style="display:none">
           <select class="inp" id="inp-vehiculo">
             <option value="Moto">🏍️ Moto</option>
-            <option value="__nuevo__">➕ Agregar otro vehículo…</option>
+            <option value="__nuevo__">Agregar otro vehículo…</option>
           </select>
           <input class="inp" id="inp-vehiculo-nuevo" type="text" placeholder="Nombre del vehículo (ej: Carro)" style="display:none">
           <span></span>
@@ -275,31 +306,31 @@
 <div id="edit-entry-modal" role="dialog" aria-modal="true" aria-labelledby="edit-entry-title" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
   <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:360px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.5);max-height:85vh;overflow-y:auto">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-      <span id="edit-entry-title" style="font-size:14px;font-weight:700">✏️ Editar movimiento</span>
+      <span id="edit-entry-title" style="font-size:14px;font-weight:700"><svg class="ico" aria-hidden="true"><use href="#i-pencil"/></svg> Editar movimiento</span>
       <span id="edit-entry-tipo-badge" class="tipo-tab" style="flex:none;padding:5px 12px;cursor:default"></span>
     </div>
     <div id="edit-entry-modal-text" style="font-size:11px;color:var(--text3);margin-bottom:14px"></div>
     <div style="margin-bottom:16px">
-      <label for="edit-entry-amount" style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px" id="edit-entry-amount-label">Monto</label>
+      <label for="edit-entry-amount" style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px" id="edit-entry-amount-label">Monto</label>
       <input class="inp inp-num" id="edit-entry-amount" type="text" inputmode="decimal" autocomplete="off" style="width:100%;font-size:20px;font-weight:700;height:52px">
     </div>
     <div style="margin-bottom:12px">
-      <label for="edit-entry-account" style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Cuenta</label>
+      <label for="edit-entry-account" style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Cuenta</label>
       <select class="inp" id="edit-entry-account" style="width:100%" onchange="onEditEntryAccountChange()"></select>
     </div>
     <div style="margin-bottom:12px" id="edit-entry-currency-row">
-      <label for="edit-entry-currency" style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">¿En qué moneda fue este gasto realmente?</label>
+      <label for="edit-entry-currency" style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">¿En qué moneda fue este gasto realmente?</label>
       <select class="inp" id="edit-entry-currency" style="width:100%">
         <option value="USD">Dólares (USD)</option>
         <option value="COP">Pesos (COP)</option>
       </select>
     </div>
     <div style="margin-bottom:16px">
-      <label for="edit-entry-category" style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Categoría / etiqueta</label>
+      <label for="edit-entry-category" style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Categoría / etiqueta</label>
       <select class="inp" id="edit-entry-category" style="width:100%"></select>
     </div>
     <button class="btn-add" style="margin:0 0 8px" onclick="resolverEditEntryModal(true)">Guardar cambios</button>
-    <button id="edit-entry-fix-currency-btn" class="btn-add is-ghost" style="display:none;margin:0 0 8px" onclick="fixCurrencyDesdeModal()">💱 El monto era en pesos (COP)</button>
+    <button id="edit-entry-fix-currency-btn" class="btn-add is-ghost" style="display:none;margin:0 0 8px" onclick="fixCurrencyDesdeModal()"><svg class="ico" aria-hidden="true"><use href="#i-repeat"/></svg> El monto era en pesos (COP)</button>
     <button class="btn-add is-danger-subtle" style="margin:0 0 8px" onclick="eliminarDesdeModalEdicion()">Eliminar movimiento</button>
     <button class="btn-add is-text" style="margin:0" onclick="resolverEditEntryModal(false)">Cancelar</button>
   </div>
@@ -307,18 +338,18 @@
 
 <div id="export-fallback-modal" role="dialog" aria-modal="true" aria-labelledby="export-fallback-title" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
   <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:420px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.5)">
-    <div id="export-fallback-title" style="font-size:13px;line-height:1.6;margin-bottom:10px">📋 <strong>Respaldo generado.</strong> Si la descarga automática no se guardó en tu celular, copia este texto y pégalo en una nota o correo para guardarlo tú mismo:</div>
-    <textarea id="export-fallback-text" readonly style="width:100%;height:140px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;color:var(--text2);font-family:var(--mono);font-size:10px;padding:8px;margin-bottom:12px" onclick="this.select()"></textarea>
+    <div id="export-fallback-title" style="font-size:13px;line-height:1.6;margin-bottom:10px"><svg class="ico" aria-hidden="true"><use href="#i-clipboard"/></svg> <strong>Respaldo generado.</strong> Si la descarga automática no se guardó en tu celular, copia este texto y pégalo en una nota o correo para guardarlo tú mismo:</div>
+    <textarea id="export-fallback-text" readonly style="width:100%;height:140px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;color:var(--text2);font-family:var(--mono);font-size:11px;padding:8px;margin-bottom:12px" onclick="this.select()"></textarea>
     <button class="btn-add" style="margin:0" onclick="cerrarExportFallback()">Cerrar</button>
   </div>
 </div>
 <div id="edit-pendiente-modal" role="dialog" aria-modal="true" aria-labelledby="edit-pendiente-title" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
   <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:340px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.5)">
-    <div id="edit-pendiente-title" style="font-size:13px;line-height:1.6;margin-bottom:10px">✏️ <strong>Editar monto</strong></div>
+    <div id="edit-pendiente-title" style="font-size:13px;line-height:1.6;margin-bottom:10px"><svg class="ico" aria-hidden="true"><use href="#i-pencil"/></svg> <strong>Editar monto</strong></div>
     <div id="edit-pendiente-hint" style="font-size:11px;color:var(--text3);margin-bottom:10px"></div>
     <input class="inp inp-num" id="edit-pendiente-amount" type="text" inputmode="decimal" oninput="formatearInputMonto(this)" style="width:100%;margin-bottom:10px">
     <label id="edit-pendiente-recordar-fila" style="display:none;align-items:flex-start;gap:8px;font-size:11px;color:var(--text2);line-height:1.4;margin:0 0 14px;cursor:pointer"><input type="checkbox" id="edit-pendiente-recordar" style="margin-top:2px"><span id="edit-pendiente-recordar-texto">Usar este monto también en los próximos meses</span></label>
-    <button class="btn-add" id="edit-pendiente-usar-saldo" style="display:none;margin:0 0 14px;background:var(--surface3);color:var(--text2);font-size:11px;height:32px" onclick="usarSaldoActualEnEdicion()">🔄 Usar saldo actual de la tarjeta</button>
+    <button class="btn-add" id="edit-pendiente-usar-saldo" style="display:none;margin:0 0 14px;background:var(--surface3);color:var(--text2);font-size:11px;height:32px" onclick="usarSaldoActualEnEdicion()"><svg class="ico" aria-hidden="true"><use href="#i-repeat"/></svg> Usar saldo actual de la tarjeta</button>
     <div style="display:flex;gap:8px">
       <button class="btn-add" style="margin:0" onclick="resolverEditPendienteModal(true)">Guardar</button>
       <button class="btn-add is-ghost" style="margin:0" onclick="resolverEditPendienteModal(false)">Cancelar</button>
@@ -329,15 +360,15 @@
   <div onclick="resolverAbono(false)" style="position:absolute;inset:0;background:rgba(0,0,0,.55)"></div>
   <div class="abono-sheet" style="position:relative;background:var(--surface);border-radius:20px 20px 0 0;padding:20px 20px 36px;width:100%;max-width:480px;box-shadow:0 -8px 40px rgba(0,0,0,.3)">
     <div style="width:40px;height:4px;background:var(--border2);border-radius:99px;margin:0 auto 16px"></div>
-    <div id="abono-title" style="font-size:14px;font-weight:700;margin-bottom:6px">💸 Abonar a capital</div>
+    <div id="abono-title" style="font-size:14px;font-weight:700;margin-bottom:6px"><svg class="ico" aria-hidden="true"><use href="#i-send"/></svg> Abonar a capital</div>
     <div id="abono-hint" style="font-size:11px;color:var(--text3);line-height:1.5;margin-bottom:12px"></div>
     <div id="abono-bloqueo" style="display:none;font-size:12px;line-height:1.5;color:var(--warn);background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;margin-bottom:12px"></div>
     <div id="abono-campos">
-      <label for="abono-origen" style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Pagar desde</label>
+      <label for="abono-origen" style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Pagar desde</label>
       <select class="inp" id="abono-origen" style="width:100%;margin:4px 0 12px"></select>
-      <label for="abono-monto" style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Monto a abonar</label>
+      <label for="abono-monto" style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Monto a abonar</label>
       <input class="inp inp-num" id="abono-monto" type="text" inputmode="decimal" autocomplete="off" oninput="formatearInputMonto(this)" style="width:100%;margin:4px 0 8px">
-      <button type="button" class="btn-add is-ghost" style="margin:0 0 14px;font-size:11px;height:32px" onclick="abonoUsarTotal()">🔄 Pagar toda la deuda</button>
+      <button type="button" class="btn-add is-ghost" style="margin:0 0 14px;font-size:11px;height:32px" onclick="abonoUsarTotal()"><svg class="ico" aria-hidden="true"><use href="#i-repeat"/></svg> Pagar toda la deuda</button>
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn-add" id="abono-confirmar" style="margin:0" onclick="resolverAbono(true)">Abonar</button>
@@ -350,10 +381,10 @@
     <div id="edit-meta-title" style="font-size:13px;font-weight:700;margin-bottom:6px">Ajustar meta</div>
     <div id="edit-meta-hint" style="font-size:11px;color:var(--text3);line-height:1.5;margin-bottom:12px"></div>
     <div id="edit-meta-nombre-fila">
-      <label for="edit-meta-nombre" style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Nombre de la meta</label>
+      <label for="edit-meta-nombre" style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Nombre de la meta</label>
       <input class="inp" id="edit-meta-nombre" type="text" maxlength="40" autocomplete="off" style="width:100%;margin:4px 0 12px">
     </div>
-    <label for="edit-meta-target" style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Monto objetivo</label>
+    <label for="edit-meta-target" style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Monto objetivo</label>
     <input class="inp inp-num" id="edit-meta-target" type="text" inputmode="decimal" autocomplete="off" oninput="formatearInputMonto(this)" style="width:100%;margin:4px 0 8px">
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
       <button type="button" class="fchip" onclick="ajustarMetaPorcentaje(-10)">−10 %</button>
@@ -380,11 +411,11 @@
 </div>
 <div id="opciones-modal" role="dialog" aria-modal="true" aria-labelledby="opciones-title" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1200;align-items:center;justify-content:center">
   <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:14px;padding:20px;max-width:340px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,.5)">
-    <div id="opciones-title" style="font-size:13px;font-weight:700;margin-bottom:14px">⚙️ Opciones</div>
-    <button class="btn-add is-ghost" style="margin:0 0 8px" onclick="document.getElementById('opciones-modal').style.display='none';syncNow()">🔄 Sincronizar</button>
-    <button class="btn-add is-accent-outline" style="margin:0 0 8px" onclick="document.getElementById('opciones-modal').style.display='none';guardarConVerificacion()">💾 Guardar y verificar</button>
+    <div id="opciones-title" style="font-size:13px;font-weight:700;margin-bottom:14px"><svg class="ico" aria-hidden="true"><use href="#i-settings"/></svg> Opciones</div>
+    <button class="btn-add is-ghost" style="margin:0 0 8px" onclick="document.getElementById('opciones-modal').style.display='none';syncNow()"><svg class="ico" aria-hidden="true"><use href="#i-repeat"/></svg> Sincronizar</button>
+    <button class="btn-add is-accent-outline" style="margin:0 0 8px" onclick="document.getElementById('opciones-modal').style.display='none';guardarConVerificacion()"><svg class="ico" aria-hidden="true"><use href="#i-save"/></svg> Guardar y verificar</button>
     <button class="btn-add is-blue-outline" style="margin:0 0 8px" onclick="document.getElementById('opciones-modal').style.display='none';exportarRespaldo()">⬇️ Exportar respaldo</button>
-    <button class="btn-add is-ghost" id="notif-btn" style="margin:0 0 14px" onclick="document.getElementById('opciones-modal').style.display='none';pedirPermisoNotificaciones()">🔔 Activar notificaciones de pendientes</button>
+    <button class="btn-add is-ghost" id="notif-btn" style="margin:0 0 14px" onclick="document.getElementById('opciones-modal').style.display='none';pedirPermisoNotificaciones()">Activar notificaciones de pendientes</button>
     <button class="btn-add is-text" style="margin:0" onclick="document.getElementById('opciones-modal').style.display='none'">Cerrar</button>
   </div>
 </div>
@@ -398,11 +429,11 @@
         <button id="user-menu-btn" onclick="toggleUserMenu()" aria-haspopup="true" aria-expanded="false" aria-label="Menú de cuenta" style="width:36px;height:36px;border-radius:50%;background:var(--accent);color:#0F1117;border:none;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center" title="Cuenta"></button>
         <div id="user-menu" role="menu" aria-label="Menú de cuenta" style="display:none;position:absolute;top:38px;right:0;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:6px;min-width:190px;box-shadow:0 8px 30px rgba(0,0,0,.4);z-index:500">
           <div id="user-menu-email" style="font-size:11px;color:var(--text2);padding:8px 10px;border-bottom:1px solid var(--border);margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
-          <button class="user-menu-item" onclick="toggleUserMenu();toggleDarkMode()">🌙 Modo oscuro</button>
-          <button class="user-menu-item" onclick="toggleUserMenu();document.getElementById('opciones-modal').style.display='flex'">⚙️ Opciones</button>
-          <button class="user-menu-item" onclick="toggleUserMenu();switchTab('diagnostico')">🔧 Diagnóstico</button>
-          <button class="user-menu-item" id="demo-toggle-btn" onclick="toggleUserMenu();modoDemo?desactivarModoDemo():activarModoDemo()">🎭 Modo demo</button>
-          <button class="user-menu-item" style="color:var(--danger)" onclick="toggleUserMenu();cerrarSesion()">🚪 Cerrar sesión</button>
+          <button class="user-menu-item" onclick="toggleUserMenu();toggleDarkMode()"><svg class="ico" aria-hidden="true"><use href="#i-moon"/></svg> Modo oscuro</button>
+          <button class="user-menu-item" onclick="toggleUserMenu();document.getElementById('opciones-modal').style.display='flex'"><svg class="ico" aria-hidden="true"><use href="#i-settings"/></svg> Opciones</button>
+          <button class="user-menu-item" onclick="toggleUserMenu();switchTab('diagnostico')"><svg class="ico" aria-hidden="true"><use href="#i-wrench"/></svg> Diagnóstico</button>
+          <button class="user-menu-item" id="demo-toggle-btn" onclick="toggleUserMenu();modoDemo?desactivarModoDemo():activarModoDemo()"><svg class="ico" aria-hidden="true"><use href="#i-eye"/></svg> Modo demo</button>
+          <button class="user-menu-item" style="color:var(--danger)" onclick="toggleUserMenu();cerrarSesion()"><svg class="ico" aria-hidden="true"><use href="#i-logout"/></svg> Cerrar sesión</button>
         </div>
       </div>
     </div>
@@ -426,32 +457,33 @@
     <div id="ats-breakdown" style="display:none">
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;text-align:center">
         <div>
-          <div class="ats-label" style="font-size:10px;margin-bottom:8px">Ingresos</div>
+          <div class="ats-label" style="font-size:11px;margin-bottom:8px">Ingresos</div>
           <div class="ats-flow-value" id="ats-ingresos" style="color:var(--accent)">$0</div>
         </div>
         <div>
-          <div class="ats-label" style="font-size:10px;margin-bottom:8px">− Gastos</div>
+          <div class="ats-label" style="font-size:11px;margin-bottom:8px">− Gastos</div>
           <div class="ats-flow-value" id="ats-gastos" style="color:#FF9999">$0</div>
         </div>
         <div>
-          <div class="ats-label" style="font-size:10px;margin-bottom:8px">= Saldo actual</div>
+          <div class="ats-label" style="font-size:11px;margin-bottom:8px">= Saldo actual</div>
           <div class="ats-flow-value-lg" id="ats-saldo-final">$0</div>
         </div>
       </div>
+      <div id="ats-vacio" style="display:none;text-align:center;font-size:12px;color:var(--hero-text2);margin-top:12px">Sin ingresos ni gastos en este ciclo todavía</div>
       <div id="ats-ahorro-row" style="display:none;text-align:center;margin-top:12px">
-        <span class="ats-label" style="font-size:10px">− Apartado a ahorro</span>
-        <span class="ats-flow-value" id="ats-ahorro" style="color:#7BA7EC;margin-left:8px">$0</span>
+        <span class="ats-label" style="font-size:11px">− Apartado a ahorro</span>
+        <span class="ats-flow-value" id="ats-ahorro" style="color:var(--hero-text2);margin-left:8px">$0</span>
       </div>
       <div style="display:flex;align-items:center;justify-content:center;margin:16px 0">
         <div style="height:1px;flex:1;background:rgba(255,255,255,.15)"></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;text-align:center">
         <div>
-          <div class="ats-label" style="font-size:10px;margin-bottom:8px">− Pendientes</div>
+          <div class="ats-label" style="font-size:11px;margin-bottom:8px">− Pendientes</div>
           <div class="ats-flow-value" id="ats-pendientes-actual" style="color:var(--warn)">$0</div>
         </div>
         <div>
-          <div class="ats-label" style="font-size:10px;margin-bottom:8px">= Libre real</div>
+          <div class="ats-label" style="font-size:11px;margin-bottom:8px">= Libre real</div>
           <div class="ats-flow-value-xl" id="ats-libre-real" style="color:var(--safe)">$0</div>
         </div>
       </div>
@@ -459,15 +491,15 @@
     <div id="ats-simple" style="display:none">
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
         <div style="text-align:center">
-          <div class="ats-label" style="font-size:10px;margin-bottom:8px">Liquidez bruta</div>
+          <div class="ats-label" style="font-size:11px;margin-bottom:8px">Liquidez bruta</div>
           <div class="ats-value" id="ats-bruto" style="font-size:clamp(14px,4.2vw,26px);color:var(--hero-text2)">$0</div>
         </div>
         <div style="text-align:center">
-          <div class="ats-label" style="font-size:10px;margin-bottom:8px">− Pendientes</div>
+          <div class="ats-label" style="font-size:11px;margin-bottom:8px">− Pendientes</div>
           <div class="ats-value" id="ats-pendientes" style="font-size:clamp(14px,4.2vw,26px);color:var(--warn)">$0</div>
         </div>
         <div style="text-align:center">
-          <div class="ats-label" style="font-size:10px;margin-bottom:8px">= Libre real</div>
+          <div class="ats-label" style="font-size:11px;margin-bottom:8px">= Libre real</div>
           <div class="ats-value" id="ats-value" style="font-size:clamp(14px,4.2vw,26px)">$0</div>
         </div>
       </div>
@@ -487,11 +519,11 @@
 
   <div id="tab-cuentas" class="tab-content active">
     <div class="card" id="estado-mes-card">
-      <div class="card-title">📊 Estado del mes <span id="estado-mes-semaforo"></span></div>
+      <div class="card-title"><span class="ct-main"><svg class="ico" aria-hidden="true"><use href="#i-bars"/></svg>Estado del mes</span><span id="estado-mes-semaforo"></span></div>
       <div id="estado-mes-body"></div>
     </div>
     <div class="card">
-      <div class="card-title">💧 Cuentas líquidas — disponibles para gastar <span>(clic para editar)</span></div>
+      <div class="card-title"><span class="ct-main"><svg class="ico" aria-hidden="true"><use href="#i-wallet"/></svg>Cuentas líquidas — disponibles para gastar</span><span>(clic para editar)</span></div>
       <div class="accounts-grid" id="liquid-accounts-grid">
         <div class="acc-card" id="card-nequi"><div class="acc-label"><span class="avatar-square" style="background:#C147E9">N</span><span>Nequi</span><span class="currency-badge">Pesos</span></div><input class="acc-value" id="acc-nequi" onblur="handleAccountFieldBlur('nequi')"></div>
         <div class="acc-card" id="card-debito"><div class="acc-label"><span class="avatar-square" style="background:#EF4444">D</span><span>Davivienda</span><span class="currency-badge">Pesos</span></div><input class="acc-value" id="acc-debito" onblur="handleAccountFieldBlur('debito')"></div>
@@ -501,57 +533,57 @@
       </div>
     </div>
     <div class="card">
-      <div class="card-title">🎯 Cuentas de ahorro para metas <span>— vivienda, cámara, lo que definas</span></div>
+      <div class="card-title"><span class="ct-main"><svg class="ico" aria-hidden="true"><use href="#i-target"/></svg>Cuentas de ahorro para metas</span><span>— vivienda, cámara, lo que definas</span></div>
       <div class="accounts-grid" id="metas-accounts-grid">
         <div class="acc-card" id="card-lulo"><div class="acc-label"><span class="avatar-square" style="background:#0E9F6E">L</span><span>Lulo</span><span class="currency-badge">Pesos</span></div><input class="acc-value" id="acc-lulo" onblur="handleAccountFieldBlur('lulo')"></div>
       </div>
-      <div style="font-size:10px;color:var(--text3);margin-top:8px">Crea una cajita con ➕ Crear cuenta nueva (tipo «Cajita de rendimiento») o desde la pestaña 🏆 Metas.</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:8px">Crea una cajita con <svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg> Crear cuenta nueva (tipo «Cajita de rendimiento») o desde la pestaña Metas.</div>
     </div>
     <div class="card">
-      <div class="card-title">🛡️ Fondo de emergencia <span>— solo crisis reales, nunca metas</span></div>
+      <div class="card-title"><span class="ct-main"><svg class="ico" aria-hidden="true"><use href="#i-shield"/></svg>Fondo de emergencia</span><span>— solo crisis reales, nunca metas</span></div>
       <div class="accounts-grid" style="grid-template-columns:1fr">
         <div class="acc-card" id="card-nu"><div class="acc-label"><span class="avatar-square" style="background:#8A05BE">N</span><span>Nu cajitas</span><span class="currency-badge">Pesos</span></div><input class="acc-value" id="acc-nu" onblur="handleAccountFieldBlur('nu')"></div>
       </div>
       <div style="margin-top:12px">
         <div class="debt-track"><div class="debt-fill" id="emergency-mini-fill" style="width:0%"></div></div>
-        <div style="font-size:10px;color:var(--text3);margin-top:4px;text-align:right" id="emergency-mini-label">0% de la meta ($7,000,000)</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:4px;text-align:right" id="emergency-mini-label">0% de la meta ($7,000,000)</div>
       </div>
     </div>
     <div class="card">
-      <div class="card-title">💳 Tarjetas de crédito (deuda)</div>
+      <div class="card-title"><span class="ct-main"><svg class="ico" aria-hidden="true"><use href="#i-card"/></svg>Tarjetas de crédito (deuda)</span></div>
       <div class="accounts-grid accounts-grid-2">
-        <div class="acc-card debt" data-abono="davtc"><div class="acc-label"><span class="avatar-square" style="background:#DC2626">D</span><span>Davivienda TC</span><span class="currency-badge">Crédito</span></div><input class="acc-value debt" id="acc-davtc" onblur="handleAccountFieldBlur('davtc')"><div id="due-davtc" style="font-size:9px;color:var(--text3);margin-top:4px"></div></div>
-        <div class="acc-card debt" data-abono="rappitc"><div class="acc-label"><span class="avatar-square" style="background:#FF8C42">R</span><span>Rappi Card</span><span class="currency-badge">Crédito</span></div><input class="acc-value" style="color:#FF8C42" id="acc-rappitc" onblur="handleAccountFieldBlur('rappitc')"><div id="due-rappitc" style="font-size:9px;color:var(--text3);margin-top:4px"></div></div>
+        <div class="acc-card debt" data-abono="davtc"><div class="acc-label"><span class="avatar-square" style="background:#DC2626">D</span><span>Davivienda TC</span><span class="currency-badge">Crédito</span></div><input class="acc-value debt" id="acc-davtc" onblur="handleAccountFieldBlur('davtc')"><div id="due-davtc" style="font-size:11px;color:var(--text3);margin-top:4px"></div></div>
+        <div class="acc-card debt" data-abono="rappitc"><div class="acc-label"><span class="avatar-square" style="background:#FF8C42">R</span><span>Rappi Card</span><span class="currency-badge">Crédito</span></div><input class="acc-value" style="color:#FF8C42" id="acc-rappitc" onblur="handleAccountFieldBlur('rappitc')"><div id="due-rappitc" style="font-size:11px;color:var(--text3);margin-top:4px"></div></div>
       </div>
       <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
         <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Deuda total en tarjetas</span>
-        <span id="deuda-total-tarjetas" style="font-family:var(--mono);font-weight:700;font-size:15px;color:#FF6B6B"></span>
+        <span id="deuda-total-tarjetas" style="font-family:var(--mono);font-weight:700;font-size:16px;color:#FF6B6B"></span>
       </div>
     </div>
     <div class="card" id="transfer-card">
-      <div class="card-title">🔄 Transferir entre cuentas</div>
-      <button class="btn-add is-ghost btn-wrap" style="margin-bottom:10px;width:100%" onclick="abrirNuevaCuentaModal()">➕ Crear cuenta nueva (segundo salario, bolsillo, etc.)</button>
+      <div class="card-title colapsable" data-colapsable="transferir" role="button" tabindex="0" aria-expanded="true"><span class="ct-main"><svg class="ico" aria-hidden="true"><use href="#i-repeat"/></svg>Transferir entre cuentas</span></div>
+      <button class="btn-add is-ghost btn-wrap" style="margin-bottom:10px;width:100%" onclick="abrirNuevaCuentaModal()"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg> Crear cuenta nueva (segundo salario, bolsillo, etc.)</button>
       <div class="input-grid2" style="margin-bottom:8px">
         <select class="inp" id="tr-origen" onchange="onTransferAccChange()">
-          <optgroup label="🏦 Cuentas en pesos (COP)">
+          <optgroup label="Cuentas en pesos (COP)">
             <option value="debito">Davivienda</option>
             <option value="nequi">Nequi</option>
             <option value="nu">Nu cajitas</option>
             <option value="lulo">Lulo (Ahorro Vivienda)</option>
           </optgroup>
-          <optgroup label="🌎 Dólares (USD)">
+          <optgroup label="Dólares (USD)">
             <option value="arq">ARQ</option>
             <option value="ontop">Ontop</option>
           </optgroup>
         </select>
         <select class="inp" id="tr-destino" onchange="onTransferAccChange()">
-          <optgroup label="🏦 Cuentas en pesos (COP)">
+          <optgroup label="Cuentas en pesos (COP)">
             <option value="debito">Davivienda</option>
             <option value="nequi">Nequi</option>
             <option value="nu">Nu cajitas</option>
             <option value="lulo">Lulo (Ahorro Vivienda)</option>
           </optgroup>
-          <optgroup label="🌎 Dólares (USD)">
+          <optgroup label="Dólares (USD)">
             <option value="arq">ARQ</option>
             <option value="ontop">Ontop</option>
           </optgroup>
@@ -566,7 +598,7 @@
       <div class="acc-hint" id="tr-hint">Si dejas "Monto recibido" vacío, se calcula automático con la TRM.</div>
     </div>
     <div class="card">
-      <div class="card-title">📐 Resumen patrimonial</div>
+      <div class="card-title colapsable" data-colapsable="patrimonial" role="button" tabindex="0" aria-expanded="true"><span class="ct-main"><svg class="ico" aria-hidden="true"><use href="#i-bars"/></svg>Resumen patrimonial</span></div>
       <div class="networth-row"><span class="networth-label">Liquidez total (COP)</span><span class="networth-value" id="nw-liquid">$0</span></div>
       <div class="networth-row"><span class="networth-label">Deuda total TC</span><span class="networth-value" style="color:var(--danger)" id="nw-debt">$0</span></div>
       <div class="networth-row networth-total"><span class="networth-label">Patrimonio neto líquido</span><span class="networth-value" id="nw-net">$0</span></div>
@@ -575,9 +607,9 @@
 
   <div id="tab-movimientos" class="tab-content">
     <div class="input-section">
-      <div class="input-label">🔍 Filtrar movimientos</div>
+      <div class="input-label"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg> Filtrar movimientos</div>
       <input class="inp" id="quick-search" type="text" placeholder='Buscar por nombre: "taller", "spotify"...' oninput="actualizarBuscador()" style="width:100%;margin-bottom:12px">
-      <button id="search-historico-btn" style="display:none;background:none;border:none;color:var(--text3);font-size:11px;cursor:pointer;text-decoration:underline;margin-bottom:10px" onclick="toggleBuscadorHistorico()">📅 Buscar en todo tu historial</button>
+      <button id="search-historico-btn" style="display:none;background:none;border:none;color:var(--text3);font-size:11px;cursor:pointer;text-decoration:underline;margin-bottom:10px" onclick="toggleBuscadorHistorico()"><svg class="ico" aria-hidden="true"><use href="#i-calendar"/></svg> Buscar en todo tu historial</button>
       <div id="search-historico" style="display:none;padding-top:10px;border-top:1px solid var(--border)">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 8px">
           <div>
@@ -592,8 +624,8 @@
             <label for="search-tipo" class="filtro-label">Tipo</label>
             <select class="inp" id="search-tipo" style="width:100%;height:36px;font-size:11px" onchange="buscarEnHistorial()">
               <option value="todos">Todo tipo</option>
-              <option value="gasto">➖ Gastos</option>
-              <option value="ingreso">➕ Ingresos</option>
+              <option value="gasto">Gastos</option>
+              <option value="ingreso">Ingresos</option>
             </select>
           </div>
           <div>
@@ -603,7 +635,7 @@
             </select>
           </div>
         </div>
-        <button id="search-limpiar-btn" style="display:none;background:none;border:none;color:var(--text3);font-size:10px;cursor:pointer;text-decoration:underline;margin-top:10px" onclick="limpiarBusqueda()">Limpiar búsqueda</button>
+        <button id="search-limpiar-btn" style="display:none;background:none;border:none;color:var(--text3);font-size:11px;cursor:pointer;text-decoration:underline;margin-top:10px" onclick="limpiarBusqueda()">Limpiar búsqueda</button>
         <div id="search-results" style="margin-top:10px"></div>
       </div>
     </div>
@@ -615,7 +647,7 @@
       <div class="entries-header" style="flex-direction:column;align-items:stretch;gap:10px">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <span class="entries-title" id="entries-title">Movimientos del mes</span>
-          <button class="btn-analyze" onclick="sendSummary()">📋 Copiar resumen para Claude</button>
+          <button class="btn-analyze" onclick="sendSummary()"><svg class="ico" aria-hidden="true"><use href="#i-clipboard"/></svg> Copiar resumen para Claude</button>
         </div>
         <div class="fbar">
           <button class="fchip fchip-alerta" id="fchip-sospechosos" style="display:none;align-self:flex-start" onclick="clickChipFiltro(event,'sospechosos')"></button>
@@ -625,14 +657,14 @@
             <button class="fchip" data-v="anterior">Ciclo anterior</button>
             <button class="fchip" data-v="3m">Últimos 3 ciclos</button>
             <button class="fchip" data-v="anio">Este año</button>
-            <button class="fchip" data-v="todo">🗓️ Todo el historial</button>
+            <button class="fchip" data-v="todo"><svg class="ico" aria-hidden="true"><use href="#i-calendar"/></svg> Todo el historial</button>
           </div>
           <div class="fperiodo" id="fperiodo-texto"></div>
           <div class="fgroup-label">Tipo</div>
           <div class="fseg" id="fchips-tipo" onclick="clickChipFiltro(event,'tipo')">
             <button class="active" data-v="todos">Todo</button>
-            <button data-v="gasto">➖ Gastos</button>
-            <button data-v="ingreso">➕ Ingresos</button>
+            <button data-v="gasto"><svg class="ico" aria-hidden="true"><use href="#i-minus"/></svg> Gastos</button>
+            <button data-v="ingreso"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg> Ingresos</button>
           </div>
           <div class="fgroup-label">Cuenta · las más usadas en el periodo</div>
           <div class="fchips" id="fchips-cuenta" onclick="clickChipFiltro(event,'cuenta')"></div>
@@ -640,23 +672,23 @@
           <div class="fchips" id="fchips-cat" onclick="clickChipFiltro(event,'cat')"></div>
         </div>
         <div style="display:flex;gap:6px;align-items:center">
-          <button class="tab" id="sort-fecha" style="padding:4px 10px;font-size:10px" onclick="setSortMode('fecha')">📅 Fecha</button>
-          <button class="tab" id="sort-cuenta" style="padding:4px 10px;font-size:10px" onclick="setSortMode('cuenta')">🏦 Cuenta</button>
-          <button id="clear-filters-btn" style="display:none;background:none;border:none;color:var(--text3);font-size:10px;cursor:pointer;text-decoration:underline;margin-left:auto" onclick="limpiarFiltros()">Limpiar filtros</button>
+          <button class="tab" id="sort-fecha" style="padding:4px 10px;font-size:11px" onclick="setSortMode('fecha')"><svg class="ico" aria-hidden="true"><use href="#i-calendar"/></svg> Fecha</button>
+          <button class="tab" id="sort-cuenta" style="padding:4px 10px;font-size:11px" onclick="setSortMode('cuenta')"><svg class="ico" aria-hidden="true"><use href="#i-bank"/></svg> Cuenta</button>
+          <button id="clear-filters-btn" style="display:none;background:none;border:none;color:var(--text3);font-size:11px;cursor:pointer;text-decoration:underline;margin-left:auto" onclick="limpiarFiltros()">Limpiar filtros</button>
         </div>
       </div>
       <div id="entries-summary" style="background:var(--surface2);border-top:1px solid var(--border);padding:12px 16px;display:none">
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;font-size:12px">
           <div>
-            <div style="color:var(--text3);font-size:10px;margin-bottom:4px">Total movimientos</div>
+            <div style="color:var(--text3);font-size:11px;margin-bottom:4px">Total movimientos</div>
             <div style="font-family:var(--mono);font-weight:700;font-size:16px" id="summary-count">0</div>
           </div>
           <div>
-            <div style="color:var(--text3);font-size:10px;margin-bottom:4px">Ingresos</div>
+            <div style="color:var(--text3);font-size:11px;margin-bottom:4px">Ingresos</div>
             <div style="font-family:var(--mono);font-weight:700;font-size:16px;color:var(--accent)" id="summary-ingresos">$0</div>
           </div>
           <div>
-            <div style="color:var(--text3);font-size:10px;margin-bottom:4px">Gastos</div>
+            <div style="color:var(--text3);font-size:11px;margin-bottom:4px">Gastos</div>
             <div style="font-family:var(--mono);font-weight:700;font-size:16px;color:var(--danger)" id="summary-gastos">$0</div>
           </div>
         </div>
@@ -668,33 +700,33 @@
   <div id="tab-pendientes" class="tab-content">
     <div class="input-section">
       <div style="display:flex;gap:6px;margin-bottom:14px">
-        <button type="button" id="pend-tab-gasto" class="tipo-tab tipo-tab-gasto active" onclick="setTipoPend('gasto')">➖ Gasto</button>
-        <button type="button" id="pend-tab-ingreso" class="tipo-tab tipo-tab-ingreso" onclick="setTipoPend('ingreso')">➕ Ingreso</button>
+        <button type="button" id="pend-tab-gasto" class="tipo-tab tipo-tab-gasto active" onclick="setTipoPend('gasto')"><svg class="ico" aria-hidden="true"><use href="#i-minus"/></svg> Gasto</button>
+        <button type="button" id="pend-tab-ingreso" class="tipo-tab tipo-tab-ingreso" onclick="setTipoPend('ingreso')"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg> Ingreso</button>
       </div>
       <input class="inp inp-num" id="pend-amount" type="text" inputmode="decimal" placeholder="0" data-currency="COP" oninput="formatearInputMonto(this)" style="font-size:30px;font-weight:800;height:60px;text-align:center;margin-bottom:12px;letter-spacing:-1px">
       <input class="inp" id="pend-name" type="text" placeholder="¿Qué pendiente?" oninput="suggestCategoryPend()" autocomplete="off" style="margin-bottom:6px">
-      <div id="pend-suggest" style="display:none;font-size:11px;color:var(--accent);margin-bottom:8px;padding:5px 10px;background:rgba(168,224,99,.08);border-radius:6px;border:1px solid rgba(168,224,99,.2)">✨ Categoría sugerida — cámbiala si no aplica</div>
+      <div id="pend-suggest" style="display:none;font-size:11px;color:var(--accent);margin-bottom:8px;padding:5px 10px;background:rgba(168,224,99,.08);border-radius:6px;border:1px solid rgba(168,224,99,.2)">Categoría sugerida — cámbiala si no aplica</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
         <select class="inp" id="pend-account" onchange="onPendAccountChange()" style="height:38px;font-size:12px">
-          <optgroup label="🏦 Cuentas en pesos (COP)">
-            <option value="debito">🏦 Davivienda</option>
-            <option value="nequi">💳 Nequi</option>
-            <option value="nu">🛡️ Nu cajitas</option>
-            <option value="lulo">🎯 Lulo (Ahorro Vivienda)</option>
+          <optgroup label="Cuentas en pesos (COP)">
+            <option value="debito">Davivienda</option>
+            <option value="nequi">Nequi</option>
+            <option value="nu">Nu cajitas</option>
+            <option value="lulo">Lulo (Ahorro Vivienda)</option>
           </optgroup>
-          <optgroup label="💳 Tarjetas de crédito">
-            <option value="davtc">🔴 Davivienda TC</option>
-            <option value="rappitc">🟠 Rappi Card</option>
+          <optgroup label="Tarjetas de crédito">
+            <option value="davtc">Davivienda TC</option>
+            <option value="rappitc">Rappi Card</option>
           </optgroup>
-          <optgroup label="🌎 Dólares (USD)">
-            <option value="arq">🌎 ARQ</option>
-            <option value="ontop">🌎 Ontop</option>
+          <optgroup label="Dólares (USD)">
+            <option value="arq">ARQ</option>
+            <option value="ontop">Ontop</option>
           </optgroup>
         </select>
         <button id="cat-btn-pend-cat" class="inp" onclick="abrirCatPicker('pend-cat')" style="height:38px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:8px;padding:0 10px;text-align:left;background:var(--surface3)">
           <span id="cat-dot-pend-cat" style="width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--text3)"></span>
           <span id="cat-label-pend-cat" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Categoría</span>
-          <span style="opacity:.4;font-size:10px;flex-shrink:0">▾</span>
+          <span style="opacity:.4;font-size:11px;flex-shrink:0">▾</span>
         </button>
       </div>
       <input class="inp" id="pend-date" type="date" style="margin-bottom:8px">
@@ -769,11 +801,11 @@
 
   <div id="tab-presupuesto" class="tab-content">
     <div class="card">
-      <div class="card-title">🎯 Topes mensuales <span id="budget-month-label"></span></div>
+      <div class="card-title"><span class="ct-main"><svg class="ico" aria-hidden="true"><use href="#i-target"/></svg>Topes mensuales</span><span id="budget-month-label"></span></div>
       <div id="budget-list"></div>
     </div>
     <div class="card" id="comparar-card">
-      <div class="card-title">📊 Comparar ciclos <span>— gasto por categoría</span></div>
+      <div class="card-title"><span class="ct-main"><svg class="ico" aria-hidden="true"><use href="#i-bars"/></svg>Comparar ciclos</span><span>— gasto por categoría</span></div>
       <div class="fseg" id="comparar-n" onclick="clickCompararN(event)" style="margin-bottom:12px">
         <button data-v="3" class="active">3 ciclos</button>
         <button data-v="6">6 ciclos</button>
@@ -810,8 +842,7 @@
     </div>
 
     <div class="card">
-      <div class="card-title">⚖️ Regla del 50% — necesidades básicas
-        <select class="inp" id="regla-periodo" style="width:auto;height:28px;font-size:10px;padding:0 8px" onchange="renderRegla503020()">
+      <div class="card-title"><span class="ct-main"><svg class="ico" aria-hidden="true"><use href="#i-scale"/></svg>Regla del 50% — necesidades básicas</span><select class="inp" id="regla-periodo" style="width:auto;height:28px;font-size:11px;padding:0 8px" onchange="renderRegla503020()">
           <option value="1">Mensual</option>
           <option value="3">Trimestral</option>
           <option value="6">Semestral</option>
@@ -824,20 +855,20 @@
         <div id="regla-mensaje" style="font-size:11px;margin-top:4px"></div>
       </div>
       <div id="regla-chart" style="display:flex;align-items:flex-end;gap:8px;height:100px;padding:0 8px 8px"></div>
-      <div id="regla-legend" style="display:flex;justify-content:space-around;font-size:9px;color:var(--text3);font-family:var(--mono);margin-bottom:14px"></div>
+      <div id="regla-legend" style="display:flex;justify-content:space-around;font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:14px"></div>
       <div style="padding-top:12px;border-top:1px solid var(--border)">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:8px">Desglose del período más reciente</div>
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:8px">Desglose del período más reciente</div>
         <div id="regla-desglose"></div>
       </div>
     </div>
 
     <div class="card">
-      <div class="card-title">🏦 Costos financieros <span>— intereses, cuota de manejo, comisiones y 4x1000</span></div>
+      <div class="card-title"><span class="ct-main"><svg class="ico" aria-hidden="true"><use href="#i-bank"/></svg>Costos financieros</span><span>— intereses, cuota de manejo, comisiones y 4x1000</span></div>
       <div id="costos-financieros-body"></div>
     </div>
 
     <div class="card">
-      <div class="card-title">🥧 Distribución del gasto por categoría</div>
+      <div class="card-title"><span class="ct-main"><svg class="ico" aria-hidden="true"><use href="#i-pie"/></svg>Distribución del gasto por categoría</span></div>
       <div class="pie-wrap">
         <div class="pie" id="pie-chart"><div class="pie-center"><div class="pie-center-total" id="pie-center-total">$0</div><div class="pie-center-label">este mes</div></div></div>
         <div class="pie-legend" id="pie-legend"></div>
@@ -845,7 +876,7 @@
     </div>
 
     <div class="card">
-      <div class="card-title">💳 Progreso de liquidación de deuda</div>
+      <div class="card-title"><span class="ct-main"><svg class="ico" aria-hidden="true"><use href="#i-card"/></svg>Progreso de liquidación de deuda</span></div>
       <div class="debt-progress">
         <div class="debt-top"><span class="debt-name">Davivienda TC</span><span id="dp-dav-pct">0%</span></div>
         <div class="debt-track"><div class="debt-fill" id="dp-dav-fill" style="width:0%"></div></div>
@@ -860,7 +891,7 @@
     </div>
 
     <div class="card">
-      <div class="card-title">📊 Utilización de cupo</div>
+      <div class="card-title"><span class="ct-main"><svg class="ico" aria-hidden="true"><use href="#i-bars"/></svg>Utilización de cupo</span></div>
       <div style="font-size:11px;color:var(--text3);margin-bottom:14px">Qué tanto de tu cupo aprobado está usado. Bajo 30% es sano, entre 30-70% hay que vigilarlo, sobre 70% afecta tu historial crediticio.</div>
       <div class="debt-progress">
         <div class="debt-top"><span class="debt-name">Davivienda TC</span><span id="util-dav-pct">0%</span></div>
@@ -874,73 +905,73 @@
       </div>
       <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
         <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Utilización combinada</span>
-        <span id="util-total-pct" style="font-family:var(--mono);font-weight:700;font-size:15px">0%</span>
+        <span id="util-total-pct" style="font-family:var(--mono);font-weight:700;font-size:16px">0%</span>
       </div>
     </div>
 
     <div class="card">
-      <div class="card-title">💳 En qué se va el crédito <span id="credit-cat-month-label" style="font-weight:400;font-size:9px"></span></div>
+      <div class="card-title"><span class="ct-main"><svg class="ico" aria-hidden="true"><use href="#i-card"/></svg>En qué se va el crédito</span><span id="credit-cat-month-label" style="font-weight:400;font-size:11px"></span></div>
       <div style="font-size:11px;color:var(--text3);margin-bottom:12px">Solo cargos a Davivienda TC y Rappi Card este mes, por categoría.</div>
       <div id="credit-cat-list"></div>
     </div>
 
     <div class="card">
-      <div class="card-title">⚖️ Crédito vs líquido, por categoría</div>
+      <div class="card-title"><span class="ct-main"><svg class="ico" aria-hidden="true"><use href="#i-scale"/></svg>Crédito vs líquido, por categoría</span></div>
       <div style="font-size:11px;color:var(--text3);margin-bottom:12px">De lo que gastaste este mes en cada categoría, cuánto fue con tarjeta de crédito vs efectivo/débito. Útil para ver dónde estás financiando con crédito lo que podrías pagar de contado.</div>
       <div id="credit-vs-liquido-list"></div>
     </div>
 
     <div class="card">
-      <div class="card-title">📅 Comparativa mes a mes — ¿gastas más o menos?</div>
+      <div class="card-title"><span class="ct-main"><svg class="ico" aria-hidden="true"><use href="#i-calendar"/></svg>Comparativa mes a mes — ¿gastas más o menos?</span></div>
       <div id="month-compare-chart" style="display:flex;align-items:flex-end;gap:12px;height:140px;padding:0 8px 8px"></div>
-      <div id="month-compare-legend" style="display:flex;justify-content:space-around;font-size:10px;color:var(--text3);font-family:var(--mono)"></div>
+      <div id="month-compare-legend" style="display:flex;justify-content:space-around;font-size:11px;color:var(--text3);font-family:var(--mono)"></div>
     </div>
 
     <div class="card">
-      <div class="card-title">📐 Patrimonio neto — últimos meses</div>
+      <div class="card-title"><span class="ct-main"><svg class="ico" aria-hidden="true"><use href="#i-bars"/></svg>Patrimonio neto — últimos meses</span></div>
       <div style="font-size:11px;color:var(--text3);margin-bottom:12px">Líquido menos deuda, al cierre de cada mes. Reconstruido desde tus movimientos — mismo método que el saldo histórico de Cuentas.</div>
       <div id="networth-history-chart" class="barras-chart"></div>
       <div id="networth-history-legend" hidden></div>
       <div style="padding-top:14px;border-top:1px solid var(--border)">
-        <div class="card-title" style="margin-bottom:10px">💰 Tasa de ahorro por mes</div>
+        <div class="card-title" style="margin-bottom:10px"><span class="ct-main"><svg class="ico" aria-hidden="true"><use href="#i-coins"/></svg>Tasa de ahorro por mes</span></div>
         <div id="savings-rate-list" style="font-size:12px;line-height:2"></div>
       </div>
     </div>
 
     <div class="card">
-      <div class="card-title">🐜 Gasto hormiga y suscripciones</div>
+      <div class="card-title"><span class="ct-main"><svg class="ico" aria-hidden="true"><use href="#i-coins"/></svg>Gasto hormiga y suscripciones</span></div>
       <div style="font-size:11px;color:var(--text3);margin-bottom:12px">Compras pequeñas que repites mes a mes, proyectadas a un año. El arriendo, la EPS o los aportes no salen aquí: se repiten, pero no son plata que se te escape.</div>
       <div id="gasto-hormiga-list"></div>
     </div>
 
     <div class="card">
-      <div class="card-title">📈 Tendencia por categoría — últimos 6 meses</div>
+      <div class="card-title"><span class="ct-main"><svg class="ico" aria-hidden="true"><use href="#i-trend"/></svg>Tendencia por categoría — últimos 6 meses</span></div>
       <div style="font-size:11px;color:var(--text3);margin-bottom:12px">Solo tus categorías con más gasto en este período — cada barra es un mes, de izquierda (más viejo) a derecha (más reciente).</div>
       <div id="category-trend-chart"></div>
     </div>
 
     <div class="card">
-      <div class="card-title">🛡️ Crecimiento del fondo de emergencia</div>
+      <div class="card-title"><span class="ct-main"><svg class="ico" aria-hidden="true"><use href="#i-shield"/></svg>Crecimiento del fondo de emergencia</span></div>
       <div id="emergency-growth" style="font-size:13px;line-height:2"></div>
     </div>
   </div>
 
   <div id="tab-metas" class="tab-content">
     <div class="input-section">
-      <div class="input-label">➕ Nueva meta</div>
+      <div class="input-label"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg> Nueva meta</div>
       <div class="input-grid2" style="margin-bottom:8px">
         <input class="inp" id="goal-name" type="text" placeholder="Nombre (ej: Vivienda, Cripto)"/>
         <select class="inp" id="goal-type" onchange="onGoalTypeChange()">
-          <option value="cuenta">💧 Vinculada a una cuenta</option>
-          <option value="categoria">🏷️ Acumulada por categoría</option>
+          <option value="cuenta">Vinculada a una cuenta</option>
+          <option value="categoria">Acumulada por categoría</option>
         </select>
         <input class="inp inp-num" id="goal-target" type="text" inputmode="decimal" autocomplete="off" oninput="formatearInputMonto(this)" placeholder="Meta (opcional)"/>
       </div>
       <div class="input-grid2" id="goal-cuenta-row">
         <select class="inp" id="goal-account" onchange="onGoalAccountChange()">
-          <optgroup label="🏦 Cuentas en pesos (COP)" id="goal-acc-cop"></optgroup>
-          <optgroup label="🌎 Dólares (USD)" id="goal-acc-usd"></optgroup>
-          <option value="__nueva__">➕ Crear cuenta nueva…</option>
+          <optgroup label="Cuentas en pesos (COP)" id="goal-acc-cop"></optgroup>
+          <optgroup label="Dólares (USD)" id="goal-acc-usd"></optgroup>
+          <option value="__nueva__">Crear cuenta nueva…</option>
         </select>
         <span></span><span></span>
       </div>
@@ -963,31 +994,31 @@
 
   <div id="tab-diagnostico" class="tab-content">
     <div class="card">
-      <div class="card-title">👤 Sesión</div>
+      <div class="card-title"><span class="ct-main"><svg class="ico" aria-hidden="true"><use href="#i-user"/></svg>Sesión</span></div>
       <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Conectado como <strong id="diagnostico-email" style="color:var(--text)"></strong></div>
-      <button class="btn-add is-danger-bordered" onclick="cerrarSesion()">🚪 Cerrar sesión</button>
+      <button class="btn-add is-danger-bordered" onclick="cerrarSesion()"><svg class="ico" aria-hidden="true"><use href="#i-logout"/></svg> Cerrar sesión</button>
     </div>
     <div class="card">
-      <div class="card-title">📊 Datos en Supabase</div>
+      <div class="card-title"><span class="ct-main"><svg class="ico" aria-hidden="true"><use href="#i-bars"/></svg>Datos en Supabase</span></div>
       <div style="font-size:11px;color:var(--text3);margin-bottom:12px">Cantidad de filas por tabla — compáralo con lo que ves en pantalla si algo no cuadra.</div>
       <div id="diagnostico-conteos" style="font-size:12px;font-family:var(--mono)"></div>
-      <button class="btn-add is-ghost" style="margin-top:14px" onclick="renderDiagnostico()">🔄 Recalcular ahora</button>
+      <button class="btn-add is-ghost" style="margin-top:14px" onclick="renderDiagnostico()"><svg class="ico" aria-hidden="true"><use href="#i-repeat"/></svg> Recalcular ahora</button>
     </div>
     <div class="card">
-      <div class="card-title">📋 Último error real registrado</div>
+      <div class="card-title"><span class="ct-main"><svg class="ico" aria-hidden="true"><use href="#i-clipboard"/></svg>Último error real registrado</span></div>
       <div id="diagnostico-ultimo-error" style="font-size:11px;color:var(--text3);font-family:var(--mono);white-space:pre-wrap"></div>
     </div>
     <div class="card">
-      <div class="card-title">🔁 Reintentar carga de datos</div>
+      <div class="card-title"><span class="ct-main"><svg class="ico" aria-hidden="true"><use href="#i-repeat"/></svg>Reintentar carga de datos</span></div>
       <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Si al abrir viste el aviso de "guardado bloqueado" o estás viendo datos de ejemplo en vez de los tuyos, la conexión falló al cargar. Presiona aquí para reintentar traer tus datos reales — si funciona, el guardado se desbloquea automáticamente.</div>
-      <button class="btn-add" onclick="reintentarCarga()">🔁 Reintentar carga</button>
+      <button class="btn-add" onclick="reintentarCarga()"><svg class="ico" aria-hidden="true"><use href="#i-repeat"/></svg> Reintentar carga</button>
     </div>
   </div>
 
-  <div class="hint">💾 Todo se guarda automáticamente en tu base de datos y persiste en cualquier dispositivo donde inicies sesión.<br>Selecciona la cuenta correcta en cada movimiento — el saldo se actualiza solo.<br>👈 Desliza un movimiento hacia la izquierda para eliminarlo, o tócalo para editarlo.<br><span id="build-version" style="opacity:.5;font-size:9px;letter-spacing:0;margin-top:8px;display:block"></span></div>
+  <div class="hint"><svg class="ico" aria-hidden="true"><use href="#i-save"/></svg> Todo se guarda automáticamente en tu base de datos y persiste en cualquier dispositivo donde inicies sesión.<br>Selecciona la cuenta correcta en cada movimiento — el saldo se actualiza solo.<br>Desliza un movimiento hacia la izquierda para eliminarlo, o tócalo para editarlo.<br><span id="build-version" style="opacity:.5;font-size:11px;letter-spacing:0;margin-top:8px;display:block"></span></div>
 </div>
 <div id="demo-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#92400E;color:#FDE68A;z-index:950;align-items:center;justify-content:center;gap:12px;padding:10px 16px;font-size:12px;font-weight:600;text-align:center">
-  🎭 Modo demo — los datos son ficticios, nada se guarda
+  Modo demo — los datos son ficticios, nada se guarda
   <button onclick="desactivarModoDemo()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#FDE68A;font-size:11px;font-weight:700;padding:4px 12px;border-radius:6px;cursor:pointer;flex-shrink:0">Desactivar</button>
 </div>
 <button id="fab-nuevo-movimiento" class="fab" onclick="abrirModalExpress()" aria-label="Agregar movimiento">

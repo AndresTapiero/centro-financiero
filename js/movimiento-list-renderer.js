@@ -70,7 +70,7 @@ class MovimientoListRenderer {
       : cardColor ? `border-left:3px solid ${cardColor}` : '';
 
     return `<div class="entry-row" data-id="${e.id}">
-      <div class="entry-row-swipe-bg" aria-hidden="true">🗑 Eliminar</div>
+      <div class="entry-row-swipe-bg" aria-hidden="true">Eliminar</div>
       <div class="entry-row-content" style="${borderStyle};cursor:pointer" onclick="openEditEntryModal('${e.id}')">
         <div class="entry-row-top">
           <span class="avatar-square" style="background:${c};width:44px;height:44px;font-size:18px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center">${esc(e.name.charAt(0).toUpperCase())}</span>
@@ -89,7 +89,7 @@ class MovimientoListRenderer {
 
   /** HTML completo: un encabezado con subtotal seguido de sus movimientos, por cada grupo */
   render(){
-    if(this.entries.length === 0) return '<div class="empty">📋 Sin movimientos</div>';
+    if(this.entries.length === 0) return '<div class="empty">Sin movimientos</div>';
     let html = '';
     for(const [clave, items] of this.agrupar()){
       html += this.renderEncabezadoGrupo(clave, items);

@@ -257,13 +257,13 @@ window.addEventListener('online', () => {
   isOnline = true;
   console.log('📡 Conexión restaurada - sincronizando...');
   syncAllOfflineData();
-  showSyncStatus('✅ Online - sincronizado', 'ok');
+  showSyncStatus('Online - sincronizado', 'ok');
 });
 
 window.addEventListener('offline', () => {
   isOnline = false;
   console.log('📴 Sin conexión - modo offline activado');
-  showSyncStatus('📴 Offline - los cambios se sincronizarán cuando haya conexión', 'warn');
+  showSyncStatus('Offline - los cambios se sincronizarán cuando haya conexión', 'warn');
 });
 
 function showSyncStatus(msg, type) {

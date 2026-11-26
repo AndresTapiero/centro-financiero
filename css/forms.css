@@ -1,8 +1,8 @@
 /* forms.css — inputs, selects y el layout de formularios (nuevo movimiento,
    nuevo pendiente, transferencias, metas). */
 .input-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.1rem;margin-bottom:1rem}
-.input-label{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);margin-bottom:10px}
-.filtro-label{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);display:block;margin-bottom:4px}
+.input-label{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);margin-bottom:10px}
+.filtro-label{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);display:block;margin-bottom:4px}
 
 .input-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;margin-bottom:8px}
 .input-grid2{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
@@ -25,7 +25,7 @@ select.inp:active{transform:scale(.995)}
 optgroup{color:var(--text3);font-weight:600;font-size:11px}
 option{color:var(--text);padding:6px}
 .inp-num{font-family:var(--mono)!important}
-.acc-hint{font-size:10px;color:var(--text3);margin-top:4px}
+.acc-hint{font-size:11px;color:var(--text3);margin-top:4px}
 
 .tipo-tab{flex:1;padding:10px 4px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
 .tipo-tab-gasto.active{background:var(--danger);border-color:var(--danger);color:#fff}

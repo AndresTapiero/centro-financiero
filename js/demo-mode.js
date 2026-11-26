@@ -84,12 +84,12 @@ function activarModoDemo() {
   renderPendientes();
 
   document.getElementById('demo-banner').style.display = 'flex';
-  document.getElementById('demo-toggle-btn').textContent = '🎭 Desactivar modo demo';
+  document.getElementById('demo-toggle-btn').textContent = 'Desactivar modo demo';
   const fab = document.getElementById('fab-nuevo-movimiento');
   if (fab) fab.style.bottom = '68px';
 
   const statusEl = document.getElementById('sync-status');
-  statusEl.textContent = '🎭 Modo demo activo — datos ficticios';
+  statusEl.textContent = 'Modo demo activo — datos ficticios';
   statusEl.className = 'sync-status';
   statusEl.style.opacity = '1';
 
@@ -99,7 +99,7 @@ function activarModoDemo() {
 function desactivarModoDemo() {
   modoDemo = false;
   document.getElementById('demo-banner').style.display = 'none';
-  document.getElementById('demo-toggle-btn').textContent = '🎭 Modo demo';
+  document.getElementById('demo-toggle-btn').textContent = 'Modo demo';
   const fab = document.getElementById('fab-nuevo-movimiento');
   if (fab) fab.style.bottom = '';
   document.getElementById('loading-gate').style.display = 'flex';

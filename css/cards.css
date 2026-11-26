@@ -11,11 +11,11 @@
 
 .acc-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;transition:box-shadow .15s;position:relative;box-shadow:0 1px 3px rgba(23,23,31,.05)}
 .acc-card:hover{box-shadow:0 4px 12px rgba(23,23,31,.08)}
-.acc-card.low-balance{background:rgba(220,38,38,.05)}
+.acc-card.low-balance{border-color:var(--warn)}
 .acc-card.debt{background:rgba(220,38,38,.04)}
-.low-balance-badge{position:absolute;top:8px;right:8px;font-size:8px;background:var(--danger);color:#fff;padding:2px 6px;border-radius:99px;font-weight:700;letter-spacing:.3px}
+.low-balance-badge{position:absolute;bottom:10px;right:10px;font-size:11px;background:transparent;color:var(--warn);border:1px solid var(--warn);padding:1px 7px;border-radius:99px;font-weight:600;letter-spacing:.2px}
 .avatar-square{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex-shrink:0}
-.currency-badge{font-size:9px;color:var(--text2);background:var(--surface3);padding:3px 8px;border-radius:99px;font-weight:600;white-space:nowrap}
+.currency-badge{font-size:11px;color:var(--text2);background:var(--surface3);padding:3px 8px;border-radius:99px;font-weight:600;white-space:nowrap}
 .acc-label{font-size:11px;font-weight:600;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;gap:8px}
 .acc-label span:nth-child(2){flex:1}
 .acc-value{font-family:var(--mono);font-size:16px;font-weight:700;background:none;border:none;color:var(--text);width:100%;outline:none;padding:0}
@@ -25,7 +25,7 @@
 .networth-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
 .networth-row:last-child{border-bottom:none}
 .networth-label{font-size:13px;color:var(--text2)}
-.networth-value{font-family:var(--mono);font-size:15px;font-weight:600}
+.networth-value{font-family:var(--mono);font-size:16px;font-weight:600}
 .networth-total{padding-top:14px;margin-top:4px;border-top:2px solid var(--border2)}
 .networth-total .networth-label{font-weight:700;color:var(--text)}
 .networth-total .networth-value{font-size:20px}
@@ -71,3 +71,13 @@
 .btn-link-sm:hover{opacity:.8}
 .rename-acc-btn{margin-left:auto;background:none;border:none;color:var(--text3);font-size:13px;line-height:1;cursor:pointer;padding:2px 4px;border-radius:6px;opacity:.55;transition:opacity .15s,color .15s}
 .rename-acc-btn:hover,.rename-acc-btn:focus-visible{opacity:1;color:var(--accent)}
+.empty-estado{text-align:center;color:var(--text2);font-size:13px;line-height:1.6;padding:12px 8px}
+.empty-estado span{color:var(--text3);font-size:12px}
+/* Secciones secundarias plegables: el título es el botón, el estado se recuerda en el dispositivo */
+.card-title.colapsable{cursor:pointer;display:flex;align-items:center;gap:var(--sp-2);user-select:none}
+.card-title.colapsable::after{content:"";margin-left:auto;width:8px;height:8px;border-right:2px solid var(--text3);border-bottom:2px solid var(--text3);transform:rotate(225deg);transition:transform .2s;flex:none;margin-top:4px}
+.card.plegada .card-title.colapsable::after{transform:rotate(45deg);margin-top:-4px}
+.card.plegada .card-title.colapsable{margin-bottom:0}
+.card.plegada .card-title.colapsable ~ *{display:none}
+.ct-main{display:inline-flex;align-items:center}
+.ct-main .ico{margin-right:8px}

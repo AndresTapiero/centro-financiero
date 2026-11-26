@@ -89,7 +89,7 @@ async function confirmAdjustment(){
     registrarErrorDiagnostico('fin_movimientos (ajuste)',e);
     const statusEl=document.getElementById('sync-status');
     statusEl.style.display='block'; statusEl.style.opacity='1';
-    statusEl.textContent='🛑 No se pudo guardar el ajuste — revisa 🔧 Diagnóstico';
+    statusEl.textContent='No se pudo guardar el ajuste — revisa Diagnóstico';
     statusEl.className='sync-status error';
     return;
   }
@@ -323,6 +323,8 @@ function updateNetWorth(){
     const libreEl=document.getElementById('ats-libre-real');
     const finalEl=document.getElementById('ats-saldo-final');
 
+    const vacioEl=document.getElementById('ats-vacio');
+    if(vacioEl)vacioEl.style.display=(ingresosMes===0&&gastosMes===0)?'block':'none';
     if(ingresosEl)ingresosEl.textContent=fmtCOP(ingresosMes);
     if(gastosEl)gastosEl.textContent=fmtCOP(gastosMes);
     if(finalEl){
@@ -363,9 +365,9 @@ function updateNetWorth(){
     const subEl=document.getElementById('ats-sub');
     if(subEl){
       subEl.innerHTML=saldoHist.fallo
-        ?`⚠️ No se pudo reconstruir el saldo de ese mes — la carga de tus movimientos falló. Este es el saldo de <strong>hoy</strong>, no el de ese mes. Ve a 🔧 Diagnóstico → "Reintentar carga" y vuelve a intentarlo.`
+        ?`⚠️ No se pudo reconstruir el saldo de ese mes — la carga de tus movimientos falló. Este es el saldo de <strong>hoy</strong>, no el de ese mes. Ve a Diagnóstico → "Reintentar carga" y vuelve a intentarlo.`
         :saldoHist.esHistorico
-        ?`📅 Saldo reconstruido al cierre de ese mes (no se restan pendientes, ya resueltos). ARQ/Ontop con TRM de hoy, y las transferencias recibidas ese mes pueden no reflejarse del todo.`
+        ?`Saldo reconstruido al cierre de ese mes (no se restan pendientes, ya resueltos). ARQ/Ontop con TRM de hoy, y las transferencias recibidas ese mes pueden no reflejarse del todo.`
         :'Liquidez en pesos y dólares, menos compromisos pendientes del mes';
     }
   }
@@ -391,6 +393,12 @@ function renderEstadoMes(){
   if(!currentMonth){ body.innerHTML='<div style="color:var(--text3);font-size:12px">Cargando…</div>'; if(semaforoEl)semaforoEl.textContent=''; return; }
 
   const monthEntries=entries.filter(e=>cicloDe(e.date)===currentMonth);
+  // Sin movimientos no hay nada que medir: mostrar $0 y 0 % se lee como un dato real.
+  if(monthEntries.length===0){
+    if(semaforoEl)semaforoEl.textContent='';
+    body.innerHTML='<div class="empty-estado">Sin movimientos en este ciclo todavía.<br><span>Cuando registres el primero verás aquí el balance y el ritmo de gasto.</span></div>';
+    return;
+  }
   const ingresos=monthEntries.filter(esIngresoReal).reduce((s,e)=>s+entryCOP(e),0);
   const gastos=monthEntries.filter(esGastoReal).reduce((s,e)=>s+entryCOP(e),0);
   const balanceNeto=ingresos-gastos;
@@ -410,10 +418,10 @@ function renderEstadoMes(){
   const ritmoPct=ritmoIdeal>0?Math.round(gastoVariable/ritmoIdeal*100):0;
 
   // Semáforo único: combina ritmo de gasto variable vs avance del mes
-  let semaforo='🟢',semaforoTexto='Vas bien';
-  if(ritmoPct>130){semaforo='🔴';semaforoTexto='Gastando más rápido de lo normal';}
-  else if(ritmoPct>105){semaforo='🟡';semaforoTexto='Cerca del límite de ritmo';}
-  semaforoEl.textContent=semaforo+' '+semaforoTexto;
+  let semaforo='ok',semaforoTexto='Vas bien';
+  if(ritmoPct>130){semaforo='mal';semaforoTexto='Gastando más rápido de lo normal';}
+  else if(ritmoPct>105){semaforo='ojo';semaforoTexto='Cerca del límite de ritmo';}
+  semaforoEl.innerHTML=`<span class="dot dot-${semaforo}"></span>${esc(semaforoTexto)}`;
 
   body.innerHTML=`
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
@@ -429,7 +437,7 @@ function renderEstadoMes(){
     <div class="networth-row"><span class="networth-label">Balance neto del mes</span><span class="networth-value" style="color:${balanceNeto>=0?'var(--safe)':'var(--danger)'}">${balanceNeto>=0?'+':''}${fmtCOP(balanceNeto)}</span></div>
     <div class="networth-row"><span class="networth-label">% del ingreso ya comprometido</span><span class="networth-value"${pctComprometido===null?' style="color:var(--warn)"':''}>${pctComprometido===null?'— aún sin ingresos en este ciclo':pctComprometido+'%'}</span></div>
     <div class="networth-row"><span class="networth-label">Ritmo de gasto variable</span><span class="networth-value" style="color:${ritmoPct>130?'var(--danger)':ritmoPct>105?'var(--warn)':'var(--safe)'}">${ritmoPct}% del ritmo esperado</span></div>
-    <div style="font-size:10px;color:var(--text3);margin-top:6px">Día ${diaActual} de ${diasEnMes} del ciclo (${etiquetaCiclo(currentMonth).split(' · ')[1]}) · ${fmtCOP(gastoVariable)} gastado en categorías variables</div>
+    <div style="font-size:11px;color:var(--text3);margin-top:6px">Día ${diaActual} de ${diasEnMes} del ciclo (${etiquetaCiclo(currentMonth).split(' · ')[1]}) · ${fmtCOP(gastoVariable)} gastado en categorías variables</div>
   `;
 }
 
@@ -563,7 +571,7 @@ function suggestCategory(){
     catSelect.value=catFinal;
     catSelect.dispatchEvent(new Event('change'));
     badge.style.display='block';
-    badge.textContent=`✨ Sugerido: ${scat(catFinal)} — cámbialo si no aplica`;
+    badge.textContent=`Sugerido: ${scat(catFinal)} — cámbialo si no aplica`;
     if(typeof actualizarBtnCat==='function') actualizarBtnCat('inp-cat');
     return;
   }
@@ -627,7 +635,7 @@ function populateVehiculoSelect(){
   const sel=document.getElementById('inp-vehiculo');
   if(!sel)return;
   const actual=sel.value;
-  sel.innerHTML=vehiculos.map(v=>`<option value="${v}">🚗 ${v}</option>`).join('')+'<option value="__nuevo__">➕ Agregar otro vehículo…</option>';
+  sel.innerHTML=vehiculos.map(v=>`<option value="${v}">${v}</option>`).join('')+'<option value="__nuevo__">Agregar otro vehículo…</option>';
   if(vehiculos.includes(actual))sel.value=actual;
 }
 
@@ -641,7 +649,7 @@ function onAccountChange(){
   const hint=document.getElementById('acc-hint');
   const type=document.getElementById('inp-type').value;
   if(meta.type==='credito'){
-    hint.textContent=`💳 Esto ${type==='gasto'?'aumentará':'reducirá'} la deuda de ${meta.label}.`;
+    hint.textContent=`Esto ${type==='gasto'?'aumentará':'reducirá'} la deuda de ${meta.label}.`;
   }else{
     hint.textContent=`${type==='gasto'?'Se descontará de':'Se sumará a'} ${meta.label} (${meta.currency}).`;
   }

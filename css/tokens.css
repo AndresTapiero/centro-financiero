@@ -6,11 +6,11 @@
   --border:#E7E4DB; --border2:#D9D5C9;
   --text:#17171F; --text2:#6B6F7D; --text3:#5F646E;
   --accent:#0A7D57; --accent2:#086444;
-  --danger:#DC2626; --warn:#A85B05; --blue:#2563EB; --purple:#7C3AED;
+  --danger:#C81E1E; --warn:#A85B05; --blue:#2563EB; --purple:#7C3AED;
   /* Verde fijo para semáforos financieros (Libre real, Saldo actual, Patrimonio neto...).
      No cambia con el tema — a diferencia de --accent (verde en claro, azul en oscuro),
      esto necesita ser un verde real siempre, porque es una señal de "estás bien". */
-  --safe:#0E9F6E;
+  --safe:#087F58;
   --mono:'JetBrains Mono',monospace; --sans:'Inter',sans-serif;
   --r:14px; --rsm:9px;
   /* La tarjeta de resumen (arriba del todo) se queda oscura a propósito, como acento — todo lo demás es claro */
@@ -23,10 +23,32 @@
   --border:#30363D; --border2:#444C56;
   --text:#E6EDF3; --text2:#8B949E; --text3:#98A1AC;
   --accent:#589BFF; --accent2:#3D86F0;
-  --danger:#F27A72; --warn:#E09A44; --blue:#589BFF; --purple:#A78BFA;
+  --danger:#F27A72; --warn:#E09A44; --blue:#589BFF; --purple:#A78BFA; --safe:#2FBF8A;
   /* Antes hero-bg era igual a --bg y la tarjeta de saldo se perdía contra el fondo negro.
      Ahora es un tono elevado con borde y resplandor de acento para que siga siendo lo primero que se ve. */
   --hero-bg:#161B26; --hero-text:#E6EDF3; --hero-text2:#8B949E;
 }
+/* Escala de diseño: tamaños de texto (mínimo 11 px), espaciado y estado.
+   Los estilos nuevos usan estas variables; no se inventan tamaños sueltos. */
+:root{
+  --fs-xs:11px; --fs-sm:12px; --fs-md:14px; --fs-lg:18px; --fs-xl:28px;
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:24px;
+  --tap:44px; /* alto mínimo de un control táctil */
+}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh}
+body{font-variant-numeric:tabular-nums;font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh}
+
+/* Íconos de línea (sprite SVG al inicio del body): sustituyen a los emojis decorativos */
+.ico{width:1.15em;height:1.15em;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.2em;margin-right:4px;flex:none}
+.ico:last-child{margin-right:0}
+
+/* Semáforo del estado del mes: un punto de color en vez de un emoji */
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.dot-ok{background:var(--safe)} .dot-ojo{background:var(--warn)} .dot-mal{background:var(--danger)}
+
+/* Controles táctiles: en pantallas de dedo, 44 px de alto como mínimo (las áreas pequeñas se amplían sin cambiar lo que se ve) */
+@media (pointer:coarse){
+  .fchip,.tab,.tipo-tab,.user-menu-item,.alerta-montos-btn,.btn-link-sm,.rename-acc-btn,.btn-del{min-height:var(--tap);display:inline-flex;align-items:center}
+  .btn-link-sm,.rename-acc-btn,.btn-del{min-width:var(--tap);justify-content:center}
+  .btn-add.is-ghost{min-height:var(--tap)}
+}

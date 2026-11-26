@@ -177,13 +177,13 @@ async function addEntry(seguirAgregando){
         nuevoId=`offline-${localId}`;
         const statusEl=document.getElementById('sync-status');
         statusEl.style.display='block'; statusEl.style.opacity='1';
-        statusEl.textContent='💾 Guardado offline - se sincronizará cuando haya conexión';
+        statusEl.textContent='Guardado offline - se sincronizará cuando haya conexión';
         statusEl.className='sync-status warn';
       }catch(offlineError){
         registrarErrorDiagnostico('offline storage',offlineError);
         const statusEl=document.getElementById('sync-status');
         statusEl.style.display='block'; statusEl.style.opacity='1';
-        statusEl.textContent='🛑 No se pudo guardar - revisa 🔧 Diagnóstico';
+        statusEl.textContent='No se pudo guardar - revisa Diagnóstico';
         statusEl.className='sync-status error';
         return;
       }
@@ -191,7 +191,7 @@ async function addEntry(seguirAgregando){
       registrarErrorDiagnostico('fin_movimientos (crear)',e);
       const statusEl=document.getElementById('sync-status');
       statusEl.style.display='block'; statusEl.style.opacity='1';
-      statusEl.textContent='🛑 No se pudo guardar el movimiento — revisa 🔧 Diagnóstico';
+      statusEl.textContent='No se pudo guardar el movimiento — revisa Diagnóstico';
       statusEl.className='sync-status error';
       return;
     }
@@ -316,7 +316,7 @@ async function fixCurrency(id){
     avisarGuardado('✓ Moneda corregida');
   }catch(err){
     registrarErrorDiagnostico('fin_movimientos (corregir moneda)',err);
-    toastError('⚠ No se guardó el cambio en la base — revisa 🔧 Diagnóstico');
+    toastError('⚠ No se guardó el cambio en la base — revisa Diagnóstico');
   }
   if(corregirSaldo){ try{ await saveAccountsData(); }catch(err){} }
 }
@@ -331,16 +331,16 @@ function renderAlertaMontos(){
   const enUSD=sospechosos.filter(e=>(e.currency||ACCOUNTS_META[e.acc].currency)==='USD');
   el.innerHTML=`<div class="alerta-montos-titulo">⚠ ${sospechosos.length===1?'Hay un movimiento':'Hay '+sospechosos.length+' movimientos'} con un monto que no cuadra — por eso los totales salen gigantes</div>`+
     `<div class="alerta-montos-acciones">`+
-      (enUSD.length>1?`<button class="alerta-montos-btn is-solid" onclick="fixCurrencyTodos()">💱 Todos eran pesos (${enUSD.length})</button>`:'')+
-      `<button class="alerta-montos-btn" onclick="verMontosSospechosos()">🔍 Verlos en Movimientos</button>`+
+      (enUSD.length>1?`<button class="alerta-montos-btn is-solid" onclick="fixCurrencyTodos()">Todos eran pesos (${enUSD.length})</button>`:'')+
+      `<button class="alerta-montos-btn" onclick="verMontosSospechosos()">Verlos en Movimientos</button>`+
     `</div><div class="alerta-montos-lista">`+
     sospechosos.map(e=>{
       const meta=ACCOUNTS_META[e.acc];
       const usd=(e.currency||meta.currency)==='USD';
       const monto=usd?fmtUSD(e.amount):fmtCOP(e.amount);
       const accion=usd
-        ?`<button class="alerta-montos-btn" onclick="fixCurrency('${e.id}')">💱 Eran pesos</button>`
-        :`<button class="alerta-montos-btn" onclick="openEditEntryModal('${e.id}')">✏️ Revisar</button>`;
+        ?`<button class="alerta-montos-btn" onclick="fixCurrency('${e.id}')">Eran pesos</button>`
+        :`<button class="alerta-montos-btn" onclick="openEditEntryModal('${e.id}')">Revisar</button>`;
       return `<div class="alerta-montos-fila"><div><strong>${esc(e.name)}</strong> · ${monto}${usd?` <span class="alerta-montos-cop">(≈ ${fmtCOP(entryCOP(e))})</span>`:''}<div class="alerta-montos-sub">${fmtDate(e.date)} · ${esc(meta.label)}</div></div>${accion}</div>`;
     }).join('')+`</div>`;
 }
@@ -386,7 +386,7 @@ async function fixCurrencyTodos(){
     avisarGuardado(`✓ ${lista.length} movimientos corregidos`);
   }catch(err){
     registrarErrorDiagnostico('fin_movimientos (corregir moneda en lote)',err);
-    toastError('⚠ No se pudieron guardar todas las correcciones — revisa 🔧 Diagnóstico');
+    toastError('⚠ No se pudieron guardar todas las correcciones — revisa Diagnóstico');
   }
   if(corregirSaldo){ try{ await saveAccountsData(); }catch(err){} }
 }
@@ -402,7 +402,7 @@ function openEditEntryModal(id){
   const esIngreso=e.txType==='ingreso';
   document.getElementById('edit-entry-modal-text').textContent=`${e.name} — actualmente ${amtStr} en ${meta.label} · ${scat(e.cat)}`;
   const badge=document.getElementById('edit-entry-tipo-badge');
-  badge.textContent=esIngreso?'➕ Ingreso':'➖ Gasto';
+  badge.textContent=esIngreso?'Ingreso':'Gasto';
   badge.className='tipo-tab '+(esIngreso?'tipo-tab-ingreso active':'tipo-tab-gasto active');
   badge.style.padding='5px 12px';
   badge.style.cursor='default';
@@ -414,10 +414,10 @@ function openEditEntryModal(id){
   const dinamicas=Object.keys(dynamicAccounts);
   const opt=k=>`<option value="${k}">${ACCOUNTS_META[k].label}</option>`;
   accSel.innerHTML=
-    (liquidas.length?`<optgroup label="🏦 Cuentas en pesos (COP)">${liquidas.map(opt).join('')}</optgroup>`:'')+
-    (tarjetas.length?`<optgroup label="💳 Tarjetas de crédito">${tarjetas.map(opt).join('')}</optgroup>`:'')+
-    (dolares.length?`<optgroup label="🌎 Dólares (USD)">${dolares.map(opt).join('')}</optgroup>`:'')+
-    (dinamicas.length?`<optgroup label="✨ Otras cuentas">${dinamicas.map(opt).join('')}</optgroup>`:'');
+    (liquidas.length?`<optgroup label="Cuentas en pesos (COP)">${liquidas.map(opt).join('')}</optgroup>`:'')+
+    (tarjetas.length?`<optgroup label="Tarjetas de crédito">${tarjetas.map(opt).join('')}</optgroup>`:'')+
+    (dolares.length?`<optgroup label="Dólares (USD)">${dolares.map(opt).join('')}</optgroup>`:'')+
+    (dinamicas.length?`<optgroup label="Otras cuentas">${dinamicas.map(opt).join('')}</optgroup>`:'');
   accSel.value=e.acc;
 
   const catSel=document.getElementById('edit-entry-category');
@@ -559,7 +559,7 @@ async function resolverEditEntryModal(confirmado){
     }
   }catch(err){
     registrarErrorDiagnostico('fin_movimientos (editar)',err);
-    toastError('⚠ El cambio no se guardó en la base — al recargar volverá como estaba. Revisa 🔧 Diagnóstico');
+    toastError('⚠ El cambio no se guardó en la base — al recargar volverá como estaba. Revisa Diagnóstico');
   }
 }
 
@@ -610,7 +610,7 @@ async function moverMovimientoACategoria(id,nuevaCat){
     if(metaNueva)metaNueva.accumulated=(metaNueva.accumulated||0)-montoCOP;
     render();
     registrarErrorDiagnostico('fin_movimientos (mover categoría)',err);
-    toastError('⚠ No se pudo mover: la base no aceptó el cambio — revisa 🔧 Diagnóstico');
+    toastError('⚠ No se pudo mover: la base no aceptó el cambio — revisa Diagnóstico');
   }
 }
 

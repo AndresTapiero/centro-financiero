@@ -66,7 +66,7 @@ async function crearMetaVinculada(nombre,accSlug){
     goal.id=fila.id;
   }catch(e){
     registrarErrorDiagnostico('fin_metas (cajita)',e);
-    toastError('⚠ La cuenta se creó, pero no se pudo marcar como cajita de ahorro — revisa 🔧 Diagnóstico');
+    toastError('⚠ La cuenta se creó, pero no se pudo marcar como cajita de ahorro — revisa Diagnóstico');
     return null;
   }
   goals.push(goal);
@@ -129,7 +129,7 @@ function reubicarTarjetasDinamicas(){
 
 function actualizarBotonMover(key){
   const btn=document.getElementById('move-'+key);
-  if(btn)btn.textContent=cuentasDeAhorro().has(key)?'💧 Mover a cuentas líquidas':'🎯 Mover a ahorro para metas';
+  if(btn)btn.textContent=cuentasDeAhorro().has(key)?'Mover a cuentas líquidas':'🎯 Mover a ahorro para metas';
 }
 
 /**
@@ -145,7 +145,7 @@ async function moverCuentaDeSeccion(key){
   }
   const vinculadas=goals.filter(g=>g.type==='cuenta'&&g.acc===key);
   if(vinculadas.some(g=>g.target>0)){
-    toastError('Esta cuenta tiene una meta con monto objetivo: elimínala en 🏆 Metas para devolverla a líquidas');
+    toastError('Esta cuenta tiene una meta con monto objetivo: elimínala en Metas para devolverla a líquidas');
     return;
   }
   for(const g of vinculadas){
@@ -202,7 +202,7 @@ function showSaveToast(state){
     el.style.opacity='1';
     el._hideTimer=setTimeout(()=>{ el.style.opacity='0'; setTimeout(()=>el.style.display='none',300); },1200);
   }else if(state==='error'){
-    el.textContent='⚠ No se pudo guardar — ver 🔧 Diagnóstico';
+    el.textContent='⚠ No se pudo guardar — ver Diagnóstico';
     el.style.background='rgba(255,107,107,.15)';
     el.style.color='var(--danger)';
     el.style.border='1px solid rgba(255,107,107,.4)';
@@ -400,7 +400,7 @@ function refreshGoalCategoryOptions(){
     if(catGoals.length===0)return;
     optgroup=document.createElement('optgroup');
     optgroup.id='goal-cats-optgroup-'+selectId;
-    optgroup.label='🏆 Metas';
+    optgroup.label='Metas';
     catGoals.forEach(g=>{
       const opt=document.createElement('option');
       opt.value=g.cat;
@@ -440,7 +440,7 @@ function renderGoals(){
   const list=document.getElementById('goals-list');
   if(!list)return;
   if(goals.length===0){
-    list.innerHTML='<div class="card"><div class="empty">🏆 Aún no tienes metas — crea la primera arriba (ej: Ahorro Vivienda vinculada a Lulo, o Inversión Cripto acumulada por categoría)</div></div>';
+    list.innerHTML='<div class="card"><div class="empty">Aún no tienes metas — crea la primera arriba (ej: Ahorro Vivienda vinculada a Lulo, o Inversión Cripto acumulada por categoría)</div></div>';
     return;
   }
   list.innerHTML=goals.map(g=>{
@@ -464,30 +464,30 @@ function renderGoals(){
     if(g.target){
       const faltanteCOP=targetCOP-actualCOP;
       if(faltanteCOP<=0){
-        proyeccionHTML=`<div style="font-size:10px;color:var(--safe);margin-top:8px;font-weight:600">🎉 Meta alcanzada.</div>`;
+        proyeccionHTML=`<div style="font-size:11px;color:var(--safe);margin-top:8px;font-weight:600">Meta alcanzada.</div>`;
       }else{
         const ritmo=calcularRitmoMeta(g);
         if(!ritmo||ritmo.promedioMensual<=0){
-          proyeccionHTML=`<div style="font-size:10px;color:var(--text3);margin-top:8px">Sin ritmo de ahorro positivo en tus últimos movimientos — todavía no se puede proyectar cuándo la alcanzas.</div>`;
+          proyeccionHTML=`<div style="font-size:11px;color:var(--text3);margin-top:8px">Sin ritmo de ahorro positivo en tus últimos movimientos — todavía no se puede proyectar cuándo la alcanzas.</div>`;
         }else{
           const mesesRestantes=Math.ceil(faltanteCOP/ritmo.promedioMensual);
           const fechaProyectada=new Date();
           fechaProyectada.setMonth(fechaProyectada.getMonth()+mesesRestantes);
           const monthNamesLower=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
           const fechaTexto=`${monthNamesLower[fechaProyectada.getMonth()]} ${fechaProyectada.getFullYear()}`;
-          proyeccionHTML=`<div style="font-size:10px;color:var(--text2);margin-top:8px">📅 A tu ritmo de los últimos ${ritmo.mesesConsiderados} mes(es) (~${fmtCOP(ritmo.promedioMensual)}/mes), llegarías en <strong style="color:var(--text)">~${mesesRestantes} mes(es) (${fechaTexto})</strong>.</div>`;
+          proyeccionHTML=`<div style="font-size:11px;color:var(--text2);margin-top:8px">A tu ritmo de los últimos ${ritmo.mesesConsiderados} mes(es) (~${fmtCOP(ritmo.promedioMensual)}/mes), llegarías en <strong style="color:var(--text)">~${mesesRestantes} mes(es) (${fechaTexto})</strong>.</div>`;
         }
       }
     }
 
     return `<div class="card">
-      <div class="card-title">${g.type==='cuenta'?'💧':'🏷️'} ${esc(g.name)} <button class="btn-del" onclick="deleteGoal('${g.id}')" style="float:right">×</button></div>
+      <div class="card-title"><span class="ct-main">${ico(g.type==='cuenta'?'wallet':'tag')}${esc(g.name)}</span> <button class="btn-del" onclick="deleteGoal('${g.id}')" style="float:right">×</button></div>
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
         <span style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--accent)">${actualStr}</span>
         <span style="font-size:11px;color:var(--text3)">${g.target?`meta: ${fmtCOP(g.target)}`:'sin meta fija'} · <button type="button" class="btn-link-sm" onclick="abrirAjusteMeta('${g.id}')">Ajustar</button></span>
       </div>
-      ${pct!==null?`<div class="debt-track"><div class="debt-fill" style="width:${pct}%;background:${colorMeta}"></div></div><div style="font-size:10px;margin-top:4px;display:flex;justify-content:space-between"><span style="color:${colorMeta};font-weight:600">${mensajeMeta}</span><span style="color:var(--text3)">${pct}%</span></div>`:''}
-      <div style="font-size:10px;color:var(--text3);margin-top:8px">${g.type==='cuenta'?'Vinculada a: '+esc((ACCOUNTS_META[g.acc]||{}).label||'Cuenta eliminada'):'Acumula movimientos categorizados como "'+esc(g.name)+'"'}</div>
+      ${pct!==null?`<div class="debt-track"><div class="debt-fill" style="width:${pct}%;background:${colorMeta}"></div></div><div style="font-size:11px;margin-top:4px;display:flex;justify-content:space-between"><span style="color:${colorMeta};font-weight:600">${mensajeMeta}</span><span style="color:var(--text3)">${pct}%</span></div>`:''}
+      <div style="font-size:11px;color:var(--text3);margin-top:8px">${g.type==='cuenta'?'Vinculada a: '+esc((ACCOUNTS_META[g.acc]||{}).label||'Cuenta eliminada'):'Acumula movimientos categorizados como "'+esc(g.name)+'"'}</div>
       ${proyeccionHTML}
     </div>`;
   }).join('');
@@ -553,7 +553,7 @@ async function resolverAjusteMeta(confirmado){
     g.target=anterior; g.name=nombreAnterior;
     renderGoals();
     registrarErrorDiagnostico('fin_metas (ajustar objetivo)',e);
-    toastError('🛑 No se pudo guardar el nuevo objetivo — quedó como estaba');
+    toastError('No se pudo guardar el nuevo objetivo — quedó como estaba');
   }
 }
 
@@ -636,7 +636,7 @@ async function resolverRenombrarCuenta(confirmado){
     render();
     renderGoals();
     registrarErrorDiagnostico('fin_accounts (renombrar)',e);
-    toastError('🛑 No se pudo guardar el nombre — quedó como estaba');
+    toastError('No se pudo guardar el nombre — quedó como estaba');
   }
 }
 
