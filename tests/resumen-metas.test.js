@@ -43,5 +43,50 @@ test('todas cumplidas', () => {
   assert(r.cumplidas, 2); assert(r.pct, 100); assert(r.masCerca, null);
 });
 test('sin metas', () => assert(src.calcularResumenMetas([]).total, 0));
+console.log('\nfecha límite y consejo de aporte:');
+set('accounts', { nequi:0, debito:0, nu:0, lulo:2000000, arq:0, ontop:0, trm:4000, davtc:0, rappitc:0 });
+set('entries', []);
+const meta = (extra = {}) => ({ id:'v', name:'Vivienda', type:'cuenta', acc:'lulo', target:10000000, deadline:'2027-06-30', ...extra });
+test('ciclosHasta cuenta el ciclo actual y el de la fecha límite', () => {
+  assert(src.ciclosHasta('2026-12-20', '2026-12-10'), 1);   // mismo ciclo
+  assert(src.ciclosHasta('2027-01-20', '2026-12-10'), 2);
+  assert(src.ciclosHasta('2027-06-30', '2026-12-10'), 8);   // el 30 de junio ya cae en el ciclo de julio
+  assert(src.ciclosHasta('2026-11-01', '2026-12-10') < 1, true);
+});
+test('reparte lo que falta entre los ciclos que quedan', () => {
+  const c = src.consejoMeta(meta(), '2026-12-10');
+  assert(c.tipo, 'plan'); assert(c.ciclos, 8);
+  assert(c.cuota, 1000000);          // faltan 8.000.000 / 8 ciclos
+  assert(c.porAportar, 1000000); assert(c.alDia, false);
+});
+test('lo aportado este ciclo cuenta para la cuota y no se pide dos veces', () => {
+  set('entries', [{ id:1, date:'2026-12-05', name:'Transferencia', amount:400000, cat:'Transferencia', acc:'lulo', txType:'ingreso' }]);
+  set('accounts', { nequi:0, debito:0, nu:0, lulo:2400000, arq:0, ontop:0, trm:4000, davtc:0, rappitc:0 });
+  const c = src.consejoMeta(meta(), '2026-12-10');
+  assert(c.aportado, 400000); assert(c.cuota, 1000000); assert(c.porAportar, 600000);
+});
+test('cuota cubierta cuando ya aportaste lo que toca', () => {
+  set('entries', [{ id:1, date:'2026-12-05', name:'Transferencia', amount:1500000, cat:'Transferencia', acc:'lulo', txType:'ingreso' }]);
+  set('accounts', { nequi:0, debito:0, nu:0, lulo:3500000, arq:0, ontop:0, trm:4000, davtc:0, rappitc:0 });
+  assert(src.consejoMeta(meta(), '2026-12-10').alDia, true);
+});
+test('un ajuste de saldo no cuenta como aporte', () => {
+  set('entries', [{ id:1, date:'2026-12-05', name:'Ajuste', amount:900000, cat:'[Ajuste de saldo]', acc:'lulo', txType:'ingreso' }]);
+  assert(src.consejoMeta(meta(), '2026-12-10').aportado, 0);
+});
+test('fecha vencida sin cumplir avisa; cumplida no pide nada; sin fecha no hay consejo', () => {
+  set('entries', []); set('accounts', { nequi:0, debito:0, nu:0, lulo:2000000, arq:0, ontop:0, trm:4000, davtc:0, rappitc:0 });
+  assert(src.consejoMeta(meta({ deadline:'2026-11-01' }), '2026-12-10').tipo, 'vencida');
+  set('accounts', { nequi:0, debito:0, nu:0, lulo:12000000, arq:0, ontop:0, trm:4000, davtc:0, rappitc:0 });
+  assert(src.consejoMeta(meta(), '2026-12-10').tipo, 'cumplida');
+  assert(src.consejoMeta(meta({ deadline:null }), '2026-12-10'), null);
+});
+test('el resumen suma lo que conviene aportar en todas las metas con fecha', () => {
+  set('accounts', { nequi:0, debito:0, nu:5000000, lulo:2000000, arq:0, ontop:0, trm:4000, davtc:0, rappitc:0 });
+  set('goals', [meta(), { id:'e', name:'Emergencia', type:'cuenta', acc:'nu', target:7000000, deadline:'2027-02-10' }]);
+  const r = src.resumenPlanes(ev('goals'));
+  assert(r.conFecha, 2);
+});
+
 console.log(`\n${passed} pasaron, ${failed} fallaron`);
 process.exit(failed ? 1 : 0);

@@ -387,6 +387,11 @@
     </div>
     <label for="edit-meta-target" style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Monto objetivo</label>
     <input class="inp inp-num" id="edit-meta-target" type="text" inputmode="decimal" autocomplete="off" oninput="formatearInputMonto(this)" style="width:100%;margin:4px 0 8px">
+    <label for="edit-meta-fecha" style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Fecha límite (opcional)</label>
+    <div style="display:flex;gap:8px;align-items:center;margin:4px 0 14px">
+      <input class="inp" id="edit-meta-fecha" type="date" style="flex:1;min-width:0">
+      <button type="button" class="btn-link-sm" onclick="document.getElementById('edit-meta-fecha').value=''">Quitar</button>
+    </div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
       <button type="button" class="fchip" onclick="ajustarMetaPorcentaje(-10)">−10 %</button>
       <button type="button" class="fchip" onclick="ajustarMetaPorcentaje(10)">+10 %</button>
@@ -968,6 +973,10 @@
           <option value="categoria">Acumulada por categoría</option>
         </select>
         <input class="inp inp-num" id="goal-target" type="text" inputmode="decimal" autocomplete="off" oninput="formatearInputMonto(this)" placeholder="Meta (opcional)"/>
+      </div>
+      <div class="input-grid2" id="goal-deadline-row" style="margin-bottom:8px">
+        <label class="goal-deadline-label" for="goal-deadline">Fecha límite (opcional): la app te dice cuánto aportar en cada ciclo</label>
+        <input class="inp" id="goal-deadline" type="date" style="grid-column:span 1"/>
       </div>
       <div class="input-grid2" id="goal-cuenta-row">
         <select class="inp" id="goal-account" onchange="onGoalAccountChange()">

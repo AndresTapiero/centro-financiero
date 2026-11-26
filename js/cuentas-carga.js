@@ -124,6 +124,8 @@ async function loadData(){
         target:Number(m.monto_objetivo),
         accumulated:m.tipo==='categoria'?Number(m.acumulado):undefined,
         color:m.color||undefined,
+        // Si la columna fecha_objetivo todavía no existe en Supabase (sql/meta-fecha-limite.sql), se usa la copia de este dispositivo
+        deadline:m.fecha_objetivo||fechasMetaLocales()[m.id]||null,
       }));
       goals.filter(g=>g.type==='categoria').forEach(g=>{ if(g.color)COLORS[g.cat]=g.color; });
     }catch(e){ registrarErrorDiagnostico('fin_metas (lectura)',e); }

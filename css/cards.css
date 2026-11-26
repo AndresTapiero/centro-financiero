@@ -96,3 +96,12 @@
 /* Avance de la meta dentro de la tarjeta de cuenta */
 .acc-meta{margin-top:var(--sp-3)}
 .acc-meta-texto{display:flex;justify-content:space-between;gap:var(--sp-2);font-size:var(--fs-xs);color:var(--text3);margin-top:4px}
+
+/* Fecha límite y consejo de aporte */
+.goal-deadline-label{grid-column:1 / -1;font-size:var(--fs-xs);color:var(--text3);line-height:1.4}
+.meta-consejo{margin-top:var(--sp-3);padding:var(--sp-3);border-radius:10px;background:var(--surface2);border:1px solid var(--border);font-size:var(--fs-sm);line-height:1.5;color:var(--text2)}
+.meta-consejo strong{color:var(--text)}
+.meta-consejo.alerta{border-color:var(--warn)}
+.meta-consejo.ok{border-color:var(--safe)}
+.meta-consejo-cifra{font-family:var(--mono);font-size:var(--fs-lg);font-weight:700;color:var(--text);display:block;margin:2px 0}
+.meta-fecha{font-size:var(--fs-xs);color:var(--text3);margin-top:var(--sp-2)}
