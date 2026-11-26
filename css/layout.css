@@ -23,3 +23,13 @@
 .tab-content.active{display:block}
 
 .hint{font-size:11px;color:var(--text3);text-align:center;margin-top:1rem;line-height:1.7}
+
+/* Los hijos de un flex/grid tienen min-width:auto: un contenido ancho (chips, textos sin cortar) estira la caja
+   más allá de la pantalla. Con min-width:0 la caja se queda en su sitio y el contenido hace scroll o salta de línea. */
+.entries-header>*,.fbar,.fchips,.entries-wrap,.card,.input-section,.ats-card{min-width:0;max-width:100%}
+.entries-header>div:first-child{flex-wrap:wrap;gap:8px}
+/* Red de seguridad: si algo se sale, que no mueva toda la página hacia un lado (eso "corre" los textos) */
+html,body{overflow-x:clip}
+@media(max-width:640px){
+  .entries-header>div:first-child .btn-analyze{flex:1 1 auto;white-space:normal;text-align:center}
+}
