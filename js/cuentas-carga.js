@@ -321,7 +321,7 @@ function checkLowBalances(){
     if(bajo&&!existente){
       const badge=document.createElement('span');
       badge.className='low-balance-badge';
-      badge.textContent='⚠ Bajo';
+      badge.textContent='Saldo bajo';
       card.appendChild(badge);
     }else if(!bajo&&existente){
       existente.remove();

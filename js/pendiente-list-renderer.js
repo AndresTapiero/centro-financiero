@@ -63,14 +63,14 @@ class PendienteListRenderer {
     // El estado va en una clase, no en un style inline: el inline pisaba el fondo opaco de
     // .entry-row-content y dejaba ver la capa de swipe (azul/rojo) detrás de la fila.
     const claseEstado = estado === 'vencido' ? ' is-vencido' : estado === 'proximo' ? ' is-proximo' : '';
-    const prefijoNombre = estado === 'vencido' ? '🔴 VENCIDO — ' : estado === 'proximo' ? '⏰ PRONTO — ' : p.isIncome ? '💰 ' : '';
+    const prefijoNombre = estado === 'vencido' ? 'VENCIDO — ' : estado === 'proximo' ? 'PRONTO — ' : p.isIncome ? '' : '';
     const colorPunto = estado === 'vencido' ? 'var(--danger)' : estado === 'proximo' ? 'var(--warn)' : c;
     const colorMonto = p.isIncome ? 'var(--accent)' : estado === 'vencido' ? 'var(--danger)' : estado === 'proximo' ? 'var(--warn)' : 'var(--text)';
 
     return `<div class="entry-row" data-id="${p.id}" style="--swipe-left-bg:var(--danger);--swipe-right-bg:var(--accent)">
       <div class="entry-row-swipe-bg entry-row-swipe-bg-pendiente" aria-hidden="true">
-        <span class="swipe-right-text" style="position:absolute;left:16px">${p.isIncome ? '💰 Recibir' : '✓ Pagar'}</span>
-        <span class="swipe-left-text" style="position:absolute;right:16px">🗑 Eliminar</span>
+        <span class="swipe-right-text" style="position:absolute;left:16px">${p.isIncome ? 'Recibir' : '✓ Pagar'}</span>
+        <span class="swipe-left-text" style="position:absolute;right:16px">Eliminar</span>
       </div>
       <div class="entry-row-content${claseEstado}" style="cursor:pointer" onclick="editPendiente('${p.id}')">
         <div class="entry-row-top">
@@ -88,7 +88,7 @@ class PendienteListRenderer {
   }
 
   render(){
-    if(this.pendientes.length === 0) return '<div class="empty">✅ Sin pendientes — todo al día</div>';
+    if(this.pendientes.length === 0) return '<div class="empty">Sin pendientes — todo al día</div>';
     const { grupos, sinFecha } = this.agruparPorFecha();
     let html = '';
     for(const [fecha, items] of grupos){

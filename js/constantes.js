@@ -167,6 +167,9 @@ let currentMonth=null;
  * excluir los ajustes: un ajuste de $2.000.000 aparecía como un mes carísimo en la
  * comparativa y como una "categoría" propia en la tendencia.
  */
+/** Ícono de línea del sprite que vive al inicio del <body> (reemplaza a los emojis decorativos). */
+function ico(nombre){ return `<svg class="ico" aria-hidden="true"><use href="#i-${nombre}"/></svg>`; }
+
 function esGastoReal(e){
   return e.txType!=='ingreso' && e.cat!=='Transferencia' && e.cat!=='[Ajuste de saldo]';
 }
@@ -250,10 +253,12 @@ function etiquetaCiclo(ciclo){
 
 /** Color y mensaje de aliento según el % de avance de una meta o fondo de ahorro — mismo criterio en todos lados */
 function colorYMensajeProgreso(pct){
-  if(pct>=100)return{color:'#0E9F6E',mensaje:'🎉 ¡Meta cumplida!'};
-  if(pct>=75)return{color:'#0E9F6E',mensaje:'🎯 Ya casi — no aflojes ahora'};
-  if(pct>=50)return{color:'#0EA5E9',mensaje:'🔥 Más de la mitad, vas muy bien'};
-  if(pct>=25)return{color:'#D97706',mensaje:'🚀 Buen avance, sigue aportando'};
-  return{color:'#DC2626',mensaje:'💪 Cada aporte cuenta — vas arrancando'};
+  // Tono neutro: el avance se dice con datos, sin celebrar ni regañar. El rojo se reserva para
+  // errores y deuda vencida; empezar una meta no es una alarma.
+  if(pct>=100)return{color:'var(--safe)',mensaje:'Meta cumplida'};
+  if(pct>=75)return{color:'var(--safe)',mensaje:'Falta poco'};
+  if(pct>=50)return{color:'var(--safe)',mensaje:'Más de la mitad'};
+  if(pct>=25)return{color:'var(--warn)',mensaje:'En progreso'};
+  return{color:'var(--text2)',mensaje:'Recién empezando'};
 }
 

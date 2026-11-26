@@ -6,7 +6,7 @@
 .budget-nums{font-family:var(--mono);font-size:11px;color:var(--text2)}
 .budget-track{height:6px;background:var(--surface2);border-radius:99px;overflow:hidden}
 .budget-fill{height:6px;border-radius:99px;transition:width .6s cubic-bezier(.4,0,.2,1)}
-.budget-status{font-size:10px;margin-top:3px;text-align:right}
+.budget-status{font-size:11px;margin-top:3px;text-align:right}
 .budget-status.ok{color:var(--text3)}.budget-status.warn{color:var(--warn)}.budget-status.over{color:var(--danger);font-weight:600}
 
 @media(max-width:640px){

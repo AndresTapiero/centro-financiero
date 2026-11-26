@@ -79,7 +79,7 @@ function actualizarBotonTodosLosMeses(){
   const titulo=document.getElementById('entries-title');
   if(titulo)titulo.textContent=filterSospechosos?'Movimientos · montos que no cuadran':TITULOS_RANGO[filterRange];
   const periodo=document.getElementById('fperiodo-texto');
-  if(periodo)periodo.textContent='📅 '+etiquetaPeriodo();
+  if(periodo)periodo.textContent=''+etiquetaPeriodo();
   const alto=document.getElementById('fchip-sospechosos');
   if(alto){
     const n=entries.filter(montoSospechoso).length;
@@ -325,7 +325,7 @@ function renderSearchResults(matches,q){
     return;
   }
   const sorted=[...matches].sort((a,b)=>b.date.localeCompare(a.date));
-  resultsEl.innerHTML=`<div style="font-size:10px;color:var(--text3);margin-bottom:6px">${sorted.length} resultado(s) en todo tu historial</div>`+
+  resultsEl.innerHTML=`<div style="font-size:11px;color:var(--text3);margin-bottom:6px">${sorted.length} resultado(s) en todo tu historial</div>`+
     sorted.map(e=>{
       const meta=ACCOUNTS_META[e.acc]||{label:'Cuenta eliminada',currency:'COP'};
       const c=col(e.cat);
@@ -408,7 +408,7 @@ function updateFilterBalanceBanner(){
   const saldoStr=meta.currency==='USD'?fmtUSD(saldo):fmtCOP(saldo);
   const esDeuda=meta.type==='credito';
   banner.style.display='flex';
-  document.getElementById('filter-balance-label').textContent=`💰 Saldo actual de ${meta.label}`;
+  document.getElementById('filter-balance-label').textContent=`Saldo actual de ${meta.label}`;
   const valEl=document.getElementById('filter-balance-value');
   valEl.textContent=saldoStr;
   valEl.style.color=esDeuda?'var(--danger)':'var(--accent)';

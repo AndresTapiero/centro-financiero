@@ -125,7 +125,7 @@ async function syncNow(){
     if(activeTab==='metricas')renderMetrics();
     const ahora=new Intl.DateTimeFormat('es-CO',{timeZone:'America/Bogota',hour:'2-digit',minute:'2-digit'}).format(new Date());
     if(lecturasFallidas.length>0){
-      statusEl.textContent=`🛑 No se pudo sincronizar ${lecturasFallidas.join(', ')}. Lo que ves en pantalla podría no ser lo más reciente.`;
+      statusEl.textContent=`No se pudo sincronizar ${lecturasFallidas.join(', ')}. Lo que ves en pantalla podría no ser lo más reciente.`;
       statusEl.className='sync-status error';
     }else{
       statusEl.textContent=`✓ Sincronizado ${ahora}`;
@@ -134,7 +134,7 @@ async function syncNow(){
     }
   }catch(err){
     registrarErrorDiagnostico('syncNow (error general)',err);
-    statusEl.textContent='⚠ Ocurrió un error al sincronizar. Ve a 🔧 Diagnóstico para más detalles.';
+    statusEl.textContent='⚠ Ocurrió un error al sincronizar. Ve a Diagnóstico para más detalles.';
     statusEl.className='sync-status error';
   }
 }
