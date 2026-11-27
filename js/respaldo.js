@@ -29,7 +29,7 @@ document.getElementById('pend-date').value=todayStr();
 document.getElementById('inp-type').addEventListener('change',onAccountChange);
 onTransferAccChange();
 iniciarGestoAbono();
-agregarLapicesRenombrar();
+iniciarGestoRenombrar();
 onGoalTypeChange();
 document.getElementById('sort-fecha')?.classList.add('active');
 onAccountChange();

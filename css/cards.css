@@ -69,8 +69,6 @@
 
 .btn-link-sm{background:none;border:none;padding:0;font:inherit;font-size:11px;font-weight:600;color:var(--accent);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
 .btn-link-sm:hover{opacity:.8}
-.rename-acc-btn{margin-left:auto;background:none;border:none;color:var(--text3);font-size:13px;line-height:1;cursor:pointer;padding:2px 4px;border-radius:6px;opacity:.55;transition:opacity .15s,color .15s}
-.rename-acc-btn:hover,.rename-acc-btn:focus-visible{opacity:1;color:var(--accent)}
 .empty-estado{text-align:center;color:var(--text2);font-size:13px;line-height:1.6;padding:12px 8px}
 .empty-estado span{color:var(--text3);font-size:12px}
 /* Secciones secundarias plegables: el título es el botón, el estado se recuerda en el dispositivo */
@@ -105,3 +103,4 @@
 .meta-consejo.ok{border-color:var(--safe)}
 .meta-consejo-cifra{font-family:var(--mono);font-size:var(--fs-lg);font-weight:700;color:var(--text);display:block;margin:2px 0}
 .meta-fecha{font-size:var(--fs-xs);color:var(--text3);margin-top:var(--sp-2)}
+.hint-gesto{font-size:11px;color:var(--text3);margin:-4px 0 10px}

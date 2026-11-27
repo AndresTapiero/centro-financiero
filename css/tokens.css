@@ -50,7 +50,7 @@ body{overflow-wrap:break-word;font-variant-numeric:tabular-nums;font-family:var(
 
 /* Controles táctiles: en pantallas de dedo, 44 px de alto como mínimo (las áreas pequeñas se amplían sin cambiar lo que se ve) */
 @media (pointer:coarse){
-  .fchip,.tab,.tipo-tab,.user-menu-item,.alerta-montos-btn,.btn-link-sm,.rename-acc-btn,.btn-del{min-height:var(--tap);display:inline-flex;align-items:center}
-  .btn-link-sm,.rename-acc-btn,.btn-del{min-width:var(--tap);justify-content:center}
+  .fchip,.tab,.tipo-tab,.user-menu-item,.alerta-montos-btn,.btn-link-sm,.btn-del{min-height:var(--tap);display:inline-flex;align-items:center}
+  .btn-link-sm,.btn-del{min-width:var(--tap);justify-content:center}
   .btn-add.is-ghost{min-height:var(--tap)}
 }
