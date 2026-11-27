@@ -386,6 +386,36 @@ function updateNetWorth(){
   updateFilterBalanceBanner();
 }
 
+/**
+ * Semáforo del estado del mes. Reglas, en orden:
+ *  1. Si lo gastado supera lo ingresado, es rojo: no se puede "ir bien" gastando más de lo que entra.
+ *  2. Sin ingresos todavía (el sueldo aún no llega) no se juzga: se avisa en neutro.
+ *  3. Al inicio del ciclo (menos de 5 días) un solo gasto grande dispara el "ritmo" a 170 % o más
+ *     sin significar nada; se queda en neutro salvo que ya se haya pasado todo el presupuesto variable.
+ *  4. Ritmo del gasto variable contra el presupuesto: >130 % rojo, >105 % amarillo. Pero si el ciclo
+ *     va con superávit y aún no se pasó del presupuesto, el rojo baja a amarillo.
+ *  Un ciclo cerrado se describe en pasado, no como "ritmo".
+ * Devuelve {estado:'ok'|'ojo'|'mal'|'neutro', texto, pronto, ritmoPct}.
+ */
+function evaluarSemaforoMes({ingresos,gastos,gastoVariable,topeVariable,dia,dias,cerrado}){
+  const ritmoIdeal=topeVariable>0?(topeVariable/dias)*dia:0;
+  const ritmoPct=ritmoIdeal>0?Math.round(gastoVariable/ritmoIdeal*100):0;
+  const superavit=ingresos>gastos;
+  const pasoPresupuesto=topeVariable>0&&gastoVariable>topeVariable;
+  if(gastos>ingresos&&gastos>0) return {estado:'mal',texto:cerrado?'Gastaste más de lo que ingresó':'Los gastos ya superan los ingresos',pronto:false,ritmoPct};
+  if(cerrado){
+    if(pasoPresupuesto) return {estado:superavit?'ojo':'mal',texto:'Te pasaste del presupuesto variable',pronto:false,ritmoPct};
+    return {estado:'ok',texto:'Cerraste dentro del presupuesto',pronto:false,ritmoPct};
+  }
+  if(ingresos<=0) return {estado:'neutro',texto:'Aún sin ingresos este ciclo',pronto:true,ritmoPct};
+  if(dia<5&&!pasoPresupuesto) return {estado:'neutro',texto:'Ciclo recién empezando',pronto:true,ritmoPct};
+  if(ritmoPct>130) return superavit&&!pasoPresupuesto
+    ?{estado:'ojo',texto:'Gasto variable por encima del ritmo',pronto:false,ritmoPct}
+    :{estado:'mal',texto:'Gastando más rápido de lo normal',pronto:false,ritmoPct};
+  if(ritmoPct>105) return {estado:'ojo',texto:'Cerca del límite de ritmo',pronto:false,ritmoPct};
+  return {estado:'ok',texto:'Vas bien',pronto:false,ritmoPct};
+}
+
 function renderEstadoMes(){
   const body=document.getElementById('estado-mes-body');
   const semaforoEl=document.getElementById('estado-mes-semaforo');
@@ -417,11 +447,14 @@ function renderEstadoMes(){
   const ritmoIdeal=(topeControlable()/diasEnMes)*diaActual;
   const ritmoPct=ritmoIdeal>0?Math.round(gastoVariable/ritmoIdeal*100):0;
 
-  // Semáforo único: combina ritmo de gasto variable vs avance del mes
-  let semaforo='ok',semaforoTexto='Vas bien';
-  if(ritmoPct>130){semaforo='mal';semaforoTexto='Gastando más rápido de lo normal';}
-  else if(ritmoPct>105){semaforo='ojo';semaforoTexto='Cerca del límite de ritmo';}
-  semaforoEl.innerHTML=`<span class="dot dot-${semaforo}"></span>${esc(semaforoTexto)}`;
+  const cerrado=currentMonth!==cicloActual();
+  const sem=evaluarSemaforoMes({ingresos,gastos,gastoVariable,topeVariable:topeControlable(),dia:diaActual,dias:diasEnMes,cerrado});
+  semaforoEl.innerHTML=`<span class="dot dot-${sem.estado}"></span>${esc(sem.texto)}`;
+  const usadoPct=topeControlable()>0?Math.round(gastoVariable/topeControlable()*100):0;
+  const colorRitmo=sem.pronto?'var(--text3)':ritmoPct>130?'var(--danger)':ritmoPct>105?'var(--warn)':'var(--safe)';
+  const filaRitmo=cerrado
+    ?`<span class="networth-label">Presupuesto variable usado</span><span class="networth-value" style="color:${usadoPct>100?'var(--danger)':'var(--safe)'}">${usadoPct}%</span>`
+    :`<span class="networth-label">Ritmo de gasto variable</span><span class="networth-value" style="color:${colorRitmo}">${sem.pronto?'Muy pronto para medir':ritmoPct+'% del ritmo esperado'}</span>`;
 
   body.innerHTML=`
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:10px;margin-bottom:12px">
@@ -436,7 +469,7 @@ function renderEstadoMes(){
     </div>
     <div class="networth-row"><span class="networth-label">Balance neto del mes</span><span class="networth-value" style="color:${balanceNeto>=0?'var(--safe)':'var(--danger)'}">${balanceNeto>=0?'+':''}${fmtCOP(balanceNeto)}</span></div>
     <div class="networth-row"><span class="networth-label">% del ingreso ya comprometido</span><span class="networth-value"${pctComprometido===null?' style="color:var(--warn)"':''}>${pctComprometido===null?'— aún sin ingresos en este ciclo':pctComprometido+'%'}</span></div>
-    <div class="networth-row"><span class="networth-label">Ritmo de gasto variable</span><span class="networth-value" style="color:${ritmoPct>130?'var(--danger)':ritmoPct>105?'var(--warn)':'var(--safe)'}">${ritmoPct}% del ritmo esperado</span></div>
+    <div class="networth-row">${filaRitmo}</div>
     <div style="font-size:11px;color:var(--text3);margin-top:6px">Día ${diaActual} de ${diasEnMes} del ciclo (${etiquetaCiclo(currentMonth).split(' · ')[1]}) · ${fmtCOP(gastoVariable)} gastado en categorías variables</div>
   `;
 }

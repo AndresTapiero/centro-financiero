@@ -176,7 +176,6 @@ function renderDynamicAccountCard(key){
   // meta.label lo escribes tú al crear la cuenta, así que va escapado antes de entrar a innerHTML.
   card.innerHTML=`<div class="acc-label"><span class="avatar-square" style="background:#2563EB">${esc(inicial)}</span><span>${esc(meta.label)}</span><span class="currency-badge">${monedaTexto}</span></div><input class="acc-value" id="acc-${key}" onblur="handleAccountFieldBlur('${key}')"><button type="button" class="move-acc-btn" id="move-${key}" onclick="moverCuentaDeSeccion('${key}')"></button>`;
   grid.appendChild(card);
-  agregarLapicesRenombrar();
   actualizarBotonMover(key);
   document.getElementById('acc-'+key).value=meta.currency==='USD'?fmtUSD(accounts[key]):fmtCOP(accounts[key]);
 }
@@ -811,17 +810,36 @@ async function resolverRenombrarCuenta(confirmado){
   }
 }
 
-/** Agrega el lápiz de renombrar a las tarjetas de cuentas que no son tarjeta de crédito. */
-function agregarLapicesRenombrar(){
-  Object.keys(ACCOUNTS_META).forEach(slug=>{
-    if(ACCOUNTS_META[slug].type==='credito')return;
-    const card=document.getElementById('card-'+slug);
-    const label=card&&card.querySelector('.acc-label');
-    if(!label||label.querySelector('.rename-acc-btn'))return;
-    const b=document.createElement('button');
-    b.type='button'; b.className='rename-acc-btn'; b.title='Renombrar cuenta'; b.setAttribute('aria-label','Renombrar '+ACCOUNTS_META[slug].label);
-    b.textContent='✎';
-    b.onclick=ev=>{ ev.stopPropagation(); abrirRenombrarCuenta(slug); };
-    label.appendChild(b);
+/**
+ * Renombrar una cuenta: mantener presionada su tarjeta (o clic derecho en escritorio).
+ * Se delega en el documento para cubrir también las cuentas que se crean después.
+ * Las tarjetas de crédito usan ese mismo gesto para el abono a capital, así que se excluyen.
+ */
+function iniciarGestoRenombrar(){
+  const MS=450, TOLERANCIA=10;
+  let timer=null,x0=0,y0=0,disparado=false,cardActiva=null;
+  const slugDe=card=>{
+    if(!card||card.dataset.abono!==undefined&&card.dataset.abono!=='')return null;
+    const slug=(card.id||'').replace(/^card-/,'');
+    const meta=ACCOUNTS_META[slug];
+    return meta&&meta.type!=='credito'?slug:null;
+  };
+  const cancelar=()=>{ clearTimeout(timer); timer=null; if(cardActiva)cardActiva.classList.remove('abono-presionando'); cardActiva=null; };
+  document.addEventListener('pointerdown',ev=>{
+    if(ev.button>0)return;
+    const card=ev.target.closest&&ev.target.closest('.acc-card');
+    const slug=slugDe(card);
+    if(!slug)return;
+    disparado=false; x0=ev.clientX; y0=ev.clientY; cardActiva=card;
+    card.classList.add('abono-presionando');
+    timer=setTimeout(()=>{ disparado=true; cancelar(); if(document.activeElement)document.activeElement.blur(); abrirRenombrarCuenta(slug); },MS);
+  });
+  document.addEventListener('pointermove',ev=>{ if(timer&&Math.hypot(ev.clientX-x0,ev.clientY-y0)>TOLERANCIA)cancelar(); });
+  ['pointerup','pointercancel'].forEach(t=>document.addEventListener(t,cancelar));
+  // Tras el gesto, el "clic" de soltar no debe enfocar el campo de saldo
+  document.addEventListener('click',ev=>{ if(disparado){ ev.preventDefault(); ev.stopPropagation(); disparado=false; if(document.activeElement)document.activeElement.blur(); } },true);
+  document.addEventListener('contextmenu',ev=>{
+    const card=ev.target.closest&&ev.target.closest('.acc-card'); const slug=slugDe(card);
+    if(slug){ ev.preventDefault(); if(!disparado)abrirRenombrarCuenta(slug); }
   });
 }
