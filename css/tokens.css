@@ -46,7 +46,7 @@ body{overflow-wrap:break-word;font-variant-numeric:tabular-nums;font-family:var(
 
 /* Semáforo del estado del mes: un punto de color en vez de un emoji */
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
-.dot-ok{background:var(--safe)} .dot-ojo{background:var(--warn)} .dot-mal{background:var(--danger)}
+.dot-ok{background:var(--safe)} .dot-ojo{background:var(--warn)} .dot-mal{background:var(--danger)} .dot-neutro{background:var(--text3)}
 
 /* Controles táctiles: en pantallas de dedo, 44 px de alto como mínimo (las áreas pequeñas se amplían sin cambiar lo que se ve) */
 @media (pointer:coarse){

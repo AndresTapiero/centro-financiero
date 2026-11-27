@@ -13,7 +13,7 @@
 .acc-card:hover{box-shadow:0 4px 12px rgba(23,23,31,.08)}
 .acc-card.low-balance{border-color:var(--warn)}
 .acc-card.debt{background:rgba(220,38,38,.04)}
-.low-balance-badge{position:absolute;bottom:10px;right:10px;font-size:11px;background:transparent;color:var(--warn);border:1px solid var(--warn);padding:1px 7px;border-radius:99px;font-weight:600;letter-spacing:.2px}
+.low-balance-badge{display:inline-block;margin-top:8px;font-size:11px;background:transparent;color:var(--warn);border:1px solid var(--warn);padding:1px 7px;border-radius:99px;font-weight:600;letter-spacing:.2px}
 .avatar-square{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex-shrink:0}
 .currency-badge{font-size:11px;color:var(--text2);background:var(--surface3);padding:3px 8px;border-radius:99px;font-weight:600;white-space:nowrap}
 .acc-label{font-size:11px;font-weight:600;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;gap:8px}
